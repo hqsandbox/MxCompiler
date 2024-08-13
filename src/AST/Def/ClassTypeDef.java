@@ -10,6 +10,7 @@ public class ClassTypeDef extends Definition {
     public String name;
     public ArrayList<VariableDef> varList = new ArrayList<>();
     public ArrayList<FunctionDef> funcList = new ArrayList<>();
+    public Constructor constructor;
 
     public ClassTypeDef(String name, position pos) {
         super(pos);

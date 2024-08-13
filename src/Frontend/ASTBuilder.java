@@ -48,7 +48,19 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
         classDef.name = ctx.Identifier().toString();
         ctx.variableDef().forEach(vd -> classDef.varList.add((VariableDef) visit(vd)));
         ctx.functionDef().forEach(fd -> classDef.funcList.add((FunctionDef) visit(fd)));
+        if(ctx.constructor() != null){
+            classDef.constructor = (Constructor) visit(ctx.constructor());
+        }
         return classDef;
+    }
+
+    @Override
+    public ASTNode visitConstructor(MxParser.ConstructorContext ctx) {
+        if (ctx == null) return null;
+        Constructor constructor = new Constructor(new position(ctx));
+        constructor.className = ctx.Identifier().toString();
+        constructor.suite = (Suite) visit(ctx.suite());
+        return constructor;
     }
 
     @Override
@@ -186,7 +198,6 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
         }
         newArrayExpr.type = new Type(newArrayExpr.baseType);
         newArrayExpr.type.dim = ctx.count.size();
-        // TODO
         return newArrayExpr;
     }
 
@@ -213,7 +224,6 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
         ParenExpr parenExpr = new ParenExpr(new position(ctx));
         parenExpr.expr = (Expression) visit(ctx.expr());
         parenExpr.isAssignable = parenExpr.expr.isAssignable;
-//        parenExpr.type = new Type(parenExpr.expr.type);
         return parenExpr;
     }
 
@@ -223,6 +233,9 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
         PostfixExpr postfixExpr = new PostfixExpr(new position(ctx));
         postfixExpr.op = ctx.op.getText();
         postfixExpr.expr = (Expression) visit(ctx.expr());
+        if(!postfixExpr.expr.isAssignable){
+            throw new RuntimeException("Postfix expression is not assignable");
+        }
         postfixExpr.type = new Type();
         postfixExpr.type.setInt();
         return postfixExpr;
@@ -234,8 +247,12 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
         PrefixExpr prefixExpr = new PrefixExpr(new position(ctx));
         prefixExpr.op = ctx.op.getText();
         prefixExpr.expr = (Expression) visit(ctx.expr());
+        if(!prefixExpr.expr.isAssignable){
+            throw new RuntimeException("Prefix expression is not assignable");
+        }
         prefixExpr.type = new Type();
         prefixExpr.type.setInt();
+        prefixExpr.isAssignable = true;
         return prefixExpr;
     }
 
@@ -248,7 +265,6 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
             primaryExpr.isIdentifier = true;
             primaryExpr.identifier = ctx.primary().Identifier().getText();
             primaryExpr.type.setClass(primaryExpr.identifier);
-            // TODO
             primaryExpr.isAssignable = true;
         } else if (ctx.primary().This() != null) {
             primaryExpr.isThis = true;
@@ -319,9 +335,12 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
             forStmt.parallelExp = (ParallelExp) visit(ctx.parallelExp());
         } else if (ctx.variableDef() != null) {
             forStmt.variableDef = (VariableDef) visit(ctx.variableDef());
-        } else if (ctx.expr() != null) {
-            forStmt.conditionExp = (Expression) visit(ctx.expr(0));
-            forStmt.stepExp = (Expression) visit(ctx.expr(1));
+        }
+        if (ctx.condition != null) {
+            forStmt.conditionExp = (Expression) visit(ctx.condition);
+        }
+        if (ctx.step != null) {
+            forStmt.stepExp = (Expression) visit(ctx.step);
         }
         forStmt.stmt = (StmtNode) visit(ctx.statement());
         return forStmt;
@@ -371,8 +390,15 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
         if (ctx == null) return null;
         WhileStmt whileStmt = new WhileStmt(new position(ctx));
         whileStmt.condition = (Expression) visit(ctx.expr());
-        whileStmt.body = (Suite) visit(ctx.statement());
+        whileStmt.body = (StmtNode) visit(ctx.statement());
         return whileStmt;
+    }
+
+    @Override
+    public ASTNode visitEmptyStmt(MxParser.EmptyStmtContext ctx) {
+        if (ctx == null) return null;
+        EmptyStmt emptyStmt = new EmptyStmt(new position(ctx));
+        return emptyStmt;
     }
 
     public Type visitType(MxParser.TypeNameContext ctx) {

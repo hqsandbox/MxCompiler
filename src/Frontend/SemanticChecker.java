@@ -10,6 +10,7 @@ import Util.error.semanticError;
 import Util.infor.ClassInfor;
 import Util.infor.FuncInfor;
 
+
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SemanticChecker implements ASTVisitor {
@@ -18,6 +19,12 @@ public class SemanticChecker implements ASTVisitor {
     private Scope currentScope;
 
     public String currentClassName = null;
+    public boolean inLoop = false;
+    public boolean inFunc = false;
+    public boolean inMain = false;
+    public boolean inConstructor = false;
+    public boolean hasReturn = false;
+    public Type currentType = null;
 
     public SemanticChecker(Scope gScope) {
         currentScope = this.gScope = gScope;
@@ -66,17 +73,37 @@ public class SemanticChecker implements ASTVisitor {
 
         it.varList.forEach(vd -> vd.accept(this));
         it.funcList.forEach(fd -> fd.accept(this));
-        // TODO: not sure，构造函数没写
-
+        if(it.constructor != null) {
+            it.constructor.accept(this);
+        }
         // 错误：要将当前的scope改为 parentScope
         currentScope = currentScope.parentScope();
         currentClassName = null;
+    }
+
+    @Override public void visit(Constructor it){
+        currentScope = new Scope(currentScope);
+        inConstructor = true;
+        inFunc = true;
+        if(!it.className.equals(currentClassName)) {
+            throw new semanticError("constructor name not match", it.pos);
+        }
+        it.suite.accept(this);
+        inFunc = false;
+        inConstructor = false;
+        currentScope = currentScope.parentScope();
     }
 
     @Override public void visit(FunctionDef it) {
         currentScope = new Scope(currentScope);
         FuncInfor func = new FuncInfor(it);
         currentScope.addFuncInfo(it.name, func, it.pos);
+        inFunc = true;
+        hasReturn = false;
+        if(it.name.equals("main")) {
+            inMain = true;
+        }
+        currentType = new Type(it.returnType);
 
         if(it.returnType.isClass && !gScope.containsClass(it.returnType.typeName, true)) {
             throw new semanticError("return type " + it.returnType.typeName + " not defined", it.pos);
@@ -97,12 +124,6 @@ public class SemanticChecker implements ASTVisitor {
                 }
             }
             // 错误：要将参数加入到当前的scope中
-//            if(currentScope.variInfor.containsKey(it.parameterNames.get(i))) {
-//                throw new semanticError("redefinition of variable " + it.parameterNames.get(i), it.pos);
-//            }
-//            if(currentScope.funcInfor.containsKey(it.parameterNames.get(i))) {
-//                throw new semanticError("redefinition of function " + it.parameterNames.get(i), it.pos);
-//            }
             currentScope.defineVariable(it.parameterNames.get(i), it.parameters.get(i), it.pos, false);
         }
 
@@ -111,34 +132,46 @@ public class SemanticChecker implements ASTVisitor {
                 throw new semanticError("return type of non-void function should have return statement", it.pos);
             }
             currentScope = currentScope.parentScope();
+            inFunc = false;
+            inMain = false;
+            currentType = null;
+            hasReturn = false;
             return;
         }
+        it.body.stmt.forEach(stmt -> stmt.accept(this));
 
-        AtomicBoolean hasReturn = new AtomicBoolean(false);
-        it.body.stmt.forEach(stmt -> {
-            stmt.accept(this);
-            if (stmt instanceof ReturnStmt) {
-                // 错误：要考虑到 return的情况
-                if(((ReturnStmt) stmt).expr == null) {
-                    if(!it.returnType.isVoid) {
-                        throw new semanticError("return type not match", it.pos);
-                    }
-                }
-                if(((ReturnStmt) stmt).expr != null) {
-                    if(it.returnType.isVoid) {
-                        throw new semanticError("return type of void function should not have return statement", it.pos);
-                    }
-                    if(!it.returnType.canAssign(((ReturnStmt) stmt).expr.type)) {
-                        throw new semanticError("return type not match", it.pos);
-                    }
-                }
-                hasReturn.set(true);
-            }
-        });
-        if(!hasReturn.get() && !it.returnType.isVoid && !it.name.equals("main")) {
+//        AtomicBoolean hasReturn = new AtomicBoolean(false);
+//        it.body.stmt.forEach(stmt -> {
+//            stmt.accept(this);
+//            if (stmt instanceof ReturnStmt) {
+//                // 错误：要考虑到 return的情况
+//                if(((ReturnStmt) stmt).expr == null) {
+//                    if(!it.returnType.isVoid) {
+//                        throw new semanticError("return type not match", it.pos);
+//                    }
+//                }
+//                if(((ReturnStmt) stmt).expr != null) {
+//                    if(it.returnType.isVoid) {
+//                        throw new semanticError("return type of void function should not have return statement", it.pos);
+//                    }
+//                    if(!it.returnType.canAssign(((ReturnStmt) stmt).expr.type)) {
+//                        throw new semanticError("return type not match", it.pos);
+//                    }
+//                }
+//                hasReturn.set(true);
+//            }
+//        });
+//        if(!hasReturn.get() && !it.returnType.isVoid && !it.name.equals("main")) {
+//            throw new semanticError("return type of non-void function should have return statement", it.pos);
+//        }
+        if(!hasReturn && !it.returnType.isVoid && !it.name.equals("main")) {
             throw new semanticError("return type of non-void function should have return statement", it.pos);
         }
 
+        inFunc = false;
+        inMain = false;
+        currentType = null;
+        hasReturn = false;
         currentScope = currentScope.parentScope();
     }
 
@@ -233,7 +266,6 @@ public class SemanticChecker implements ASTVisitor {
                 it.type.setBool();
             }
             case "==", "!=" -> {
-                // TODO
                 if(!it.lhs.type.equalType(it.rhs.type)) {
                     throw new semanticError("type not match", it.pos);
                 }
@@ -253,24 +285,39 @@ public class SemanticChecker implements ASTVisitor {
         }
     }
     @Override public void visit(ConditionalExpr it) {
-        if(!it.condition.type.isBool) {
-            throw new semanticError("type not match", it.pos);
-        }
         it.condition.accept(this);
-        if(!it.trueBranch.type.equalType(it.falseBranch.type)) {
+        if(!it.condition.type.isBool) {
             throw new semanticError("type not match", it.pos);
         }
         it.trueBranch.accept(this);
         it.falseBranch.accept(this);
+        if(!it.trueBranch.type.equalType(it.falseBranch.type)) {
+            throw new semanticError("type not match", it.pos);
+        }
+        it.type = new Type(it.trueBranch.type);
     }
     @Override public void visit(Expression it) {
         it.accept(this);
     }
     @Override public void visit(FuncCallExpr it) {
-        if(!gScope.containsFunc(it.funcName, true)) {
-            throw new semanticError("function " + it.funcName + " not defined", it.pos);
+        ClassInfor struct;
+        FuncInfor func;
+        if(currentClassName != null && gScope.containsClass(currentClassName, true)) {
+            struct = gScope.getClassInfo(currentClassName);
+            if(struct.funcList.get(it.funcName) != null) {
+                func = struct.funcList.get(it.funcName);
+            } else if(gScope.containsFunc(it.funcName, true)) {
+                func = gScope.getFuncInfo(it.funcName);
+            } else {
+                throw new semanticError("function " + it.funcName + " not defined", it.pos);
+            }
+        } else {
+            if(gScope.containsFunc(it.funcName, true)) {
+                func = gScope.getFuncInfo(it.funcName);
+            } else {
+                throw new semanticError("function " + it.funcName + " not defined", it.pos);
+            }
         }
-        FuncInfor func = gScope.getFuncInfo(it.funcName);
         if(it.callExpList.expList.size() != func.paraTypeList.size()) {
             throw new semanticError("parameter number not match", it.pos);
         }
@@ -343,7 +390,6 @@ public class SemanticChecker implements ASTVisitor {
         if(it.baseType.isClass && !gScope.containsClass(it.baseType.typeName, true)) {
             throw new semanticError("class " + it.baseType.typeName + " not defined", it.pos);
         }
-        // TODO
         if(!it.size.isEmpty()) {
             it.size.forEach(e -> e.accept(this));
             for(var e : it.size) {
@@ -354,19 +400,13 @@ public class SemanticChecker implements ASTVisitor {
         }
     }
     @Override public void visit(NewVarExpr it) {
+        //错误：这里不能将变量加入scope，因为这里只是声明变量，不是定义变量
         if(it.type.isVoid || it.type.isNull || it.type.dim > 0) {
             throw new semanticError("invalid type", it.pos);
         }
         if(it.type.isClass && !gScope.containsClass(it.type.typeName, true)) {
             throw new semanticError("class " + it.type.typeName + " not defined", it.pos);
         }
-        if(currentScope.variInfor.containsKey(it.varName)) {
-            throw new semanticError("redefinition of variable " + it.varName, it.pos);
-        }
-        if(currentScope.funcInfor.containsKey(it.varName)) {
-            throw new semanticError("redefinition of function " + it.varName, it.pos);
-        }
-        currentScope.defineVariable(it.varName, it.type, it.pos, false);
     }
     @Override public void visit(ParallelExp it) {
         // 错误：这里不能为空，要visit一下，比如 println(s2.substring(0, getInt()));中的 getInt()
@@ -444,8 +484,16 @@ public class SemanticChecker implements ASTVisitor {
         }
     }
 
-    @Override public void visit(BreakStmt it) {}
-    @Override public void visit(ContinueStmt it) {}
+    @Override public void visit(BreakStmt it) {
+        if(!currentScope.isLoop()) {
+            throw new semanticError("break should be in loop", it.pos);
+        }
+    }
+    @Override public void visit(ContinueStmt it) {
+        if(!currentScope.isLoop()) {
+            throw new semanticError("continue should be in loop", it.pos);
+        }
+    }
     @Override public void visit(ExprStmt it) {
         it.expr.accept(this);
     }
@@ -460,7 +508,12 @@ public class SemanticChecker implements ASTVisitor {
             }
         }
         if(it.stepExp != null) it.stepExp.accept(this);
-        it.stmt.accept(this);
+        currentScope.setLoop(true);
+        // 错误：考虑到循环体为空的情况
+        if(it.stmt != null){
+            it.stmt.accept(this);
+        }
+        currentScope.setLoop(false);
         currentScope = currentScope.parentScope();
     }
     @Override public void visit(IfStmt it) {
@@ -480,8 +533,39 @@ public class SemanticChecker implements ASTVisitor {
         }
     }
     @Override public void visit(ReturnStmt it) {
+        hasReturn = true;
         if(it.expr != null) {
             it.expr.accept(this);
+        }
+
+        if(inConstructor) {
+            if(it.expr != null) {
+                throw new semanticError("constructor should not have return statement", it.pos);
+            } else {
+                return;
+            }
+        }
+        if(!inMain && inFunc) {
+            if(it.expr == null) {
+                if(!currentType.isVoid) {
+                    throw new semanticError("return type not match", it.pos);
+                }
+            }
+            if(it.expr != null) {
+                if(currentType.isVoid) {
+                    throw new semanticError("return type of void function should not have return statement", it.pos);
+                }
+                if(!currentType.canAssign(it.expr.type)) {
+                    throw new semanticError("return type not match", it.pos);
+                }
+            }
+        }
+        if(inMain){
+            if(it.expr != null) {
+                if(!it.expr.type.isInt) {
+                    throw new semanticError("return type of main function should be int", it.pos);
+                }
+            }
         }
     }
     @Override public void visit(Suite it) {
@@ -498,8 +582,11 @@ public class SemanticChecker implements ASTVisitor {
             throw new semanticError("type not match", it.pos);
         }
         currentScope = new Scope(currentScope);
+        currentScope.setLoop(true);
         it.body.accept(this);
+        currentScope.setLoop(false);
         currentScope = currentScope.parentScope();
     }
+    @Override public void visit(EmptyStmt it) {}
 }
 

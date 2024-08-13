@@ -24,7 +24,7 @@ variableDef
     ;
 
 constructor
-    : Identifier '(' ( typeName Identifier ( ',' typeName Identifier )* )? ')' suite
+    : Identifier '(' ')' suite
     ;
 
 typeAtom

@@ -135,6 +135,10 @@ public class Type {
         if (isInt && type.isInt && dim == type.dim) return true;
         if (isString && type.isString && dim == type.dim) return true;
         if (isNull && type.isNull) return true;
+        if (dim > 0 && type.isNull) return true;
+        if (isNull && type.dim > 0) return true;
+        if (isClass && type.isNull) return true;
+        if (isNull && type.isClass) return true;
         if (isVoid && type.isVoid) return true;
         return isClass && type.isClass && typeName.equals(type.typeName) && dim == type.dim;
     }

@@ -10,6 +10,7 @@ public class Scope {
     public HashMap<String, Type> variInfor = new HashMap<>();
     public HashMap<String, FuncInfor> funcInfor = new HashMap<>();
     public HashMap<String, ClassInfor> classInfor = new HashMap<>();
+    boolean isLoop = false;
 
     public Scope parentScope;
 
@@ -18,8 +19,9 @@ public class Scope {
     }
 
     public void addFuncInfo(String name, FuncInfor infor, position pos) {
-        if (funcInfor.containsKey(name))
-            throw new semanticError("multiple definition of " + name, pos);
+        if (funcInfor.containsKey(name)){
+                throw new semanticError("multiple definition of " + name, pos);
+        }
         funcInfor.put(name, infor);
     }
     public void addClassInfo(String name, ClassInfor infor, position pos) {
@@ -37,6 +39,16 @@ public class Scope {
     public ClassInfor getClassInfo(String name) {
         if (classInfor.containsKey(name)) return classInfor.get(name);
         throw new semanticError("no such type: " + name, new position(0, 0));
+    }
+
+    public boolean isLoop() {
+        if(isLoop) return true;
+        if(parentScope == null) return false;
+        return parentScope.isLoop();
+    }
+
+    public void setLoop(boolean loop) {
+        isLoop = loop;
     }
 
     public Scope parentScope() {

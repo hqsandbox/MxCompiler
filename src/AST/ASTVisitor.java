@@ -12,6 +12,7 @@ public interface ASTVisitor {
     void visit(VariableDef node);
     void visit(InitVariable node);
     void visit(Definition node);
+    void visit(Constructor node);
 
     void visit(ArrayExpr node);
     void visit(AssignExpr node);
@@ -39,4 +40,5 @@ public interface ASTVisitor {
     void visit(Suite node);
     void visit(VariableDefStmt node);
     void visit(WhileStmt node);
+    void visit(EmptyStmt node);
 }

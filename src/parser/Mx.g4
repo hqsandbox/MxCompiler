@@ -70,7 +70,7 @@ statement
 
 //表达式，不含有分号
 expr
-    : New typeAtom (count+= '[' expr? ']')+ arrayConst?              #newArrayExpr
+    : New typeAtom (((count+= '[' expr ']')+ (count+= '['']')*) | (count+= '['']')+) arrayConst?              #newArrayExpr
     | New typeAtom ('(' ')')?                                #newVarExpr
     |'(' expr ')'                                            #parenExpr
     | expr '.' Identifier                                    #memberExpr

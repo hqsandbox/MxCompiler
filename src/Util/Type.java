@@ -140,8 +140,15 @@ public class Type {
     }
 
     // TODO
+    // 参数里面的 type赋值给 this
     public boolean canAssign(Type type) {
-        return equalType(type);
+        if (isBool && type.isBool && dim == type.dim) return true;
+        if (isInt && type.isInt && dim == type.dim) return true;
+        if (isString && type.isString && dim == type.dim) return true;
+        if (isNull && type.isNull) return true;
+        if (dim > 0 && type.isNull) return true;
+        if (isVoid && type.isVoid) return true;
+        return isClass && type.isClass && typeName.equals(type.typeName) && dim == type.dim;
     }
 
     public void setArray(Type typeBase) {

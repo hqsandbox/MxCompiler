@@ -68,6 +68,9 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
         if (ctx == null) return null;
         VariableDef varDef = new VariableDef(new position(ctx));
         varDef.type = visitType(ctx.typeName());
+        if(varDef.type.isVoid) {
+            throw new RuntimeException("Variable cannot be void");
+        }
         ctx.initVariable().forEach(iv -> varDef.initVariablelist.add((InitVariable) visit(iv)));
         varDef.initVariablelist.forEach(iv -> iv.type = varDef.type);
         return varDef;
@@ -136,7 +139,13 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
         if (ctx == null) return null;
         FuncCallExpr functionCallExpr = new FuncCallExpr(new position(ctx));
         functionCallExpr.funcName = ctx.Identifier().getText();
-        functionCallExpr.callExpList = (ParallelExp) visit(ctx.parallelExp());
+        // 错误：要考虑参数为空的情况
+        if(ctx.parallelExp() != null){
+            functionCallExpr.callExpList = (ParallelExp) visit(ctx.parallelExp());
+        }
+        if(functionCallExpr.callExpList == null){
+            functionCallExpr.callExpList = new ParallelExp(new position(ctx));
+        }
         return functionCallExpr;
     }
 
@@ -157,8 +166,10 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
         MethodCallExpr methodCallExpr = new MethodCallExpr(new position(ctx));
         methodCallExpr.base = (Expression) visit(ctx.expr());
         methodCallExpr.methodName = ctx.Identifier().getText();
-        methodCallExpr.callExpList = (ParallelExp) visit(ctx.parallelExp());
-        methodCallExpr.type = new Type(methodCallExpr.base.type);
+        if(ctx.parallelExp() != null){
+            methodCallExpr.callExpList = (ParallelExp) visit(ctx.parallelExp());
+        }
+//        methodCallExpr.type = new Type(methodCallExpr.base.type);
         return methodCallExpr;
     }
 
@@ -167,12 +178,11 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
         if (ctx == null) return null;
         NewArrayExpr newArrayExpr = new NewArrayExpr(new position(ctx));
         newArrayExpr.baseType = visitAtomType(ctx.typeAtom());
-        newArrayExpr.dim = ctx.count.size();
         if(ctx.expr() != null) {
             ctx.expr().forEach(e -> newArrayExpr.size.add((Expression) visit(e)));
         }
         newArrayExpr.type = new Type(newArrayExpr.baseType);
-        newArrayExpr.type.dim = newArrayExpr.dim;
+        newArrayExpr.type.dim = ctx.count.size();
         // TODO
         return newArrayExpr;
     }
@@ -209,7 +219,8 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
         PostfixExpr postfixExpr = new PostfixExpr(new position(ctx));
         postfixExpr.op = ctx.op.getText();
         postfixExpr.expr = (Expression) visit(ctx.expr());
-        postfixExpr.type = new Type(postfixExpr.expr.type);
+        postfixExpr.type = new Type();
+        postfixExpr.type.setInt();
         return postfixExpr;
     }
 
@@ -219,7 +230,8 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
         PrefixExpr prefixExpr = new PrefixExpr(new position(ctx));
         prefixExpr.op = ctx.op.getText();
         prefixExpr.expr = (Expression) visit(ctx.expr());
-        prefixExpr.type = new Type(prefixExpr.expr.type);
+        prefixExpr.type = new Type();
+        prefixExpr.type.setInt();
         return prefixExpr;
     }
 
@@ -307,7 +319,7 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
             forStmt.conditionExp = (Expression) visit(ctx.expr(0));
             forStmt.stepExp = (Expression) visit(ctx.expr(1));
         }
-        forStmt.stmt = (Suite) visit(ctx.statement());
+        forStmt.stmt = (StmtNode) visit(ctx.statement());
         return forStmt;
     }
 
@@ -316,9 +328,10 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
         if (ctx == null) return null;
         IfStmt ifStmt = new IfStmt(new position(ctx));
         ifStmt.condition = (Expression) visit(ctx.expr());
-        ifStmt.thenStmt = (Suite) visit(ctx.statement(0));
+        // 错误：不能写成 (Suite)
+        ifStmt.thenStmt = (StmtNode) visit(ctx.statement(0));
         if (ctx.statement().size() == 2) {
-            ifStmt.elseStmt = (Suite) visit(ctx.statement(1));
+            ifStmt.elseStmt = (StmtNode) visit(ctx.statement(1));
         }
         return ifStmt;
     }

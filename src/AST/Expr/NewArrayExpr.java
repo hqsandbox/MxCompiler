@@ -9,7 +9,6 @@ import AST.Literal;
 public class NewArrayExpr extends Expression {
     public Type baseType;
     public ArrayList<Expression> size = new ArrayList<>();
-    public int dim;
     public ArrayList<Literal> literal = new ArrayList<>();
 
     public NewArrayExpr(position pos) {

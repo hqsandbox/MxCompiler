@@ -212,6 +212,7 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
         if (ctx == null) return null;
         ParenExpr parenExpr = new ParenExpr(new position(ctx));
         parenExpr.expr = (Expression) visit(ctx.expr());
+        parenExpr.isAssignable = parenExpr.expr.isAssignable;
 //        parenExpr.type = new Type(parenExpr.expr.type);
         return parenExpr;
     }

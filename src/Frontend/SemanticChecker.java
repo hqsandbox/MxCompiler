@@ -375,6 +375,7 @@ public class SemanticChecker implements ASTVisitor {
     @Override public void visit(ParenExpr it) {
         it.expr.accept(this);
         it.type = new Type(it.expr.type);
+        it.isAssignable = it.expr.isAssignable;
     }
     @Override public void visit(PostfixExpr it) {
         it.expr.accept(this);

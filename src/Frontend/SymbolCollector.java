@@ -24,11 +24,15 @@ public class SymbolCollector implements ASTVisitor {
 
     @Override public void visit(ClassTypeDef it) {
         ClassInfor struct = new ClassInfor(it);
+        if(gScope.funcInfor.containsKey(it.name))
+            throw new Util.error.semanticError("class name conflict with function name", it.pos);
         gScope.addClassInfo(it.name, struct, it.pos);
     }
 
     @Override public void visit(FunctionDef it) {
         FuncInfor func = new FuncInfor(it);
+        if(gScope.classInfor.containsKey(it.name))
+            throw new Util.error.semanticError("function name conflict with class name", it.pos);
         gScope.addFuncInfo(it.name, func, it.pos);
     }
 

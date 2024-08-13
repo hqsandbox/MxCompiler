@@ -43,10 +43,15 @@ public class Scope {
         return parentScope;
     }
 
-    public void defineVariable(String name, Type t, position pos) {
+    public void defineVariable(String name, Type t, position pos, boolean lookUpon) {
         // 错误：这里的 variable需要向上找
-        if (containsVariable(name, true))
-            throw new semanticError("Semantic Error: variable redefine", pos);
+        if(lookUpon){
+            if (containsVariable(name, true))
+                throw new semanticError("Semantic Error: variable redefine", pos);
+        } else{
+            if (containsVariable(name, false))
+                throw new semanticError("Semantic Error: variable redefine", pos);
+        }
         variInfor.put(name, t);
     }
     public boolean containsVariable(String name, boolean lookUpon) {

@@ -102,6 +102,9 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
         arrayExpr.baseType = (Expression) visit(ctx.expr(0));
         arrayExpr.size = (Expression) visit(ctx.expr(1));
         arrayExpr.isAssignable = true;
+        // 错误：这里要更新 type
+        arrayExpr.type = new Type(arrayExpr.baseType.type);
+        arrayExpr.type.dim = arrayExpr.baseType.type.dim + 1;
         return arrayExpr;
     }
 

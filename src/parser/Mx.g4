@@ -167,7 +167,7 @@ Break : 'break';
 Continue : 'continue';
 Return : 'return';
 
-Identifier : [a-zA-Z] [a-zA-Z0-9]* ;
+Identifier : [a-zA-Z] [a-zA-Z0-9_]* ;
 
 WhiteSpace: [\t\r\n ]+ -> skip;
 LineComment: '//' ~[\r\n]* -> skip;

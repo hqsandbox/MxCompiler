@@ -103,8 +103,8 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
         arrayExpr.size = (Expression) visit(ctx.expr(1));
         arrayExpr.isAssignable = true;
         // 错误：这里要更新 type
-        arrayExpr.type = new Type(arrayExpr.baseType.type);
-        arrayExpr.type.dim = arrayExpr.baseType.type.dim + 1;
+//        arrayExpr.type = new Type(arrayExpr.baseType.type);
+//        arrayExpr.type.dim = arrayExpr.baseType.type.dim + 1;
         return arrayExpr;
     }
 
@@ -158,7 +158,7 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
         MemberExpr memberExpr = new MemberExpr(new position(ctx));
         memberExpr.base = (Expression) visit(ctx.expr());
         memberExpr.memberName = ctx.Identifier().getText();
-        memberExpr.type = new Type(memberExpr.base.type);
+//        memberExpr.type = new Type(memberExpr.base.type);
         memberExpr.isAssignable = true;
         return memberExpr;
     }
@@ -212,7 +212,7 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
         if (ctx == null) return null;
         ParenExpr parenExpr = new ParenExpr(new position(ctx));
         parenExpr.expr = (Expression) visit(ctx.expr());
-        parenExpr.type = new Type(parenExpr.expr.type);
+//        parenExpr.type = new Type(parenExpr.expr.type);
         return parenExpr;
     }
 

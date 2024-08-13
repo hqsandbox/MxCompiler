@@ -97,12 +97,12 @@ public class SemanticChecker implements ASTVisitor {
                 }
             }
             // 错误：要将参数加入到当前的scope中
-            if(currentScope.variInfor.containsKey(it.parameterNames.get(i))) {
-                throw new semanticError("redefinition of variable " + it.parameterNames.get(i), it.pos);
-            }
-            if(currentScope.funcInfor.containsKey(it.parameterNames.get(i))) {
-                throw new semanticError("redefinition of function " + it.parameterNames.get(i), it.pos);
-            }
+//            if(currentScope.variInfor.containsKey(it.parameterNames.get(i))) {
+//                throw new semanticError("redefinition of variable " + it.parameterNames.get(i), it.pos);
+//            }
+//            if(currentScope.funcInfor.containsKey(it.parameterNames.get(i))) {
+//                throw new semanticError("redefinition of function " + it.parameterNames.get(i), it.pos);
+//            }
             currentScope.defineVariable(it.parameterNames.get(i), it.parameters.get(i), it.pos, false);
         }
 
@@ -372,7 +372,10 @@ public class SemanticChecker implements ASTVisitor {
         // 错误：这里不能为空，要visit一下，比如 println(s2.substring(0, getInt()));中的 getInt()
         it.expList.forEach(e -> e.accept(this));
     }
-    @Override public void visit(ParenExpr it) {}
+    @Override public void visit(ParenExpr it) {
+        it.expr.accept(this);
+        it.type = new Type(it.expr.type);
+    }
     @Override public void visit(PostfixExpr it) {
         it.expr.accept(this);
         if(!it.expr.type.isInt || it.expr.type.dim > 0) {

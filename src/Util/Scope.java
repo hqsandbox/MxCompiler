@@ -26,6 +26,7 @@ public class Scope {
     }
     public void addClassInfo(String name, ClassInfor infor, position pos) {
         if(name.equals("main")){
+            System.out.println("Multiple Definitions");
             throw new semanticError("main function should not be defined", pos);
         }
         if (classInfor.containsKey(name))

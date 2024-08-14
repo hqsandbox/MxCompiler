@@ -31,8 +31,10 @@ public class SymbolCollector implements ASTVisitor {
 
     @Override public void visit(FunctionDef it) {
         FuncInfor func = new FuncInfor(it);
-        if(gScope.classInfor.containsKey(it.name))
+        if(gScope.classInfor.containsKey(it.name)){
+            System.out.println("Multiple Definitions");
             throw new Util.error.semanticError("function name conflict with class name", it.pos);
+        }
         gScope.addFuncInfo(it.name, func, it.pos);
     }
 

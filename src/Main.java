@@ -22,10 +22,10 @@ public class Main {
     // 错误：要添加内建函数
     public static void main(String[] args) throws Exception{
 //        String name = "C:\\Users\\31447\\IdeaProjects\\Compiler-Design-Implementation-master\\testcases\\sema\\array-package\\array-1.mx";
-        InputStream input = System.in;
+//        InputStream input = System.in;
 
-//        String name = "C:\\Users\\31447\\IdeaProjects\\untitled\\src\\test.mx";
-//        InputStream input = new FileInputStream(name);
+        String name = "C:\\Users\\31447\\IdeaProjects\\untitled\\src\\test.mx";
+        InputStream input = new FileInputStream(name);
 
         try {
             Program ASTRoot;
@@ -37,7 +37,14 @@ public class Main {
             MxParser parser = new MxParser(new CommonTokenStream(lexer));
             parser.removeErrorListeners();
             parser.addErrorListener(new MxErrorListener());
-            ParseTree parseTreeRoot = parser.program();
+            ParseTree parseTreeRoot = null;
+            try{
+                parseTreeRoot = parser.program();
+            } catch (Exception e) {
+                System.out.println("Invalid Identifier");
+                System.exit(1);
+            }
+
 
             ASTBuilder astBuilder = new ASTBuilder(gScope);
             ASTRoot = (Program)astBuilder.visit(parseTreeRoot);
@@ -55,8 +62,9 @@ public class Main {
 //            new RegAlloc(asmF).work();
 //            new AsmPrinter(asmF, System.out).print();
         } catch (error er) {
-            System.err.println(er.toString());
-            throw new RuntimeException();
+            System.exit(1);
+//            System.err.println(er.toString());
+//            throw new RuntimeException();
         }
     }
 }

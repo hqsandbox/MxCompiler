@@ -129,6 +129,7 @@ public class SemanticChecker implements ASTVisitor {
 
         if(it.body.stmt.isEmpty()) {
             if(!it.returnType.isVoid && !it.name.equals("main")) {
+                System.out.println("Missing Return Statement");
                 throw new semanticError("return type of non-void function should have return statement", it.pos);
             }
             currentScope = currentScope.parentScope();
@@ -165,8 +166,11 @@ public class SemanticChecker implements ASTVisitor {
     }
 
     @Override public void visit(InitVariable it) {
-        if(currentScope.variInfor.containsKey(it.name))
+        if(currentScope.variInfor.containsKey(it.name)){
+            System.out.println("Multiple Definitions");
             throw new semanticError("redefinition of variable " + it.name, it.pos);
+        }
+
         if(it.init != null) {
             it.init.accept(this);
             if(!it.type.canAssign(it.init.type)) {
@@ -198,10 +202,12 @@ public class SemanticChecker implements ASTVisitor {
     @Override public void visit(AssignExpr it) {
         it.lhs.accept(this);
         if(!it.lhs.isAssignable) {
+            System.out.println("Invalid Type");
             throw new semanticError("left value is not assignable", it.pos);
         }
         it.rhs.accept(this);
         if(!it.lhs.type.canAssign(it.rhs.type)) {
+            System.out.println("Type Mismatch");
             throw new semanticError("type not match", it.pos);
         }
 
@@ -231,6 +237,7 @@ public class SemanticChecker implements ASTVisitor {
                     it.type = new Type();
                     it.type.setString();
                 } else {
+                    System.out.println("Invalid Type");
                     throw new semanticError("type not match", it.pos);
                 }
             }
@@ -377,6 +384,7 @@ public class SemanticChecker implements ASTVisitor {
         if(it.arrayconst != null) {
             it.arrayconst.accept(this);
             if(!it.type.canAssign(it.arrayconst.type)) {
+                System.out.println("Type Mismatch");
                 throw new semanticError("type not match", it.pos);
             }
         }
@@ -439,6 +447,7 @@ public class SemanticChecker implements ASTVisitor {
             } else if(gScope.containsClass(it.identifier, true)) {
                 it.type = gScope.getType(it.identifier, true);
             } else {
+                System.out.println("Undefined Identifier");
                 throw new semanticError(it.identifier + " not defined", it.pos);
             }
             it.isAssignable = true;
@@ -475,6 +484,7 @@ public class SemanticChecker implements ASTVisitor {
         it.exprList.forEach(e -> {
             e.accept(this);
             if(!e.type.isInt && !e.type.isString && !e.type.isBool) {
+                System.out.println("Invalid Type");
                 throw new semanticError("type not match", it.pos);
             }
         });
@@ -503,6 +513,7 @@ public class SemanticChecker implements ASTVisitor {
 
     @Override public void visit(BreakStmt it) {
         if(!currentScope.isLoop()) {
+            System.out.println("Invalid Control Flow");
             throw new semanticError("break should be in loop", it.pos);
         }
     }
@@ -521,6 +532,7 @@ public class SemanticChecker implements ASTVisitor {
         if(it.conditionExp != null){
             it.conditionExp.accept(this);
             if (!it.conditionExp.type.isBool) {
+                System.out.println("Invalid Type");
                 throw new semanticError("type not match", it.pos);
             }
         }
@@ -536,6 +548,7 @@ public class SemanticChecker implements ASTVisitor {
     @Override public void visit(IfStmt it) {
         it.condition.accept(this);
         if(!it.condition.type.isBool) {
+            System.out.println("Invalid Type");
             throw new semanticError("type not match", it.pos);
         }
         if(it.thenStmt != null) {
@@ -570,6 +583,7 @@ public class SemanticChecker implements ASTVisitor {
             }
             if(it.expr != null) {
                 if(currentType.isVoid) {
+                    System.out.println("Type Mismatch");
                     throw new semanticError("return type of void function should not have return statement", it.pos);
                 }
                 if(!currentType.canAssign(it.expr.type)) {
@@ -580,6 +594,7 @@ public class SemanticChecker implements ASTVisitor {
         if(inMain){
             if(it.expr != null) {
                 if(!it.expr.type.isInt) {
+                    System.out.println("Type Mismatch");
                     throw new semanticError("return type of main function should be int", it.pos);
                 }
             }

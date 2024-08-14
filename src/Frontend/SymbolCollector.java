@@ -40,6 +40,7 @@ public class SymbolCollector implements ASTVisitor {
     @Override public void visit(InitVariable it) {}
     @Override public void visit(Constructor it) {}
 
+    @Override public void visit(Arrayconst it) {}
     @Override public void visit(ArrayExpr it) {}
     @Override public void visit(AssignExpr it) {}
     @Override public void visit(BinaryExpr it) {}
@@ -56,6 +57,7 @@ public class SymbolCollector implements ASTVisitor {
     @Override public void visit(PrefixExpr it) {}
     @Override public void visit(PrimaryExpr it) {}
     @Override public void visit(UnaryExpr it) {}
+    @Override public void visit(Literal it) {}
 
     @Override public void visit(BreakStmt it) {}
     @Override public void visit(ContinueStmt it) {}

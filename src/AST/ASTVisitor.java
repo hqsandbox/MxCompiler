@@ -14,6 +14,7 @@ public interface ASTVisitor {
     void visit(Definition node);
     void visit(Constructor node);
 
+    void visit(Arrayconst node);
     void visit(ArrayExpr node);
     void visit(AssignExpr node);
     void visit(BinaryExpr node);
@@ -30,6 +31,7 @@ public interface ASTVisitor {
     void visit(PrefixExpr node);
     void visit(PrimaryExpr node);
     void visit(UnaryExpr node);
+    void visit(Literal node);
 
     void visit(BreakStmt node);
     void visit(ContinueStmt node);

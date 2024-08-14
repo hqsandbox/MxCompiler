@@ -140,30 +140,6 @@ public class SemanticChecker implements ASTVisitor {
         }
         it.body.stmt.forEach(stmt -> stmt.accept(this));
 
-//        AtomicBoolean hasReturn = new AtomicBoolean(false);
-//        it.body.stmt.forEach(stmt -> {
-//            stmt.accept(this);
-//            if (stmt instanceof ReturnStmt) {
-//                // 错误：要考虑到 return的情况
-//                if(((ReturnStmt) stmt).expr == null) {
-//                    if(!it.returnType.isVoid) {
-//                        throw new semanticError("return type not match", it.pos);
-//                    }
-//                }
-//                if(((ReturnStmt) stmt).expr != null) {
-//                    if(it.returnType.isVoid) {
-//                        throw new semanticError("return type of void function should not have return statement", it.pos);
-//                    }
-//                    if(!it.returnType.canAssign(((ReturnStmt) stmt).expr.type)) {
-//                        throw new semanticError("return type not match", it.pos);
-//                    }
-//                }
-//                hasReturn.set(true);
-//            }
-//        });
-//        if(!hasReturn.get() && !it.returnType.isVoid && !it.name.equals("main")) {
-//            throw new semanticError("return type of non-void function should have return statement", it.pos);
-//        }
         if(!hasReturn && !it.returnType.isVoid && !it.name.equals("main")) {
             throw new semanticError("return type of non-void function should have return statement", it.pos);
         }
@@ -398,7 +374,34 @@ public class SemanticChecker implements ASTVisitor {
                 }
             }
         }
+        if(it.arrayconst != null) {
+            it.arrayconst.accept(this);
+            if(!it.type.canAssign(it.arrayconst.type)) {
+                throw new semanticError("type not match", it.pos);
+            }
+        }
     }
+
+    @Override public void visit(Arrayconst it) {
+        if(it.literal != null){
+            Type type = new Type();
+            type.setNull();
+            it.literal.forEach(e -> e.accept(this));
+            for(var e : it.literal) {
+                if(e.type.isNull) continue;
+                if(type.isNull) {
+                    type = new Type(e.type);
+                    continue;
+                }
+                if(!type.equalType(e.type)) {
+                    throw new semanticError("type not match", it.pos);
+                }
+            }
+        }
+    }
+
+    @Override public void visit(Literal it) {}
+
     @Override public void visit(NewVarExpr it) {
         //错误：这里不能将变量加入scope，因为这里只是声明变量，不是定义变量
         if(it.type.isVoid || it.type.isNull || it.type.dim > 0) {

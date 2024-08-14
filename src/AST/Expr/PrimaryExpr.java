@@ -12,11 +12,13 @@ public class PrimaryExpr extends Expression {
     public boolean isIntLiteral = false;
     public boolean isStringLiteral = false;
     public boolean isFmtString = false;
+    public boolean isLiteral = false;
 
     public String identifier = null;
     public String intLiteral = null;
     public String stringLiteral = null;
     public String fmtString = null;
+    public Literal literal = null;
 
     public PrimaryExpr(position pos) {
         super(pos);

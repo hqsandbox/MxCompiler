@@ -104,6 +104,7 @@ primary
     | IntLiteral
     | StringLiteral
     | fmtString
+    | literal
     ;
 
 literal
@@ -111,6 +112,7 @@ literal
     | StringLiteral
     | True
     | False
+    | Null
     | arrayConst
     ;
 
@@ -135,7 +137,6 @@ fragment StringCharacter
     | ~[\u0000-\u001F\u007F"\\]
     ;
 
-//fragment FmtStringChar : '$$'| ~[$\n\\\r"] | '\\"' | '\\n'|'\\r' | '\\\\';
 fragment FmtStringChar :  '\\"' | '\\n' | '\\\\' | '$$'| ~[$\\"];
 FmtStringS: 'f"' (FmtStringChar)* '"';
 FmtStringL: 'f"' (FmtStringChar)* '$';

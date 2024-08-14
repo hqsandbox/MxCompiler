@@ -342,7 +342,7 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
             primaryExpr.type.setString();
         } else if (ctx.primary().fmtString() != null) {
             primaryExpr.isFmtString = true;
-            primaryExpr.fmtString = ctx.primary().fmtString().getText();
+            primaryExpr.fmtString = (FmtString) visit(ctx.primary().fmtString());
             primaryExpr.type.setString();
         } else if (ctx.primary().literal() != null) {
             primaryExpr.isLiteral = true;
@@ -353,6 +353,31 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
             throw new RuntimeException("Unknown primary expression");
         }
         return primaryExpr;
+    }
+
+    @Override
+    public ASTNode visitFmtString(MxParser.FmtStringContext ctx) {
+        if (ctx == null) return null;
+        FmtString fmtString = new FmtString(new position(ctx));
+        if(ctx.FmtStringS() != null){
+            if(ctx.FmtStringL() != null || ctx.FmtStringM() != null || ctx.FmtStringR() != null){
+                throw new RuntimeException("Invalid fmt string");
+            }
+            if(!ctx.expr().isEmpty()){
+                throw new RuntimeException("Invalid fmt string");
+            }
+            fmtString.stringList.add(ctx.FmtStringS().getText());
+        } else {
+            fmtString.stringList.add(ctx.FmtStringL().getText());
+            if(ctx.FmtStringM() != null){
+                ctx.FmtStringM().forEach(m -> fmtString.stringList.add(m.getText()));
+            }
+            fmtString.stringList.add(ctx.FmtStringR().getText());
+            ctx.expr().forEach(e -> fmtString.exprList.add((Expression) visit(e)));
+        }
+        fmtString.type = new Type();
+        fmtString.type.setString();
+        return fmtString;
     }
 
     @Override

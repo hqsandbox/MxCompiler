@@ -17,7 +17,7 @@ public class PrimaryExpr extends Expression {
     public String identifier = null;
     public String intLiteral = null;
     public String stringLiteral = null;
-    public String fmtString = null;
+    public FmtString fmtString = null;
     public Literal literal = null;
 
     public PrimaryExpr(position pos) {

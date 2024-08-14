@@ -58,6 +58,7 @@ public class SymbolCollector implements ASTVisitor {
     @Override public void visit(PrimaryExpr it) {}
     @Override public void visit(UnaryExpr it) {}
     @Override public void visit(Literal it) {}
+    @Override public void visit(FmtString it) {}
 
     @Override public void visit(BreakStmt it) {}
     @Override public void visit(ContinueStmt it) {}

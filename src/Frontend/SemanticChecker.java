@@ -462,10 +462,24 @@ public class SemanticChecker implements ASTVisitor {
             it.type = new Type();
             it.type.setString();
         } else if(it.isFmtString) {
+            it.fmtString.accept(this);
             it.type = new Type();
             it.type.setString();
+        } else if(it.isLiteral) {
+            it.literal.accept(this);
+            it.type = new Type(it.literal.type);
         }
     }
+
+    @Override public void visit(FmtString it) {
+        it.exprList.forEach(e -> {
+            e.accept(this);
+            if(!e.type.isInt && !e.type.isString && !e.type.isBool) {
+                throw new semanticError("type not match", it.pos);
+            }
+        });
+    }
+
     @Override public void visit(UnaryExpr it) {
         switch (it.op) {
             case "+", "-", "~" -> {

@@ -32,6 +32,7 @@ public interface ASTVisitor {
     void visit(PrimaryExpr node);
     void visit(UnaryExpr node);
     void visit(Literal node);
+    void visit(FmtString node);
 
     void visit(BreakStmt node);
     void visit(ContinueStmt node);

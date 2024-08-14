@@ -1,2 +1,0 @@
-#!/bin/sh
-testcases/sema/scripts/test_all.bash 'make test' testcases/sema

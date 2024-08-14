@@ -196,6 +196,10 @@ public class SemanticChecker implements ASTVisitor {
         if(it.baseType instanceof NewArrayExpr) {
             throw new semanticError("type not match", it.pos);
         }
+        if(it.baseType.type.dim == 0){
+            System.out.println("Dimension Out Of Bound");
+            throw new semanticError("type not match", it.pos);
+        }
         it.type = new Type(it.baseType.type);
         it.type.dim = it.baseType.type.dim - 1;
     }

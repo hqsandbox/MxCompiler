@@ -1,6 +1,6 @@
 package Util.infor;
 
-import Util.Type;
+import Util.type.Type;
 import java.util.ArrayList;
 import AST.Def.*;
 

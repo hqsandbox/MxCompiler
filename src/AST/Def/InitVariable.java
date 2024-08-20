@@ -2,7 +2,7 @@ package AST.Def;
 
 import AST.ASTVisitor;
 import AST.Expr.Expression;
-import Util.Type;
+import Util.type.Type;
 import AST.ASTNode;
 import Util.position;
 

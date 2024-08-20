@@ -1,6 +1,4 @@
-package Util;
-
-import java.util.HashMap;
+package Util.type;
 
 public class Type {
     public boolean isInt = false, isBool = false;

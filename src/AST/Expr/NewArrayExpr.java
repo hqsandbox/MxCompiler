@@ -1,6 +1,6 @@
 package AST.Expr;
 
-import Util.Type;
+import Util.type.Type;
 import AST.ASTVisitor;
 import Util.position;
 import java.util.ArrayList;

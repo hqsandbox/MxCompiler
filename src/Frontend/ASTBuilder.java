@@ -8,7 +8,7 @@ import AST.Expr.*;
 import AST.Stmt.*;
 import parser.MxBaseVisitor;
 import parser.MxParser;
-import Util.Type;
+import Util.type.Type;
 import Util.Scope;
 import Util.position;
 

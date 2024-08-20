@@ -5,13 +5,10 @@ import AST.Def.*;
 import AST.Expr.*;
 import AST.Stmt.*;
 import Util.Scope;
-import Util.Type;
+import Util.type.Type;
 import Util.error.semanticError;
 import Util.infor.ClassInfor;
 import Util.infor.FuncInfor;
-
-
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SemanticChecker implements ASTVisitor {
 
@@ -19,7 +16,6 @@ public class SemanticChecker implements ASTVisitor {
     private Scope currentScope;
 
     public String currentClassName = null;
-    public boolean inLoop = false;
     public boolean inFunc = false;
     public boolean inMain = false;
     public boolean inConstructor = false;

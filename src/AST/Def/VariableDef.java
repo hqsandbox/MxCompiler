@@ -1,7 +1,7 @@
 package AST.Def;
 
 import java.util.ArrayList;
-import Util.Type;
+import Util.type.Type;
 import AST.ASTVisitor;
 import Util.position;
 

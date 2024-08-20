@@ -1,7 +1,7 @@
 package AST.Expr;
 
 import AST.ASTNode;
-import Util.Type;
+import Util.type.Type;
 import AST.ASTVisitor;
 import Util.position;
 

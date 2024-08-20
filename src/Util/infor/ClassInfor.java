@@ -1,15 +1,15 @@
 package Util.infor;
 
-import Util.position;
 import AST.Def.ClassTypeDef;
-import Util.Type;
-import java.util.ArrayList;
+import Util.type.Type;
+
 import java.util.HashMap;
 
 public class ClassInfor {
     public String name;
     public HashMap<String, Type> variList = new HashMap<>();
     public HashMap<String, FuncInfor> funcList = new HashMap<>();
+    int size = 0;
 
     public ClassInfor(ClassTypeDef it) {
         name = it.name;
@@ -23,5 +23,8 @@ public class ClassInfor {
     }
     public ClassInfor(String name) {
         this.name = name;
+    }
+    public void setSize(int size) {
+        this.size = size;
     }
 }

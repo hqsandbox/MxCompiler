@@ -1,9 +1,11 @@
 package Util;
 
+import IR.IRBlock;
 import Util.error.semanticError;
 
 import java.util.HashMap;
 import Util.infor.*;
+import Util.type.Type;
 
 public class Scope {
 
@@ -11,11 +13,17 @@ public class Scope {
     public HashMap<String, FuncInfor> funcInfor = new HashMap<>();
     public HashMap<String, ClassInfor> classInfor = new HashMap<>();
     boolean isLoop = false;
+    public IRBlock loopNext = null;
+    public IRBlock loopEnd = null;
 
     public Scope parentScope;
 
     public Scope(Scope parentScope) {
         this.parentScope = parentScope;
+        if(parentScope != null){
+            loopNext = parentScope.loopNext;
+            loopEnd = parentScope.loopEnd;
+        }
     }
 
     public void addFuncInfo(String name, FuncInfor infor, position pos) {

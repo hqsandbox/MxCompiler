@@ -1,4 +1,5 @@
 import AST.Program;
+import IR.IRPrinter;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -14,6 +15,8 @@ import Frontend.ASTBuilder;
 import Frontend.SymbolCollector;
 import Frontend.SemanticChecker;
 import Util.Scope;
+import IR.IRProgram;
+import IR.IRBuilder;
 
 public class Main {
     // string 相等用 equals，不能 == ！！！这样会引用传递
@@ -53,6 +56,11 @@ public class Main {
             gScope.visitInclass();
             new SemanticChecker(gScope).visit(ASTRoot);
 
+            IRProgram irProgram = new IRProgram();
+            new IRBuilder(irProgram, gScope).visit(ASTRoot);
+            IRPrinter irPrinter = new IRPrinter(irProgram);
+            irPrinter.print();
+
 //            mainFn f = new mainFn();
 //            new IRBuilder(f, gScope).visit(ASTRoot);
 //            // new IRPrinter(System.out).visitFn(f);
@@ -62,9 +70,9 @@ public class Main {
 //            new RegAlloc(asmF).work();
 //            new AsmPrinter(asmF, System.out).print();
         } catch (error er) {
-            System.exit(1);
-//            System.err.println(er.toString());
-//            throw new RuntimeException();
+//            System.exit(1);
+            System.err.println(er.toString());
+            throw new RuntimeException();
         }
     }
 }

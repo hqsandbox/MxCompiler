@@ -4,7 +4,7 @@ import AST.ASTVisitor;
 import java.util.ArrayList;
 import AST.Stmt.Suite;
 import Util.position;
-import Util.Type;
+import Util.type.Type;
 
 public class FunctionDef extends Definition {
     public String name;

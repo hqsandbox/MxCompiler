@@ -16,13 +16,13 @@ public class IRType {
     }
     public IRType(String className){
         switch (className){
-            case "i1":
+            case "i1", "bool":
                 setI1();
                 break;
-            case "i32":
+            case "i32", "int":
                 setI32();
                 break;
-            case "ptr":
+            case "ptr", "string":
                 setPtr();
                 break;
             case "void":
@@ -53,11 +53,14 @@ public class IRType {
     public boolean equals(IRType other){
         return this.type == other.type && this.size == other.size && this.className.equals(other.className);
     }
+    public boolean isVoid(){
+        return this.type == irTypeEnum.void_;
+    }
     public String toString(){
         return switch (type) {
             case i1 -> "i1";
             case i32 -> "i32";
-            case ptr -> "i32*";
+            case ptr -> "ptr";
             case void_ -> "void";
         };
     }

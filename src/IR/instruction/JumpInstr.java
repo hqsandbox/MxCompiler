@@ -12,6 +12,6 @@ public class JumpInstr extends Instruction {
 
     @Override
     public String toString(){
-        return "  jump " + target.toString() + "\n";
+        return "br label %" + target.name + "\n";
     }
 }

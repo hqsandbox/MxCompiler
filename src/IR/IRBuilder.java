@@ -20,6 +20,9 @@ import Util.infor.FuncInfor;
 import Util.type.IRType;
 import Util.type.Type;
 
+import java.util.ArrayList;
+import java.util.Objects;
+
 public class IRBuilder implements ASTVisitor {
 
     public IRProgram irProgram = new IRProgram();
@@ -75,10 +78,11 @@ public class IRBuilder implements ASTVisitor {
 
     @Override public void visit(ClassTypeDef it) {
         currentClassName = it.name;
-        ClassInfor struct = new ClassInfor(it);
+        currentReNamer = new ReNamer(currentReNamer);
 
         IRClassDef irClassDef = new IRClassDef(it.name);
         irProgram.classDefMap.put(it.name, irClassDef);
+        irClassDef.classSize = it.varList.size() * 4;
         it.varList.forEach(vd -> {
             vd.accept(this);
             irClassDef.variableDefList.add(vd);
@@ -88,10 +92,12 @@ public class IRBuilder implements ASTVisitor {
             it.constructor.accept(this);
         }
 
+        currentReNamer = currentReNamer.getParent();
         currentClassName = null;
     }
 
     @Override public void visit(Constructor it){
+        currentReNamer = new ReNamer(currentReNamer);
         IRFuncDef irFuncDef = new IRFuncDef(Type_To_IRType(new Type("void", 0)));
         irFuncDef.functionName = "@" + currentClassName + ".." + currentClassName;
         currentBlock = irFuncDef.addBlock(new IRBlock(irFuncDef, "entry"));
@@ -99,6 +105,7 @@ public class IRBuilder implements ASTVisitor {
         it.suite.stmt.forEach(stmt -> stmt.accept(this));
 
         irProgram.funcDefMap.put(irFuncDef.functionName, irFuncDef);
+        currentReNamer = currentReNamer.getParent();
         currentBlock = null;
     }
 
@@ -111,9 +118,26 @@ public class IRBuilder implements ASTVisitor {
             irFuncDef.functionName = it.name;
         }
         currentBlock = irFuncDef.addBlock(new IRBlock(irFuncDef, "entry"));
+        currentReNamer = new ReNamer(currentReNamer);
         it.body.stmt.forEach(stmt -> stmt.accept(this));
-
+        boolean hasReturn = false;
+        for(int i = 0; i < it.body.stmt.size(); i++) {
+            if(it.body.stmt.get(i) instanceof ReturnStmt) {
+                hasReturn = true;
+                break;
+            }
+        }
+        if(!hasReturn){
+            if(it.returnType.isVoid){
+                currentBlock.instructions.add(new RetInstr(currentBlock, null, new IRType("void")));
+            } else {
+                if(it.name.equals("main")) {
+                    currentBlock.instructions.add(new RetInstr(currentBlock, new IRIntLiteral(0), new IRType("i32")));
+                }
+            }
+        }
         irProgram.funcDefMap.put(irFuncDef.functionName, irFuncDef);
+        currentReNamer = currentReNamer.getParent();
         currentBlock = null;
     }
 
@@ -122,66 +146,115 @@ public class IRBuilder implements ASTVisitor {
     }
 
     @Override public void visit(InitVariable it) {
-        if(it.init != null) {
-            it.init.accept(this);
+        if(it.type.isString) {
+            int num = counter.strCounter++;
+            String actualName = "@.str.." + num;
+            IRGlobalVariDef irGlobalVariDef = new IRGlobalVariDef(actualName);
+            irGlobalVariDef.irType = new IRType("ptr");
+            if(currentClassName == null && currentBlock == null) {
+                irProgram.globalVarDefMap.put(it.name, irGlobalVariDef);
+                if(it.init == null) {
+                    irGlobalVariDef.result = new IROtherLiteral("null", new IRType("ptr"));
+                    return;
+                }
+                if(it.init instanceof FmtString fmtString) {
+                    it.init.accept(this);
+                    return;
+                } else {
+                    it.init.accept(this);
+                    irGlobalVariDef.result = new IROtherLiteral(it.init.toString(), new IRType("ptr"));
+                }
+            } else {
+                if(it.init != null) {
+                    it.init.accept(this);
+                }
+                irGlobalVariDef.result = new IROtherLiteral(it.init.toString(), new IRType("ptr"));
+                int count = counter.varCounter++;
+                IRVariable irVariable = new IRVariable("%var" + String.valueOf(count), new IRType("ptr"));
+                currentBlock.instructions.add(new IR.instruction.AllocInstr(currentBlock, new IRType("ptr"), irVariable));
+                currentBlock.instructions.add(new IR.instruction.StoreInstr(currentBlock, irVariable, new IRType("ptr"), new IRVariable(actualName)));
+            }
+            return;
         }
         // 全局变量
-        if(currentClassName == null && currentBlock.parent == null) {
-            IRGlobalVariDef irGlobalVariDef = new IRGlobalVariDef(it.name);
+        if(currentClassName == null && currentBlock == null) {
+            IRGlobalVariDef irGlobalVariDef = new IRGlobalVariDef("@" + it.name);
             irGlobalVariDef.irType = Type_To_IRType(it.type);
-            irGlobalVariDef.varName = "@" + it.name;
+            if(it.init == null){
+                if(it.type.isInt) irGlobalVariDef.result = new IRIntLiteral(0);
+                if(it.type.isBool) irGlobalVariDef.result = new IRBoolLiteral(false);
+                irProgram.globalVarDefMap.put(it.name, irGlobalVariDef);
+                return;
+            }
             if(it.init instanceof PrimaryExpr primaryExpr) {
+                it.init.accept(this);
+                irGlobalVariDef.result = currentEntity;
                 irProgram.globalVarDefMap.put(it.name, irGlobalVariDef);
             } else {
-                irGlobalVariDef.funcDef = new IRFuncDef(Type_To_IRType(it.type));
-                irGlobalVariDef.funcDef.functionName = "@.init_" + it.name;
-                if(irProgram.funcDefMap.containsKey(irGlobalVariDef.funcDef.functionName)) {
-                    irGlobalVariDef.funcDef = irProgram.funcDefMap.get(irGlobalVariDef.funcDef.functionName);
+                IRFuncDef irFuncDef;
+                if(irProgram.funcDefMap.containsKey("@._init")) {
+                    irFuncDef = irProgram.funcDefMap.get("@._init");
+                } else {
+                    irFuncDef = new IRFuncDef(new IRType("void"), "", new ArrayList<>(), new ArrayList<>());
+                    irFuncDef.addBlock(new IRBlock(irFuncDef, "entry"));
+                    irProgram.funcDefMap.put("@._init", irFuncDef);
                 }
-                irGlobalVariDef.funcDef.returnType = new IRType("void");
-                currentBlock = irGlobalVariDef.funcDef.addBlock(new IRBlock(irGlobalVariDef.funcDef, "entry"));
+                currentBlock = irFuncDef.blockList.getFirst();
                 it.init.accept(this);
-                IRVariable addr = new IRVariable(it.name + ".addr", irGlobalVariDef.irType);
-                currentBlock.instructions.add(new IR.instruction.StoreInstr(currentBlock, addr, irGlobalVariDef.irType, currentEntity));
-                irProgram.funcDefMap.put(irGlobalVariDef.funcDef.functionName, irGlobalVariDef.funcDef);
-                irProgram.globalVarDefMap.put(it.name, irGlobalVariDef);
+                IRVariable irVariable = new IRVariable("%var" + String.valueOf(counter.varCounter++), Type_To_IRType(it.type));
+                currentBlock.instructions.add(new IR.instruction.StoreInstr(currentBlock, irVariable, irGlobalVariDef.irType, currentEntity));
                 currentBlock = null;
             }
         } else {   // 局部变量
-            int num = currentReNamer.getVarNum(it.name);
-            if(num == 0) {
-                currentReNamer.addVar(it.name);
+            if(it.init != null) {
+                it.init.accept(this);
             }
-            IRVariable irVariable = new IRVariable(it.name, Type_To_IRType(it.type));
-            IRVariable ptr = new IRVariable(it.name + ".ptr");
-            ptr.type = new IRType("ptr");
+            int num = currentReNamer.getVarNum(it.name, false);
+            if(num == -1) {
+                currentReNamer.addVar(it.name);
+                num = 1;
+            } else {
+                num++;
+            }
+            IRVariable irVariable = new IRVariable("%" + it.name + "." + num, Type_To_IRType(it.type));
             currentBlock.instructions.add(new IR.instruction.AllocInstr(currentBlock, irVariable.type, irVariable));
             if(it.init != null) {
                 currentBlock.instructions.add(new IR.instruction.StoreInstr(currentBlock, irVariable, irVariable.type, currentEntity));
             }
+            currentEntity = irVariable;
         }
     }
 
     @Override public void visit(ArrayExpr it) {
         it.baseType.accept(this);
-        it.size.accept(this);
-
-        GeteleptrInstr geteleptrInstr = new GeteleptrInstr(currentBlock);
-        geteleptrInstr.type = Type_To_IRType(it.baseType.type);
-        geteleptrInstr.idxList.add(currentEntity);
-        currentBlock.instructions.add(geteleptrInstr);
-
-        IRVariable ptr = new IRVariable("var" + String.valueOf(counter.varCounter++), new IRType("ptr"));
-        LoadInstr loadInstr = new LoadInstr(currentBlock, geteleptrInstr.result, ptr, Type_To_IRType(it.baseType.type));
+        IRVariable result = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("ptr"));
+        String actualName = it.baseType.type.typeName;
+        LoadInstr loadInstr = new LoadInstr(currentBlock, new IRVariable(actualName), result, Type_To_IRType(it.baseType.type));
         currentBlock.instructions.add(loadInstr);
+        it.size.accept(this);
+        int size = 0;
+        if(currentEntity instanceof IRIntLiteral literal) {
+            size = literal.value;
+        } else {
+            throw new semanticError("ArrayExpr size is not a int", it.pos);
+        }
 
-        currentEntity = loadInstr.result;
-        currentPtr = loadInstr.ptr;
+        IRVariable retValue = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("ptr"));
+        GeteleptrInstr geteleptrInstr = new GeteleptrInstr(currentBlock, retValue, actualName, result);
+        geteleptrInstr.idxList.add(new IRIntLiteral(size));
+        currentBlock.instructions.add(geteleptrInstr);
+        currentEntity = retValue;
+
+        IRVariable result1 = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("ptr"));
+        LoadInstr loadInstr1 = new LoadInstr(currentBlock, retValue, result1, Type_To_IRType(it.type));
+        currentBlock.instructions.add(loadInstr1);
+
+        currentPtr = loadInstr1.result;
     }
 
     @Override public void visit(AssignExpr it) {
         it.lhs.accept(this);
-        var lhsValue = currentEntity;
+        var lhsValue = currentPtr;
         it.rhs.accept(this);
         var rhsValue = currentEntity;
 
@@ -193,45 +266,126 @@ public class IRBuilder implements ASTVisitor {
     @Override public void visit(BinaryExpr it) {
         it.lhs.accept(this);
         var lhsValue = currentEntity;
+
+        if(it.op.equals("&&") || it.op.equals("||")){
+            int num = counter.landCounter++;
+            IRBlock thenBlock = new IRBlock(currentBlock.parent, "land.then.." + num);
+            IRBlock elseBlock = new IRBlock(currentBlock.parent, "land.else.." + num);
+            IRBlock endBlock = new IRBlock(currentBlock.parent, "land.end.." + num);
+            currentBlock.instructions.add(new IR.instruction.BrInstr(currentBlock, lhsValue, thenBlock, elseBlock));
+
+            currentBlock.parent.addBlock(thenBlock);
+            currentBlock = thenBlock;
+            if(it.op.equals("&&")) it.rhs.accept(this);
+            currentBlock.instructions.add(new JumpInstr(currentBlock, endBlock));
+            IRBlock block1 = currentBlock;
+
+            currentBlock.parent.addBlock(elseBlock);
+            currentBlock = elseBlock;
+            if(it.op.equals("||")) it.rhs.accept(this);
+            currentBlock.instructions.add(new JumpInstr(currentBlock, endBlock));
+            IRBlock block2 = currentBlock;
+
+            currentBlock.parent.addBlock(endBlock);
+
+            IRVariable retValue = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("i1"));
+            currentBlock = endBlock;
+            PhiInstr phiInstr = new PhiInstr(currentBlock, retValue, new IRType("i1"));
+            currentBlock.instructions.add(phiInstr);
+
+            if(it.op.equals("&&")) {
+                phiInstr.addBranch(currentEntity, block1);
+                phiInstr.addBranch(lhsValue, block2);
+            } else {
+                phiInstr.addBranch(lhsValue, thenBlock);
+                phiInstr.addBranch(currentEntity, endBlock);
+            }
+            currentEntity = retValue;
+            return;
+        }
+
         it.rhs.accept(this);
         var rhsValue = currentEntity;
 
-        // TODO
-        if(false){
-            IRBlock thenBlock = new IRBlock(currentBlock.parent, "then");
-            IRBlock elseBlock = new IRBlock(currentBlock.parent, "else");
-            IRBlock backBlock = new IRBlock(currentBlock.parent, "back");
-            currentBlock.parent.addBlock(thenBlock);
-            currentBlock.parent.addBlock(elseBlock);
-            currentBlock.parent.addBlock(backBlock);
-        }
-
-        if(lhsValue instanceof IRIntLiteral lhsLiteral && rhsValue instanceof IRIntLiteral rhsLiteral){
-            int ans = 0;
-            int lhs = lhsLiteral.value;
-            int rhs = rhsLiteral.value;
-            switch (it.op) {
-                case "&&" -> {ans = (lhs != 0 && rhs != 0) ? 1 : 0;}
-                case "||" -> {ans = (lhs != 0 || rhs != 0) ? 1 : 0;}
-                case "<" -> {ans = (lhs < rhs) ? 1 : 0;}
-                case ">" -> {ans = (lhs > rhs) ? 1 : 0;}
-                case "<=" -> {ans = (lhs <= rhs) ? 1 : 0;}
-                case ">=" -> {ans = (lhs >= rhs) ? 1 : 0;}
-                case "==" -> {ans = (lhs == rhs) ? 1 : 0;}
-                case "!=" -> {ans = (lhs != rhs) ? 1 : 0;}
-                case "+" -> {ans = lhs + rhs;}
-                case "-" -> {ans = lhs - rhs;}
-                case "*" -> {ans = lhs * rhs;}
-                case "/" -> {ans = lhs / rhs;}
-                case "%" -> {ans = lhs % rhs;}
-                case "<<" -> {ans = lhs << rhs;}
-                case ">>" -> {ans = lhs >> rhs;}
-                case "&" -> {ans = lhs & rhs;}
-                case "|" -> {ans = lhs | rhs;}
-                case "^" -> {ans = lhs ^ rhs;}
+        IRVariable retValue = new IRVariable("%var" + String.valueOf(counter.varCounter++));
+        switch (it.op){
+            case "<", ">", "<=", ">=", "==", "!=" -> {
+                if(it.lhs.type.isString && it.rhs.type.isString) {
+                    ArrayList<IRType> stringTypes = new ArrayList<>();
+                    stringTypes.add(new IRType("ptr"));
+                    stringTypes.add(new IRType("ptr"));
+                    ArrayList<IREntity> stringArgs = new ArrayList<>();
+                    stringArgs.add(lhsValue);
+                    stringArgs.add(rhsValue);
+                    switch (it.op) {
+                        case "<" -> {
+                            retValue.type = new IRType("i1");
+                            CallInstr callInstr = new CallInstr(currentBlock, "string.less", retValue);
+                            callInstr.argTypes.addAll(stringTypes);
+                            callInstr.args.addAll(stringArgs);
+                            currentBlock.instructions.add(callInstr);
+                        }
+                        case ">" -> {
+                            retValue.type = new IRType("i1");
+                            CallInstr callInstr = new CallInstr(currentBlock, "string.greater", retValue);
+                            callInstr.argTypes.addAll(stringTypes);
+                            callInstr.args.addAll(stringArgs);
+                            currentBlock.instructions.add(callInstr);
+                        }
+                        case "<=" -> {
+                            retValue.type = new IRType("i1");
+                            CallInstr callInstr = new CallInstr(currentBlock, "string.lessOrEqual", retValue);
+                            callInstr.argTypes.addAll(stringTypes);
+                            callInstr.args.addAll(stringArgs);
+                            currentBlock.instructions.add(callInstr);
+                        }
+                        case ">=" -> {
+                            retValue.type = new IRType("i1");
+                            CallInstr callInstr = new CallInstr(currentBlock, "string.greaterOrEqual", retValue);
+                            callInstr.argTypes.addAll(stringTypes);
+                            callInstr.args.addAll(stringArgs);
+                            currentBlock.instructions.add(callInstr);
+                        }
+                        case "==" -> {
+                            retValue.type = new IRType("i1");
+                            CallInstr callInstr = new CallInstr(currentBlock, "string.equal", retValue);
+                            callInstr.argTypes.addAll(stringTypes);
+                            callInstr.args.addAll(stringArgs);
+                            currentBlock.instructions.add(callInstr);
+                        }
+                        case "!=" -> {
+                            retValue.type = new IRType("i1");
+                            CallInstr callInstr = new CallInstr(currentBlock, "string.notEqual", retValue);
+                            callInstr.argTypes.addAll(stringTypes);
+                            callInstr.args.addAll(stringArgs);
+                            currentBlock.instructions.add(callInstr);
+                        }
+                    }
+                } else {
+                    retValue.type = new IRType("i1");
+                    currentBlock.instructions.add(new IR.instruction.IcmpInstr(currentBlock, retValue, lhsValue, it.op, rhsValue));
+                }
             }
-            currentEntity = new IRIntLiteral(ans);
+            case "+" -> {
+                if(it.lhs.type.isString && it.rhs.type.isString) {
+                    retValue.type = new IRType("ptr");
+                    CallInstr callInstr = new CallInstr(currentBlock, "string.add", retValue);
+                    callInstr.argTypes.add(new IRType("ptr"));
+                    callInstr.argTypes.add(new IRType("ptr"));
+                    callInstr.args.add(lhsValue);
+                    callInstr.args.add(rhsValue);
+                    currentBlock.instructions.add(callInstr);
+                } else {
+                    retValue.type = new IRType("i32");
+                    currentBlock.instructions.add(new IR.instruction.BinaryInstr(currentBlock, retValue, it.op, lhsValue, rhsValue));
+                }
+            }
+            case "*", "/", "%", "-", ">>", "<<", "&", "|", "^" -> {
+                retValue.type = new IRType("i32");
+                currentBlock.instructions.add(new IR.instruction.BinaryInstr(currentBlock, retValue, it.op, lhsValue, rhsValue));
+            }
         }
+        currentEntity = retValue;
     }
 
     @Override public void visit(ConditionalExpr it) {
@@ -250,12 +404,12 @@ public class IRBuilder implements ASTVisitor {
             currentBlock.parent.addBlock(thenBlock);
             currentBlock = thenBlock;
             it.trueBranch.accept(this);
-            thenBlock.instructions.add(new IR.instruction.JumpInstr(thenBlock, backBlock));
+            currentBlock.instructions.add(new IR.instruction.JumpInstr(currentBlock, backBlock));
             currentBlock = backBlock;
             currentBlock.parent.addBlock(elseBlock);
             currentBlock = elseBlock;
             it.falseBranch.accept(this);
-            elseBlock.instructions.add(new IR.instruction.JumpInstr(elseBlock, backBlock));
+            currentBlock.instructions.add(new IR.instruction.JumpInstr(currentBlock, backBlock));
             currentBlock = backBlock;
             currentBlock.parent.addBlock(backBlock);
         }
@@ -267,11 +421,13 @@ public class IRBuilder implements ASTVisitor {
 
     @Override public void visit(FuncCallExpr it) {
         String actualFuncName = it.funcName;
-        CallInstr callInstr = new CallInstr(currentBlock, actualFuncName);
+        IRVariable result = new IRVariable("%var" + String.valueOf(counter.varCounter++), Type_To_IRType(it.type));
+        CallInstr callInstr = new CallInstr(currentBlock, actualFuncName, result);
+        IRFuncDef funcDef = irProgram.getFuncDef(actualFuncName);
+        callInstr.argTypes.addAll(funcDef.parameterTypeList);
         for(int i = 0; i < it.callExpList.expList.size(); i++) {
             it.callExpList.expList.get(i).accept(this);
-            // TODO
-            // callInstr.args.add(currentFunc);
+            callInstr.args.add(currentEntity);
         }
         currentBlock.instructions.add(callInstr);
         currentEntity = callInstr.result;
@@ -279,31 +435,134 @@ public class IRBuilder implements ASTVisitor {
 
     @Override public void visit(MemberExpr it) {
         it.base.accept(this);
+        IRVariable ptr = currentPtr;
         ClassInfor struct = gScope.getClassInfo(it.base.type.typeName);
-        if(currentEntity instanceof IRVariable variable) {
-            currentEntity = new IRVariable(it.memberName, variable.type);
+        IRVariable result = new IRVariable("%var" + String.valueOf(counter.varCounter++), Type_To_IRType(it.type));
+        String className = "class.." + it.base.type.typeName;
+        GeteleptrInstr geteleptrInstr = new GeteleptrInstr(currentBlock, result, className, ptr);
+        geteleptrInstr.idxList.add(new IRIntLiteral(0));
+        struct.varNames.forEach(varName -> {
+            if(varName.equals(it.memberName)){
+                geteleptrInstr.idxList.add(new IRIntLiteral(struct.varNames.indexOf(varName)));
+            }
+        });
+        currentBlock.instructions.add(geteleptrInstr);
+        currentPtr = geteleptrInstr.result;
+    }
+
+    @Override public void visit(MethodCallExpr it) {
+        it.base.accept(this);
+        IRVariable ptr = currentPtr;
+        String className = ptr.type.className;
+        String funcName = className + ".." + it.methodName;
+        IRFuncDef funcDef = irProgram.getFuncDef(funcName);
+        CallInstr callInstr = new CallInstr(currentBlock, funcName, ptr);
+        callInstr.argTypes.addAll(funcDef.parameterTypeList);
+        callInstr.args.add(ptr);
+        if(it.callExpList != null){
+            it.callExpList.expList.forEach(e -> {
+                e.accept(this);
+                callInstr.args.add(currentPtr);
+            });
+        }
+        if(it.type.isVoid){
+            currentBlock.instructions.add(callInstr);
         } else {
-            // TODO
+            IRVariable retValue = new IRVariable("%var" + String.valueOf(counter.varCounter++), Type_To_IRType(it.type));
+            callInstr.result = retValue;
+            currentBlock.instructions.add(callInstr);
+            currentEntity = retValue;
         }
     }
-    @Override public void visit(MethodCallExpr it) {
-        // TODO
-    }
+
     @Override public void visit(NewArrayExpr it) {
-        // TODO
+        IRVariable retValue = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("ptr"));
+        CallInstr callInstr = new CallInstr(currentBlock, "__array.alloca_inside", retValue);
+        ArrayList<IREntity> sizeList = new ArrayList<>();
+        it.size.forEach(e -> {
+            e.accept(this);
+            callInstr.args.add(currentEntity);
+            callInstr.argTypes.add(new IRType("i32"));
+        });
+        currentBlock.instructions.add(callInstr);
+        currentEntity = retValue;
     }
 
     @Override public void visit(Arrayconst it) {
-
+        IRVariable retValue = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("ptr"));
+        CallInstr callInstr = new CallInstr(currentBlock, "malloc", retValue);
+        callInstr.argTypes.add(new IRType("i32"));
+        callInstr.args.add(new IRIntLiteral(it.literal.size() * 4));
+        for(int i = 0; i < it.literal.size(); i++) {
+            it.literal.get(i).accept(this);
+            IREntity entity = currentEntity;
+            IRVariable retValue1 = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("ptr"));
+            GeteleptrInstr geteleptrInstr = new GeteleptrInstr(currentBlock, retValue1, String.valueOf(i), retValue);
+            currentBlock.instructions.add(geteleptrInstr);
+            currentBlock.instructions.add(new StoreInstr(currentBlock, retValue1, new IRType("ptr"), entity));
+        }
+        currentBlock.instructions.add(callInstr);
     }
 
     @Override public void visit(Literal it) {
-
+        if(it.arrayconst == null) {
+            IRVariable retValue = new IRVariable("%var" + String.valueOf(counter.varCounter++), Type_To_IRType(it.type));
+            if(it.isInt){
+                CallInstr callInstr = new CallInstr(currentBlock, "malloc", retValue);
+                callInstr.argTypes.add(new IRType("i32"));
+                callInstr.args.add(new IRIntLiteral(4));
+            } else if(it.isTrue || it.isFalse){
+                CallInstr callInstr = new CallInstr(currentBlock, "malloc", retValue);
+                callInstr.argTypes.add(new IRType("i32"));
+                callInstr.args.add(new IRIntLiteral(1));
+            } else if(it.isString){
+                int num = counter.strCounter++;
+                String actualName = "@.str.." + num;
+                IRGlobalVariDef irGlobalVariDef = new IRGlobalVariDef(actualName);
+                irGlobalVariDef.irType = new IRType("ptr");
+                irGlobalVariDef.result = new IROtherLiteral(actualName, new IRType("ptr"));
+                irProgram.globalVarDefMap.put(actualName, irGlobalVariDef);
+                CallInstr callInstr = new CallInstr(currentBlock, "malloc", retValue);
+                callInstr.argTypes.add(new IRType("ptr"));
+                callInstr.args.add(new IRIntLiteral(4));
+            } else if(it.isNull){
+                // TODO
+                CallInstr callInstr = new CallInstr(currentBlock, "malloc", retValue);
+                callInstr.argTypes.add(new IRType("i32"));
+                callInstr.args.add(new IRIntLiteral(4));
+            }
+            currentEntity = retValue;
+        }
+        IRVariable irVariable = new IRVariable("%var" + String.valueOf(counter.varCounter++), Type_To_IRType(it.type));
+        CallInstr callInstr = new CallInstr(currentBlock, "malloc", irVariable);
+        callInstr.argTypes.add(new IRType("ptr"));
+        callInstr.args.add(new IRIntLiteral(it.arrayconst.literal.size() * 4));
+        for(int i = 0; i < it.arrayconst.literal.size(); i++) {
+            it.arrayconst.literal.get(i).accept(this);
+            IREntity entity = currentEntity;
+            IRVariable retValue = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("ptr"));
+            GeteleptrInstr geteleptrInstr = new GeteleptrInstr(currentBlock, retValue, String.valueOf(i), entity);
+            currentBlock.instructions.add(geteleptrInstr);
+            currentBlock.instructions.add(new StoreInstr(currentBlock, irVariable, new IRType("ptr"), retValue));
+        }
+        currentBlock.instructions.add(callInstr);
     }
 
     @Override public void visit(NewVarExpr it) {
-        // TODO
+        IRVariable retValue = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("ptr"));
+        CallInstr callInstr = new CallInstr(currentBlock, "malloc", retValue);
+        int size = 0;
+        if(it.type.isClass){
+            size = irProgram.getClassDef(it.type.typeName).classSize;
+        } else if(it.type.isInt || it.type.isBool){
+            size = 4;
+        }
+        callInstr.argTypes.add(new IRType("i32"));
+        callInstr.args.add(new IRIntLiteral(size));
+        currentBlock.instructions.add(callInstr);
+        currentEntity = retValue;
     }
+
     @Override public void visit(ParallelExp it) {
         it.expList.forEach(e -> e.accept(this));
     }
@@ -312,46 +571,129 @@ public class IRBuilder implements ASTVisitor {
     }
     @Override public void visit(PostfixExpr it) {
         it.expr.accept(this);
-        currentBlock.instructions.add(new IR.instruction.BinaryInstr(currentBlock, it.op, currentEntity, null));
-        // TODO: not sure
-        currentBlock.instructions.add(new IR.instruction.StoreInstr(currentBlock, currentPtr, currentPtr.type, currentEntity));
-        currentEntity = ((BinaryInstr)currentBlock.instructions.getLast()).lhs;
+        String option = "";
+        if(it.op.equals("++")) option = "+";
+        if(it.op.equals("--")) option = "-";
+        IRVariable retValue1 = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("i32"));
+        currentBlock.instructions.add(new IR.instruction.BinaryInstr(currentBlock, retValue1, option, currentEntity, new IRIntLiteral(1)));
+        currentBlock.instructions.add(new IR.instruction.StoreInstr(currentBlock, currentPtr, new IRType("i32"), retValue1));
     }
 
     @Override public void visit(PrefixExpr it) {
         it.expr.accept(this);
-        currentBlock.instructions.add(new IR.instruction.BinaryInstr(currentBlock, it.op, currentEntity, null));
-        currentBlock.instructions.add(new IR.instruction.StoreInstr(currentBlock, currentPtr, currentPtr.type, currentEntity));
-        currentEntity = ((BinaryInstr)currentBlock.instructions.getLast()).lhs;
+        String option = "";
+        if(it.op.equals("++")) option = "+";
+        if(it.op.equals("--")) option = "-";
+        IRVariable retValue1 = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("i32"));
+        currentBlock.instructions.add(new IR.instruction.BinaryInstr(currentBlock, retValue1, option, currentEntity, new IRIntLiteral(1)));
+        currentBlock.instructions.add(new IR.instruction.StoreInstr(currentBlock, currentPtr, new IRType("i32"), retValue1));
+        currentEntity = retValue1;
     }
 
     @Override public void visit(PrimaryExpr it) {
         if(it.isIdentifier){
             // then表示这个值是一个类，else表示这个值是一个变量
             if(gScope.containsClass(it.identifier, true)){
-                currentEntity = new IROtherLiteral(it.identifier);
+                currentEntity = new IROtherLiteral(it.identifier, new IRType("ptr"));
             } else {
-                IRVariable ptr = new IRVariable("var" + String.valueOf(counter.varCounter++), new IRType("ptr"));
-                currentBlock.instructions.add(new IR.instruction.LoadInstr(currentBlock, new IRVariable(it.identifier), ptr, Type_To_IRType(it.type)));
-                currentEntity = new IRVariable(it.identifier);
+                int num = currentReNamer.getVarNum(it.identifier, false);
+                String actualName = it.identifier;
+                if(num > 0) { // 局部变量
+                    actualName = "%" + it.identifier + "." + num;
+                } else { // 全局变量 & 类变量
+                    // TODO
+                    if(currentClassName != null) {
+                        currentEntity = new IRVariable("%this", new IRType("ptr"));
+                    } else {
+                        actualName = "@" + it.identifier;
+                    }
+                }
+                IRVariable ptr = new IRVariable(actualName);
+                IRVariable result = new IRVariable("%var" + String.valueOf(counter.varCounter++), Type_To_IRType(it.type));
+                currentBlock.instructions.add(new IR.instruction.LoadInstr(currentBlock, ptr, result, Type_To_IRType(it.type)));
+                currentEntity = result;
+                currentPtr = ptr;
             }
         } else if(it.isTrue) {
             currentEntity = new IRBoolLiteral(true);
+            currentEntity.type = new IRType("i1");
         } else if(it.isFalse) {
             currentEntity = new IRBoolLiteral(false);
+            currentEntity.type = new IRType("i1");
         } else if(it.isIntLiteral) {
             currentEntity = new IRIntLiteral(Integer.parseInt(it.intLiteral));
-        } else {
-            currentEntity = new IROtherLiteral(it.identifier);
+            currentEntity.type = new IRType("i32");
+        } else if(it.isStringLiteral){
+            int num = counter.strCounter++;
+            String actualName = "@.str.." + num;
+            IRGlobalVariDef irGlobalVariDef = new IRGlobalVariDef(actualName);
+            irGlobalVariDef.irType = new IRType("ptr");
+            irGlobalVariDef.result = new IROtherLiteral(it.stringLiteral, new IRType("ptr"));
+            irProgram.globalVarDefMap.put(it.stringLiteral, irGlobalVariDef);
+            currentEntity = new IRVariable(actualName);
+        } else if(it.isFmtString){
+            it.fmtString.accept(this);
+        } else if(it.isLiteral){
+            it.literal.accept(this);
         }
     }
 
     @Override public void visit(FmtString it) {
+        int num = counter.strCounter;
+        String actualName = "@.str.." + num;
+        IRGlobalVariDef irGlobalVariDef = new IRGlobalVariDef(actualName);
+        irGlobalVariDef.irType = new IRType("ptr");
+        if(it.stringList != null){
+            irGlobalVariDef.result = new IROtherLiteral(it.stringList.getFirst(), new IRType("ptr"));
+            irProgram.globalVarDefMap.put(it.stringList.getFirst(), irGlobalVariDef);
+            currentEntity = new IRVariable(actualName);
+        }
+        for(int i = 0; i < it.exprList.size(); i++) {
+            IREntity irEntity1 = currentEntity;
+            it.exprList.get(i).accept(this);
+            IREntity irEntity2 = currentEntity;
+            IRVariable retValue = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("ptr"));
+            CallInstr callInstr = new CallInstr(currentBlock, "string.add", retValue);
+            callInstr.argTypes.add(new IRType("ptr"));
+            callInstr.argTypes.add(new IRType("ptr"));
+            callInstr.args.add(irEntity1);
+            callInstr.args.add(irEntity2);
+            currentBlock.instructions.add(callInstr);
 
+            int count = counter.varCounter++;
+            String actualName1 = "@.str.." + count;
+            IRGlobalVariDef irGlobalVariDef1 = new IRGlobalVariDef(actualName1);
+            irGlobalVariDef1.irType = new IRType("ptr");
+            irGlobalVariDef1.result = new IROtherLiteral(it.stringList.get(i), new IRType("ptr"));
+            irProgram.globalVarDefMap.put(it.stringList.get(i), irGlobalVariDef1);
+
+            IRVariable retValue1 = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("ptr"));
+            CallInstr callInstr1 = new CallInstr(currentBlock, "string.add", retValue1);
+            callInstr1.argTypes.add(new IRType("ptr"));
+            callInstr1.argTypes.add(new IRType("ptr"));
+            callInstr1.args.add(retValue);
+            callInstr1.args.add(new IRVariable(actualName1));
+            currentBlock.instructions.add(callInstr1);
+            currentEntity = retValue1;
+            currentPtr = retValue1;
+        }
     }
 
     @Override public void visit(UnaryExpr it) {
-
+        it.expr.accept(this);
+        IRVariable retValue = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("i32"));
+        switch (it.op){
+            case "+", "-" -> {
+                currentBlock.instructions.add(new IR.instruction.BinaryInstr(currentBlock, retValue, it.op, new IRIntLiteral(0), currentEntity));
+            }
+            case "~" -> {
+                currentBlock.instructions.add(new IR.instruction.BinaryInstr(currentBlock, retValue, "^", currentEntity, new IRIntLiteral(-1)));
+            }
+            case "!" -> {
+                currentBlock.instructions.add(new IR.instruction.BinaryInstr(currentBlock, retValue, "^", currentEntity, new IRBoolLiteral(true)));
+            }
+        }
+        currentEntity = retValue;
     }
 
     @Override public void visit(BreakStmt it) {
@@ -365,49 +707,65 @@ public class IRBuilder implements ASTVisitor {
     }
     @Override public void visit(ForStmt it) {
         currentScope = new LoopScope(currentScope);
+        currentReNamer = new ReNamer(currentReNamer);
         if(it.parallelExp != null) it.parallelExp.accept(this);
         if(it.variableDef != null) it.variableDef.accept(this);
 
-        IRBlock backBlock = new IRBlock(currentBlock.parent, "for.back");
-        IRBlock condBlock = new IRBlock(currentBlock.parent, "for.cond");
-        IRBlock bodyBlock = new IRBlock(currentBlock.parent, "for.body");
-        IRBlock stepBlock = new IRBlock(currentBlock.parent, "for.step");
+        int currentNum = counter.forCounter++;
+        IRBlock backBlock = new IRBlock(currentBlock.parent, "for.back." + currentNum);
+        IRBlock condBlock = new IRBlock(currentBlock.parent, "for.cond." + currentNum);
+        IRBlock bodyBlock = new IRBlock(currentBlock.parent, "for.body." + currentNum);
+        IRBlock stepBlock = new IRBlock(currentBlock.parent, "for.step." + currentNum);
         currentScope.loopNext = bodyBlock;
         currentScope.loopEnd = backBlock;
+        currentBlock.instructions.add(new IR.instruction.JumpInstr(currentBlock, condBlock));
 
         if(it.conditionExp != null){
             currentBlock.parent.addBlock(condBlock);
-            currentBlock.instructions.add(new IR.instruction.JumpInstr(currentBlock, condBlock));
             currentBlock = condBlock;
             it.conditionExp.accept(this);
-            condBlock.instructions.add(new IR.instruction.BrInstr(condBlock, (IRVariable)currentEntity, bodyBlock, stepBlock));
+            currentBlock.instructions.add(new IR.instruction.BrInstr(currentBlock, (IRVariable)currentEntity, bodyBlock, backBlock));
+        } else {
+            currentBlock.parent.addBlock(condBlock);
+            currentBlock.instructions.add(new IR.instruction.JumpInstr(currentBlock, condBlock));
+            currentBlock = condBlock;
+            currentBlock.instructions.add(new IR.instruction.JumpInstr(currentBlock, bodyBlock));
         }
 
-        // 错误：考虑到循环体为空的情况
         if(it.stmt != null){
             currentBlock.parent.addBlock(bodyBlock);
-            currentBlock.instructions.add(new IR.instruction.JumpInstr(currentBlock, bodyBlock));
             currentBlock = bodyBlock;
             it.stmt.accept(this);
+            currentBlock.instructions.add(new IR.instruction.JumpInstr(currentBlock, stepBlock));
+        } else {
+            currentBlock.parent.addBlock(bodyBlock);
+            currentBlock = bodyBlock;
             currentBlock.instructions.add(new IR.instruction.JumpInstr(currentBlock, stepBlock));
         }
 
         if(it.stepExp != null){
             currentBlock.parent.addBlock(stepBlock);
-            currentBlock.instructions.add(new IR.instruction.JumpInstr(currentBlock, stepBlock));
             currentBlock = stepBlock;
             it.stepExp.accept(this);
             currentBlock.instructions.add(new IR.instruction.JumpInstr(currentBlock, condBlock));
+        } else {
+            currentBlock.parent.addBlock(stepBlock);
+            currentBlock = stepBlock;
+            currentBlock.instructions.add(new IR.instruction.JumpInstr(currentBlock, condBlock));
         }
+
         currentBlock.parent.addBlock(backBlock);
+        currentBlock = backBlock;
         currentScope = currentScope.parentScope();
+        currentReNamer = currentReNamer.getParent();
     }
     @Override public void visit(IfStmt it) {
         it.condition.accept(this);
 
-        IRBlock thenBlock = new IRBlock(currentBlock.parent, "if.then");
-        IRBlock elseBlock = new IRBlock(currentBlock.parent, "if.else");
-        IRBlock backBlock = new IRBlock(currentBlock.parent, "if.back");
+        int num = counter.ifCounter++;
+        IRBlock thenBlock = new IRBlock(currentBlock.parent, "if.then." + num);
+        IRBlock elseBlock = new IRBlock(currentBlock.parent, "if.else." + num);
+        IRBlock backBlock = new IRBlock(currentBlock.parent, "if.back." + num);
 
         // 两种情况，一种是直接的bool值，一种是变量
         if(currentEntity instanceof IRBoolLiteral literal) {
@@ -417,35 +775,54 @@ public class IRBuilder implements ASTVisitor {
                 currentBlock.instructions.add(new IR.instruction.JumpInstr(currentBlock, elseBlock));
             }
         } else {
-            currentBlock.instructions.add(new IR.instruction.BrInstr(currentBlock, (IRVariable)currentEntity, thenBlock, elseBlock));
+            currentBlock.instructions.add(new IR.instruction.BrInstr(currentBlock, currentEntity, thenBlock, elseBlock));
         }
 
+        // 错误：这里必须是currentBlock,比如处理if的嵌套
         if(it.thenStmt != null) {
             currentBlock.parent.addBlock(thenBlock);
             currentBlock = thenBlock;
+            currentReNamer = new ReNamer(currentReNamer);
             it.thenStmt.accept(this);
-            thenBlock.instructions.add(new IR.instruction.JumpInstr(thenBlock, backBlock));
+            currentBlock.instructions.add(new IR.instruction.JumpInstr(currentBlock, backBlock));
+            currentReNamer = currentReNamer.getParent();
+            currentBlock = backBlock;
+        } else {
+            currentBlock.parent.addBlock(thenBlock);
+            currentBlock = thenBlock;
+            currentBlock.instructions.add(new IR.instruction.JumpInstr(currentBlock, backBlock));
             currentBlock = backBlock;
         }
+
         if(it.elseStmt != null) {
             currentBlock.parent.addBlock(elseBlock);
             currentBlock = elseBlock;
+            currentReNamer = new ReNamer(currentReNamer);
             it.elseStmt.accept(this);
-            elseBlock.instructions.add(new IR.instruction.JumpInstr(elseBlock, backBlock));
+            currentBlock.instructions.add(new IR.instruction.JumpInstr(currentBlock, backBlock));
+            currentReNamer = currentReNamer.getParent();
+            currentBlock = backBlock;
+        } else{
+            currentBlock.parent.addBlock(elseBlock);
+            currentBlock = elseBlock;
+            currentBlock.instructions.add(new IR.instruction.JumpInstr(currentBlock, backBlock));
             currentBlock = backBlock;
         }
         currentBlock.parent.addBlock(backBlock);
+        currentBlock = backBlock;
     }
     @Override public void visit(ReturnStmt it) {
         if(it.expr != null) {
             it.expr.accept(this);
-            currentBlock.instructions.add(new IR.instruction.RetInstr(currentBlock, currentEntity));
+            currentBlock.instructions.add(new IR.instruction.RetInstr(currentBlock, currentEntity, Type_To_IRType(it.expr.type)));
         } else {
-            currentBlock.instructions.add(new IR.instruction.RetInstr(currentBlock, null));
+            currentBlock.instructions.add(new IR.instruction.RetInstr(currentBlock, null, new IRType("void")));
         }
     }
     @Override public void visit(Suite it) {
+        currentReNamer = new ReNamer(currentReNamer);
         it.stmt.forEach(stmt -> stmt.accept(this));
+        currentReNamer = currentReNamer.getParent();
     }
     @Override public void visit(VariableDefStmt it) {
         it.variableDef.accept(this);
@@ -465,14 +842,16 @@ public class IRBuilder implements ASTVisitor {
             currentBlock.instructions.add(new IR.instruction.JumpInstr(currentBlock, condBlock));
             currentBlock = condBlock;
             it.condition.accept(this);
-            condBlock.instructions.add(new IR.instruction.BrInstr(condBlock, (IRVariable)currentEntity, bodyBlock, backBlock));
+            currentBlock.instructions.add(new IR.instruction.BrInstr(currentBlock, (IRVariable)currentEntity, bodyBlock, backBlock));
         }
 
         if(it.body != null){
             currentBlock.parent.addBlock(bodyBlock);
             currentBlock.instructions.add(new IR.instruction.JumpInstr(currentBlock, bodyBlock));
             currentBlock = bodyBlock;
+            currentReNamer = new ReNamer(currentReNamer);
             it.body.accept(this);
+            currentReNamer = currentReNamer.getParent();
             currentBlock.instructions.add(new IR.instruction.JumpInstr(currentBlock, condBlock));
         }
 

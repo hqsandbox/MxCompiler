@@ -15,9 +15,10 @@ public class ReNamer {
     public ReNamer getParent() {
         return parent;
     }
-    public int getVarNum(String name) {
+    public int getVarNum(String name, boolean countGlobal) {
+        if(!countGlobal && parent == null) return -1;
         if(varNames.containsKey(name)) return varNames.get(name);
-        else return parent == null ? -1 : parent.getVarNum(name);
+        else return parent.getVarNum(name, countGlobal);
     }
     public void addVar(String name) {
         if(varNames.containsKey(name)) varNames.put(name, varNames.get(name) + 1);

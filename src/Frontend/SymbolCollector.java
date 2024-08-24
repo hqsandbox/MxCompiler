@@ -24,6 +24,11 @@ public class SymbolCollector implements ASTVisitor {
 
     @Override public void visit(ClassTypeDef it) {
         ClassInfor struct = new ClassInfor(it);
+        it.varList.forEach(vd ->{
+            vd.initVariablelist.forEach(iv -> {
+                struct.varNames.add(iv.name);
+            });
+        });
         if(gScope.funcInfor.containsKey(it.name))
             throw new Util.error.semanticError("class name conflict with function name", it.pos);
         gScope.addClassInfo(it.name, struct, it.pos);

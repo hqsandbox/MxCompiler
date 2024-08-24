@@ -2,21 +2,24 @@ package IR.instruction;
 
 import IR.entity.IREntity;
 import IR.IRBlock;
+import Util.type.IRType;
 
 public class RetInstr extends Instruction {
     public IREntity retValue;
+    public IRType retType;
 
     public RetInstr(IRBlock parent) {
         super(parent);
     }
 
-    public RetInstr(IRBlock parent, IREntity retValue) {
+    public RetInstr(IRBlock parent, IREntity retValue, IRType retType) {
         super(parent);
         this.retValue = retValue;
+        this.retType = retType;
     }
 
     @Override
     public String toString() {
-        return "  ret " + retValue.toString() + "\n";
+        return "ret " + retType.toString() + " " + retValue.toString() + "\n";
     }
 }

@@ -3,10 +3,12 @@ package Util.infor;
 import AST.Def.ClassTypeDef;
 import Util.type.Type;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class ClassInfor {
     public String name;
+    public ArrayList<String> varNames = new ArrayList<>();
     public HashMap<String, Type> variList = new HashMap<>();
     public HashMap<String, FuncInfor> funcList = new HashMap<>();
     int size = 0;

@@ -14,15 +14,29 @@ public class IRPrinter {
 
     public String printString() {
         StringBuilder ret = new StringBuilder();
+        for(IRGlobalVariDef irGlobal : irProgram.globalVarDefMap.values()) {
+            ret.append(irGlobal.toString());
+        }
         for(IRFuncDef irFunction : irProgram.funcDefMap.values()) {
             ret.append(irFunction.toString());
         }
         for(IRClassDef irClass : irProgram.classDefMap.values()) {
             ret.append(irClass.toString());
         }
-        for(IRGlobalVariDef irGlobal : irProgram.globalVarDefMap.values()) {
-            ret.append(irGlobal.toString());
-        }
+        ret.append(printDeclare());
+        return ret.toString();
+    }
+
+    // example: declare i32 @println(ptr)
+    public String printDeclare(){
+        StringBuilder ret = new StringBuilder();
+        ret.append("declare void @print(ptr)\n");
+        ret.append("declare void @println(ptr)\n");
+        ret.append("declare void @printInt(i32)\n");
+        ret.append("declare void @printlnInt(i32)\n");
+        ret.append("declare ptr @getString()\n");
+        ret.append("declare i32 @getInt()\n");
+        ret.append("declare ptr @toString(i32)\n");
         return ret.toString();
     }
 

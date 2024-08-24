@@ -64,6 +64,11 @@ public class SemanticChecker implements ASTVisitor {
     @Override public void visit(ClassTypeDef it) {
         currentScope = new Scope(currentScope);
         ClassInfor struct = new ClassInfor(it);
+        it.varList.forEach(vd ->{
+            vd.initVariablelist.forEach(iv -> {
+                struct.varNames.add(iv.name);
+            });
+        });
         currentScope.addClassInfo(it.name, struct, it.pos);
         currentClassName = it.name;
 

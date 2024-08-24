@@ -9,13 +9,17 @@ public class IRClassDef extends IRStatement {
     public int classMemNum;
     public ArrayList<Boolean> isPtrList = new ArrayList<>();
     public ArrayList<VariableDef> variableDefList = new ArrayList<>();
+    public int classSize = 0;
 
     public IRClassDef(String className_) {
-        className = "%class-" + className_;
+        className = "%class." + className_;
     }
 
     @Override
     public String toString() {
+        if(className.equals("%class.string")) {
+            return "";
+        }
         StringBuilder sb = new StringBuilder();
         sb.append(className).append(" = type { ");
         for (int i = 0; i < classMemNum; ++i) {

@@ -4,7 +4,6 @@ import Util.type.IRType;
 
 public class IRVariable extends IREntity {
     public String name;
-    public IRType type;
 
     public IRVariable(String name) {
         this.name = name;

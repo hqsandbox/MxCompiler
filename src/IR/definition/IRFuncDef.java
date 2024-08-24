@@ -15,6 +15,12 @@ public class IRFuncDef extends IRStatement {
     public IRFuncDef(IRType returnType_) {
         returnType = returnType_;
     }
+    public IRFuncDef(IRType returnType_, String functionName_, ArrayList<IRType> parameterTypeList_, ArrayList<String> parameterNameList_) {
+        returnType = returnType_;
+        functionName = functionName_;
+        parameterTypeList = parameterTypeList_;
+        parameterNameList = parameterNameList_;
+    }
     public IRBlock addBlock(IRBlock block) {
         blockList.add(block);
         return block;
@@ -30,6 +36,7 @@ public class IRFuncDef extends IRStatement {
         stringBuilder.append(") {\n");
         for (IRBlock block : blockList) {
             stringBuilder.append(block.toString());
+            stringBuilder.append("\n");
         }
         stringBuilder.append("}\n");
         return stringBuilder.toString();

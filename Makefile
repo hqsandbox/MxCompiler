@@ -12,11 +12,11 @@ run:
 
 .PHONY: compile
 compile:
-	find -name '*.java' | xargs javac -d bin -cp ulib/antlr-4.13.2-complete.jar
+	find -name '*.java' | xargs javac -d bin -cp ./ulib/antlr-4.13.2-complete.jar
 
 .PHONY: test
 test:
-	@cd bin && java -cp antlr-4.13.2-complete.jar:. Main
+	java -Xss8m -cp ulib/antlr-4.13.2-complete.jar:bin Main
 
 .PHONY: visit
 visit:

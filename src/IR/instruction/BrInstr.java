@@ -5,10 +5,10 @@ import IR.entity.IREntity;
 import IR.entity.IRVariable;
 
 public class BrInstr extends Instruction {
-    public IRVariable op;
+    public IREntity op;
     public IRBlock lhs, rhs;
 
-    public BrInstr(IRBlock parent, IRVariable op, IRBlock lhs, IRBlock rhs) {
+    public BrInstr(IRBlock parent, IREntity op, IRBlock lhs, IRBlock rhs) {
         super(parent);
         this.op = op;
         this.lhs = lhs;
@@ -17,6 +17,6 @@ public class BrInstr extends Instruction {
 
     @Override
     public String toString() {
-        return "br " + op + " " + lhs + ", " + rhs + "\n";
+        return "br i1 " + op + ", label %" + lhs.name + ", label %" + rhs.name + "\n";
     }
 }

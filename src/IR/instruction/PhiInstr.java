@@ -13,8 +13,10 @@ public class PhiInstr extends Instruction {
     public ArrayList<IREntity> values = new ArrayList<>();
     public ArrayList<IRBlock> blocks = new ArrayList<>();
 
-    public PhiInstr(IRBlock parent) {
+    public PhiInstr(IRBlock parent, IRVariable result, IRType irType) {
         super(parent);
+        this.result = result;
+        this.irType = irType;
     }
 
     public void addBranch(IREntity value, IRBlock block) {
@@ -24,10 +26,10 @@ public class PhiInstr extends Instruction {
 
     @Override
     public String toString() {
-        StringBuilder ret = new StringBuilder("  ");
+        StringBuilder ret = new StringBuilder();
         ret.append(result.toString()).append(" = phi ").append(irType.toString()).append(" ");
         for (int i = 0; i < values.size(); i++) {
-            ret.append("[ ").append(values.get(i).toString()).append(", ").append(blocks.get(i).toString()).append(" ]");
+            ret.append("[ ").append(values.get(i).toString()).append(", %").append(blocks.get(i).name).append(" ]");
             if (i != values.size() - 1) {
                 ret.append(", ");
             }

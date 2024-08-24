@@ -366,13 +366,19 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
             if(!ctx.expr().isEmpty()){
                 throw new RuntimeException("Invalid fmt string");
             }
-            fmtString.stringList.add(ctx.FmtStringS().getText());
+            String s = ctx.FmtStringS().getText();
+            fmtString.stringList.add(s.substring(1, s.length() - 1));
         } else {
-            fmtString.stringList.add(ctx.FmtStringL().getText());
+            String stringL = ctx.FmtStringL().getText();
+            fmtString.stringList.add(stringL.substring(1, stringL.length() - 1));
             if(ctx.FmtStringM() != null){
-                ctx.FmtStringM().forEach(m -> fmtString.stringList.add(m.getText()));
+                ctx.FmtStringM().forEach(m -> {
+                    String stringM = m.getText();
+                    fmtString.stringList.add(stringM.substring(1, stringM.length() - 1));
+                });
             }
-            fmtString.stringList.add(ctx.FmtStringR().getText());
+            String stringR = ctx.FmtStringR().getText();
+            fmtString.stringList.add(stringR.substring(1, stringR.length() - 1));
             ctx.expr().forEach(e -> fmtString.exprList.add((Expression) visit(e)));
         }
         fmtString.type = new Type();

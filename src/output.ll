@@ -1,91 +1,92 @@
-@p = global i32 0
-@.str..3 = private unnamed_addr constant [2 x i8] c" \00"
-@.str..4 = private unnamed_addr constant [4 x i8] c">> \00"
+@a = global i32 0
 @i = global i32 0
-@.str..2 = private unnamed_addr constant [3 x i8] c") \00"
-@k = global i32 0
-@.str..1 = private unnamed_addr constant [2 x i8] c"(\00"
 @n = global i32 0
-@.str..0 = private unnamed_addr constant [4 x i8] c"<< \00"
-define i32 @main() {
+define void @__init() {
 entry:
-%var0 = load i32, ptr @n
-%var1 = call i32 @getInt()
-store i32 %var1, ptr @n
-%var2 = load i32, ptr @p
-%var3 = call i32 @getInt()
-store i32 %var3, ptr @p
-%var4 = load i32, ptr @k
-%var5 = call i32 @getInt()
-store i32 %var5, ptr @k
-%var6 = load i32, ptr @p
-%var7 = load i32, ptr @k
-%var8 = sub i32 %var6, %var7
-%var9 = icmp sgt i32 %var8, 1
-br i1 %var9, label %if.then.0, label %if.else.0
+%var0 = call ptr @__array.alloca(i32 4, i32 1, i32 1, i32 20)
+store ptr %var0, ptr @a
+ret void
+
+}
+define i32 @jud(i32 %x) {
+entry:
+%x.1 = alloca i32
+store i32 %x, ptr %x.1
+%i.1 = alloca i32
+store i32 0, ptr %i.1
+%j.1 = alloca i32
+store i32 0, ptr %j.1
+%var1 = load i32, ptr %i.1
+store i32 0, ptr %i.1
+br label %for.cond.0
+
+for.cond.0:
+%var2 = load i32, ptr %i.1
+%var3 = load i32, ptr @n
+%var4 = load i32, ptr %x.1
+%var5 = sdiv i32 %var3, %var4
+%var6 = icmp slt i32 %var2, %var5
+br i1 %var6, label %for.body.0, label %for.back.0
+
+for.body.0:
+%flag.1 = alloca i1
+store i1 false, ptr %flag.1
+%var7 = load i32, ptr %j.1
+store i32 0, ptr %j.1
+br label %for.cond.1
+
+for.cond.1:
+%var8 = load i32, ptr %j.1
+%var9 = load i32, ptr %x.1
+%var10 = sub i32 %var9, 1
+%var11 = icmp slt i32 %var8, %var10
+br i1 %var11, label %for.body.1, label %for.back.1
+
+for.body.1:
+%var12 = load ptr, ptr @a
+%var13 = load ptr, ptr int
+%var14 = load i32, ptr %i.1
+%var15 = load i32, ptr %x.1
+%var16 = mul i32 %var14, %var15
+%var17 = load i32, ptr %j.1
+%var18 = add i32 %var16, %var17
+%var19 = getelementptr int, ptr %var13, %var18
+%var20 = load ptr, ptr @a
+%var21 = load ptr, ptr int
+%var22 = load i32, ptr %i.1
+%var23 = load i32, ptr %x.1
+%var24 = mul i32 %var22, %var23
+%var25 = load i32, ptr %j.1
+%var26 = add i32 %var24, %var25
+%var27 = add i32 %var26, 1
+%var28 = getelementptr int, ptr %var21, %var27
+%var29 = icmp sgt ptr %var19, %var28
+br i1 %var29, label %if.then.0, label %if.else.0
 
 if.then.0:
-call void @print(ptr @.str..0)
+%var30 = load i1, ptr %flag.1
+store i1 true, ptr %flag.1
 br label %if.back.0
 
 if.else.0:
 br label %if.back.0
 
 if.back.0:
-%var11 = load i32, ptr @i
-%var12 = load i32, ptr @p
-%var13 = load i32, ptr @k
-%var14 = sub i32 %var12, %var13
-store i32 %var14, ptr @i
-br label %for.cond.0
+br label %for.step.1
 
-for.cond.0:
-%var15 = load i32, ptr @i
-%var16 = load i32, ptr @p
-%var17 = load i32, ptr @k
-%var18 = add i32 %var16, %var17
-%var19 = icmp sle i32 %var15, %var18
-br i1 %var19, label %for.body.0, label %for.back.0
+for.step.1:
+%var31 = load i32, ptr %j.1
+%var32 = add i32 %var31, 1
+store i32 %var32, ptr %j.1
+br label %for.cond.1
 
-for.body.0:
-%var20 = load i32, ptr @i
-%var21 = icmp sle i32 1, %var20
-br i1 %var21, label %land.then..0, label %land.else..0
-
-land.then..0:
-%var22 = load i32, ptr @i
-%var23 = load i32, ptr @n
-%var24 = icmp sle i32 %var22, %var23
-br label %land.end..0
-
-land.else..0:
-br label %land.end..0
-
-land.end..0:
-%var25 = phi i1 [ %var24, %land.then..0 ], [ %var21, %land.else..0 ]
-br i1 %var25, label %if.then.1, label %if.else.1
+for.back.1:
+%var33 = load i1, ptr %flag.1
+%var34 = xor i1 %var33, true
+br i1 %var34, label %if.then.1, label %if.else.1
 
 if.then.1:
-%var26 = load i32, ptr @i
-%var27 = load i32, ptr @p
-%var28 = icmp eq i32 %var26, %var27
-br i1 %var28, label %if.then.2, label %if.else.2
-
-if.then.2:
-call void @print(ptr @.str..1)
-%var32 = load i32, ptr @i
-%var31 = call ptr @toString(i32 %var32)
-call void @print(ptr %var31)
-call void @print(ptr @.str..2)
-br label %if.back.2
-
-if.else.2:
-%var35 = load i32, ptr @i
-call void @printInt(i32 %var35)
-call void @print(ptr @.str..3)
-br label %if.back.2
-
-if.back.2:
+ret i32 1
 br label %if.back.1
 
 if.else.1:
@@ -95,27 +96,84 @@ if.back.1:
 br label %for.step.0
 
 for.step.0:
-%var37 = load i32, ptr @i
-%var38 = add i32 %var37, 1
-store i32 %var38, ptr @i
+%var35 = load i32, ptr %i.1
+%var36 = add i32 %var35, 1
+store i32 %var36, ptr %i.1
 br label %for.cond.0
 
 for.back.0:
-%var39 = load i32, ptr @p
-%var40 = load i32, ptr @k
-%var41 = add i32 %var39, %var40
+ret i32 0
+
+}
+define i32 @main() {
+entry:
+call void @__init()
+%var38 = load i32, ptr @n
+%var39 = call i32 @getInt()
+store i32 %var39, ptr @n
+%var40 = load i32, ptr %i.1
+store i32 0, ptr %i.1
+br label %for.cond.2
+
+for.cond.2:
+%var41 = load i32, ptr %i.1
 %var42 = load i32, ptr @n
 %var43 = icmp slt i32 %var41, %var42
-br i1 %var43, label %if.then.3, label %if.else.3
+br i1 %var43, label %for.body.2, label %for.back.2
 
-if.then.3:
-call void @print(ptr @.str..4)
-br label %if.back.3
+for.body.2:
+%var44 = load ptr, ptr @a
+%var45 = load ptr, ptr int
+%var46 = load i32, ptr %i.1
+%var47 = getelementptr int, ptr %var45, %var46
+%var48 = call i32 @getInt()
+store i32 %var48, ptr %var47
+br label %for.step.2
 
-if.else.3:
-br label %if.back.3
+for.step.2:
+%var49 = load i32, ptr %i.1
+%var50 = add i32 %var49, 1
+store i32 %var50, ptr %i.1
+br label %for.cond.2
 
-if.back.3:
+for.back.2:
+%var51 = load i32, ptr %i.1
+%var52 = load i32, ptr @n
+store i32 %var52, ptr %i.1
+br label %for.cond.3
+
+for.cond.3:
+%var53 = load i32, ptr %i.1
+%var54 = icmp sgt i32 %var53, 0
+br i1 %var54, label %for.body.3, label %for.back.3
+
+for.body.3:
+%var56 = load i32, ptr %i.1
+%var55 = call i32 @jud(i32 %var56)
+%var57 = icmp sgt i32 %var55, 0
+br i1 %var57, label %if.then.2, label %if.else.2
+
+if.then.2:
+%var60 = load i32, ptr %i.1
+%var59 = call ptr @toString(i32 %var60)
+call void @print(ptr %var59)
+ret i32 0
+br label %if.back.2
+
+if.else.2:
+br label %if.back.2
+
+if.back.2:
+br label %for.step.3
+
+for.step.3:
+%var61 = load i32, ptr %i.1
+%var62 = load i32, ptr %i.1
+%var63 = sdiv i32 %var62, 2
+store i32 %var63, ptr %i.1
+br label %for.cond.3
+
+for.back.3:
 ret i32 0
 
 }
@@ -126,4 +184,23 @@ declare void @printlnInt(i32)
 declare ptr @getString()
 declare i32 @getInt()
 declare ptr @toString(i32)
+declare ptr @string.copy(ptr)
+declare i32 @string.length(ptr)
+declare ptr @string.substring(ptr, i32, i32)
+declare i32 @string.parseInt(ptr)
+declare i32 @string.ord(ptr, i32)
+declare ptr @string.add(ptr, ptr)
+declare i1 @string.equal(ptr, ptr)
+declare i1 @string.notEqual(ptr, ptr)
+declare i1 @string.less(ptr, ptr)
+declare i1 @string.lessOrEqual(ptr, ptr)
+declare i1 @string.greater(ptr, ptr)
+declare i1 @string.greaterOrEqual(ptr, ptr)
+declare i32 @array.size(ptr)
+declare ptr @_malloc(i32)
+declare ptr @__alloca_helper(i32, i32)
+declare ptr @__array.alloca_inside(i32, i32, ptr, i32)
+declare ptr @__array.alloca(i32, i32, i32, ...)
+declare ptr @Int_toString(i32)
+declare ptr @Bool_toString(i1)
 

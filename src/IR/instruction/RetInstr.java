@@ -20,6 +20,7 @@ public class RetInstr extends Instruction {
 
     @Override
     public String toString() {
+        if(retType.isVoid()) return "ret void\n";
         return "ret " + retType.toString() + " " + retValue.toString() + "\n";
     }
 }

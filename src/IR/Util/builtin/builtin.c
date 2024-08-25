@@ -58,8 +58,10 @@ int string_length(char *str) {
 
 char *string_substring(char *str, int left, int right) {
     int length = right - left;
-    char *buffer = malloc(length + 1);
-    memcpy(buffer, str + left, length);
+    char *buffer = (char *) malloc((length + 1) * sizeof(char));
+    for (int i = 0; i < length; i++) {
+        buffer[i] = str[left + i];
+    }
     buffer[length] = '\0';
     return buffer;
 }

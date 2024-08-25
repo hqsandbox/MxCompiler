@@ -27,10 +27,10 @@ public class Main {
     // 错误：要添加内建函数
     public static void main(String[] args) throws Exception{
 
-//        InputStream input = System.in;
+        InputStream input = System.in;
 
-        String name = "C:\\Users\\31447\\IdeaProjects\\untitled\\src\\test.mx";
-        InputStream input = new FileInputStream(name);
+//        String name = "C:\\Users\\31447\\IdeaProjects\\untitled\\src\\test.mx";
+//        InputStream input = new FileInputStream(name);
 
         PrintStream output =new PrintStream(new FileOutputStream("src/output.ll"));
         System.setOut(output);

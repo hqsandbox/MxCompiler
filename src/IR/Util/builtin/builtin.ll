@@ -97,16 +97,29 @@ define dso_local i32 @string.length(ptr nocapture noundef readonly %0) local_unn
   ret i32 %2
 }
 
-; Function Attrs: nounwind
-define dso_local ptr @string.substring(ptr noundef %0, i32 noundef %1, i32 noundef %2) local_unnamed_addr #0 {
+; Function Attrs: nofree nounwind
+define dso_local noalias ptr @string.substring(ptr nocapture noundef readonly %0, i32 noundef %1, i32 noundef %2) local_unnamed_addr #2 {
   %4 = sub nsw i32 %2, %1
   %5 = add nsw i32 %4, 1
   %6 = tail call ptr @malloc(i32 noundef %5) #14
-  %7 = getelementptr inbounds i8, ptr %0, i32 %1
-  %8 = tail call ptr @memcpy(ptr noundef %6, ptr noundef %7, i32 noundef %4) #12
+  %7 = icmp sgt i32 %4, 0
+  br i1 %7, label %10, label %8
+
+8:                                                ; preds = %10, %3
   %9 = getelementptr inbounds i8, ptr %6, i32 %4
   store i8 0, ptr %9, align 1, !tbaa !8
   ret ptr %6
+
+10:                                               ; preds = %3, %10
+  %11 = phi i32 [ %16, %10 ], [ 0, %3 ]
+  %12 = add nsw i32 %11, %1
+  %13 = getelementptr inbounds i8, ptr %0, i32 %12
+  %14 = load i8, ptr %13, align 1, !tbaa !8
+  %15 = getelementptr inbounds i8, ptr %6, i32 %11
+  store i8 %14, ptr %15, align 1, !tbaa !8
+  %16 = add nuw nsw i32 %11, 1
+  %17 = icmp eq i32 %16, %4
+  br i1 %17, label %8, label %10, !llvm.loop !9
 }
 
 ; Function Attrs: nofree nounwind
@@ -249,11 +262,11 @@ define dso_local noalias nonnull ptr @__array.alloca_inside(i32 noundef %0, i32 
   %26 = phi i32 [ 0, %21 ], [ %29, %25 ]
   %27 = tail call ptr @__array.alloca_inside(i32 noundef %0, i32 noundef %22, ptr noundef nonnull %23, i32 noundef %24) #14
   %28 = getelementptr inbounds ptr, ptr %18, i32 %26
-  store ptr %27, ptr %28, align 4, !tbaa !9
+  store ptr %27, ptr %28, align 4, !tbaa !11
   %29 = add nuw nsw i32 %26, 1
   %30 = load i32, ptr %2, align 4, !tbaa !4
   %31 = icmp slt i32 %29, %30
-  br i1 %31, label %25, label %32, !llvm.loop !11
+  br i1 %31, label %25, label %32, !llvm.loop !13
 
 32:                                               ; preds = %25, %12, %6
   %33 = phi ptr [ %11, %6 ], [ %18, %12 ], [ %18, %25 ]
@@ -290,7 +303,7 @@ define dso_local noalias nonnull ptr @__array.alloca(i32 noundef %0, i32 noundef
   store i32 %16, ptr %17, align 4, !tbaa !4
   %18 = add nuw nsw i32 %14, 1
   %19 = icmp eq i32 %18, %2
-  br i1 %19, label %10, label %12, !llvm.loop !13
+  br i1 %19, label %10, label %12, !llvm.loop !14
 }
 
 ; Function Attrs: mustprogress nocallback nofree nosync nounwind willreturn
@@ -340,8 +353,9 @@ attributes #14 = { "no-builtin-memcpy" "no-builtin-printf" }
 !6 = !{!"omnipotent char", !7, i64 0}
 !7 = !{!"Simple C/C++ TBAA"}
 !8 = !{!6, !6, i64 0}
-!9 = !{!10, !10, i64 0}
-!10 = !{!"any pointer", !6, i64 0}
-!11 = distinct !{!11, !12}
-!12 = !{!"llvm.loop.mustprogress"}
-!13 = distinct !{!13, !12}
+!9 = distinct !{!9, !10}
+!10 = !{!"llvm.loop.mustprogress"}
+!11 = !{!12, !12, i64 0}
+!12 = !{!"any pointer", !6, i64 0}
+!13 = distinct !{!13, !10}
+!14 = distinct !{!14, !10}

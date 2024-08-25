@@ -45,7 +45,7 @@ process.terminate()
 red_msg = "\033[31m{msg}\033[0m"
 green_msg = "\033[32m{msg}\033[0m"
 blue_msg = "\033[34m{msg}\033[0m"
-pass_cnt = 0;
+pass_cnt = 0
 
 for testcase in test_file:
     try:
@@ -70,7 +70,7 @@ for testcase in test_file:
         commands = './test'
         process = subprocess.Popen(commands, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
         stdout, _ = process.communicate(input=input_data)
-        print(testcase, green_msg.format(msg="output") if stdout.strip() == output_data else red_msg.format(msg="output"),
+        print(testcase, green_msg.format(msg="output") if stdout == output_data else red_msg.format(msg="output"),
                         green_msg.format(msg="retcode") if process.returncode == int(exitcode.strip()) else red_msg.format(msg="retcode"))
 
         if stdout == output_data and process.returncode == int(exitcode.strip()):

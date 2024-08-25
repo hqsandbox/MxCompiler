@@ -290,7 +290,7 @@ public class IRBuilder implements ASTVisitor {
         // TODO
 
         it.baseType.accept(this);
-        IRVariable lhsValue = currentPtr;
+        IREntity lhsValue = currentEntity;
         it.size.accept(this);
         IREntity size = currentEntity;
 
@@ -303,7 +303,7 @@ public class IRBuilder implements ASTVisitor {
 
         String actualName = it.baseType.type.typeName;
         IRVariable retValue = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("ptr"));
-        GeteleptrInstr geteleptrInstr = new GeteleptrInstr(currentBlock, retValue, actualName, lhsValue);
+        GeteleptrInstr geteleptrInstr = new GeteleptrInstr(currentBlock, retValue, actualName, lhsValue, Type_To_IRType(it.type));
         geteleptrInstr.idxList.add(size);
         currentBlock.instructions.add(geteleptrInstr);
         currentEntity = currentPtr = retValue;
@@ -323,7 +323,7 @@ public class IRBuilder implements ASTVisitor {
             IRVariable retValue = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("ptr"));
             CallInstr callInstr = new CallInstr(currentBlock, "string.copy", retValue);
             callInstr.argTypes.add(new IRType("ptr"));
-            callInstr.args.add(currentPtr);
+            callInstr.args.add(currentEntity);
             currentBlock.instructions.add(callInstr);
             StoreInstr storeInstr = new StoreInstr(currentBlock, lhsValue, new IRType("ptr"), retValue);
             currentBlock.instructions.add(storeInstr);
@@ -372,8 +372,8 @@ public class IRBuilder implements ASTVisitor {
                 phiInstr.addBranch(currentEntity, block1);
                 phiInstr.addBranch(lhsValue, block2);
             } else {
-                phiInstr.addBranch(lhsValue, thenBlock);
-                phiInstr.addBranch(currentEntity, endBlock);
+                phiInstr.addBranch(lhsValue, block1);
+                phiInstr.addBranch(currentEntity, block2);
             }
             currentEntity = retValue;
             return;
@@ -520,7 +520,7 @@ public class IRBuilder implements ASTVisitor {
         ClassInfor struct = gScope.getClassInfo(it.base.type.typeName);
         IRVariable result = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("ptr"));
         String className = "class.." + it.base.type.typeName;
-        GeteleptrInstr geteleptrInstr = new GeteleptrInstr(currentBlock, result, className, ptr);
+        GeteleptrInstr geteleptrInstr = new GeteleptrInstr(currentBlock, result, className, ptr, Type_To_IRType(it.type));
         geteleptrInstr.idxList.add(new IRIntLiteral(0));
         struct.varNames.forEach(varName -> {
             if(varName.equals(it.memberName)){
@@ -537,8 +537,8 @@ public class IRBuilder implements ASTVisitor {
 
     @Override public void visit(MethodCallExpr it) {
         it.base.accept(this);
-        IRVariable ptr = currentPtr;
-        String className = ptr.type.className;
+        IREntity irEntity = currentEntity;
+        String className = irEntity.type.className;
         String funcName;
         if(it.base.type.isString) {
             funcName = "string." + it.methodName;
@@ -549,9 +549,9 @@ public class IRBuilder implements ASTVisitor {
             funcName = it.methodName;
         }
         IRFuncDef funcDef = irProgram.getFuncDef(funcName);
-        CallInstr callInstr = new CallInstr(currentBlock, funcName, ptr);
+        CallInstr callInstr = new CallInstr(currentBlock, funcName, null);
         callInstr.argTypes.addAll(funcDef.parameterTypeList);
-        callInstr.args.add(ptr);
+        callInstr.args.add(irEntity);
         if(it.callExpList != null){
             it.callExpList.expList.forEach(e -> {
                 e.accept(this);
@@ -601,7 +601,7 @@ public class IRBuilder implements ASTVisitor {
             it.literal.get(i).accept(this);
             IREntity entity = currentEntity;
             IRVariable retValue1 = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("ptr"));
-            GeteleptrInstr geteleptrInstr = new GeteleptrInstr(currentBlock, retValue1, String.valueOf(i), retValue);
+            GeteleptrInstr geteleptrInstr = new GeteleptrInstr(currentBlock, retValue1, String.valueOf(i), retValue, Type_To_IRType(it.literal.get(i).type));
             currentBlock.instructions.add(geteleptrInstr);
             currentBlock.instructions.add(new StoreInstr(currentBlock, retValue1, new IRType("ptr"), entity));
         }
@@ -645,7 +645,7 @@ public class IRBuilder implements ASTVisitor {
             it.arrayconst.literal.get(i).accept(this);
             IREntity entity = currentEntity;
             IRVariable retValue = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("ptr"));
-            GeteleptrInstr geteleptrInstr = new GeteleptrInstr(currentBlock, retValue, String.valueOf(i), entity);
+            GeteleptrInstr geteleptrInstr = new GeteleptrInstr(currentBlock, retValue, String.valueOf(i), entity, Type_To_IRType(it.arrayconst.literal.get(i).type));
             currentBlock.instructions.add(geteleptrInstr);
             currentBlock.instructions.add(new StoreInstr(currentBlock, irVariable, new IRType("ptr"), retValue));
         }

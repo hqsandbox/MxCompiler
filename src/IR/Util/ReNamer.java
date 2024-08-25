@@ -9,7 +9,8 @@ public class ReNamer {
     public ReNamer(ReNamer parent) {
         this.parent = parent;
         if (parent != null) {
-            this.varNames = parent.varNames;
+            this.varNames = new HashMap<>();
+            this.varNames.putAll(parent.varNames);
         }
     }
     public ReNamer getParent() {

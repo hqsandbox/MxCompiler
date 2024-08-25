@@ -17,11 +17,16 @@ public class IRGlobalVariDef extends IRStatement {
     public String toString() {
         if(varName.startsWith("@.str")){
             String myString = result.toString();
-            myString = myString.substring(1, myString.length() - 1);
+            if(myString.startsWith("\"") && myString.endsWith("\"")){
+                myString = myString.substring(1, myString.length() - 1);
+            }
             int size = myString.length();
             myString = myString + "\\00";
             size++;
             return varName + " = " + "private unnamed_addr constant [" + size + " x i8] c\"" + myString + "\"\n";
+        }
+        if(irType.isPtr() && result.toString().equals("")){
+            return varName + " = " + "global " + irType.toString() + " null\n";
         }
         return varName + " = " + "global " + irType.toString() + " " + result.toString() + "\n";
     }

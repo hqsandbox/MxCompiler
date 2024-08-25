@@ -113,7 +113,6 @@ int array_size(void *arr) {
     return ((int*)arr)[-1];
 }
 
-// 这里n表示n个i32类型的数据
 // malloc函数分配的内存空间单位是字节
 void *_malloc(int n){
     return malloc(n);

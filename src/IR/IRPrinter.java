@@ -17,11 +17,11 @@ public class IRPrinter {
         for(IRGlobalVariDef irGlobal : irProgram.globalVarDefMap.values()) {
             ret.append(irGlobal.toString());
         }
-        for(IRFuncDef irFunction : irProgram.funcDefMap.values()) {
-            ret.append(irFunction.toString());
-        }
         for(IRClassDef irClass : irProgram.classDefMap.values()) {
             ret.append(irClass.toString());
+        }
+        for(IRFuncDef irFunction : irProgram.funcDefMap.values()) {
+            ret.append(irFunction.toString());
         }
         ret.append(printDeclare());
         return ret.toString();

@@ -24,9 +24,9 @@ public class GeteleptrInstr extends Instruction {
     @Override
     public String toString(){
         StringBuilder ret = new StringBuilder();
-        ret.append(result.toString()).append(" = getelementptr ").append(className).append(", ").append(ptrValue.type.toString()).append(" ").append(ptrValue.toString());
+        ret.append(result.toString()).append(" = getelementptr %").append(className).append(", ").append(ptrValue.type.toString()).append(" ").append(ptrValue.toString());
         for (IREntity idx : idxList) {
-            ret.append(", ").append(idx.toString());
+            ret.append(", ").append(idx.type.toString()).append(" ").append(idx.toString());
         }
         ret.append("\n");
         return ret.toString();

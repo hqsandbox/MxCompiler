@@ -29,6 +29,9 @@ public class SymbolCollector implements ASTVisitor {
                 struct.varNames.add(iv.name);
             });
         });
+        if(it.constructor != null) {
+            struct.hasConstructor = true;
+        }
         if(gScope.funcInfor.containsKey(it.name))
             throw new Util.error.semanticError("class name conflict with function name", it.pos);
         gScope.addClassInfo(it.name, struct, it.pos);

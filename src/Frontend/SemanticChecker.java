@@ -145,6 +145,29 @@ public class SemanticChecker implements ASTVisitor {
         if(!hasReturn && !it.returnType.isVoid && !it.name.equals("main")) {
             throw new semanticError("return type of non-void function should have return statement", it.pos);
         }
+        if(!it.body.stmt.isEmpty() && !(it.body.stmt.getLast() instanceof ReturnStmt)){
+            var ret = new ReturnStmt(null);
+            PrimaryExpr tmpExpr = new PrimaryExpr(null);
+            tmpExpr.type = new Type();
+            if(it.returnType.isVoid){
+                ret.expr = null;
+            } else if(it.returnType.dim > 0 || it.returnType.isString || it.returnType.isClass){
+                tmpExpr.type.setNull();
+                ret.expr = tmpExpr;
+            } else if(it.returnType.isBool){
+                tmpExpr.type.setBool();
+                tmpExpr.isFalse = true;
+                ret.expr = tmpExpr;
+            } else if(it.returnType.isInt){
+                tmpExpr.type.setInt();
+                tmpExpr.isIntLiteral = true;
+                tmpExpr.intLiteral = "0";
+                ret.expr = tmpExpr;
+            } else {
+                throw new semanticError("type error", null);
+            }
+            it.body.stmt.add(ret);
+        }
 
         inFunc = false;
         inMain = false;

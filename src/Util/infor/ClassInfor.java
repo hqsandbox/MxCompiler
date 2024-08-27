@@ -11,6 +11,7 @@ public class ClassInfor {
     public ArrayList<String> varNames = new ArrayList<>();
     public HashMap<String, Type> variList = new HashMap<>();
     public HashMap<String, FuncInfor> funcList = new HashMap<>();
+    public boolean hasConstructor = false;
     int size = 0;
 
     public ClassInfor(ClassTypeDef it) {

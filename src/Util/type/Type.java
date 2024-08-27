@@ -4,6 +4,7 @@ public class Type {
     public boolean isInt = false, isBool = false;
     public boolean isString = false, isNull = false, isVoid = false;
     public boolean isClass = false;
+    public boolean isFalse = false;
     public String typeName = null;
     public int dim = 0;
 

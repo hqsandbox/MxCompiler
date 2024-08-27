@@ -53,7 +53,6 @@ public class Main {
                 System.exit(1);
             }
 
-
             ASTBuilder astBuilder = new ASTBuilder(gScope);
             ASTRoot = (Program)astBuilder.visit(parseTreeRoot);
             new SymbolCollector(gScope).visit(ASTRoot);

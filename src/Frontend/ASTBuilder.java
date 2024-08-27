@@ -370,7 +370,7 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
             fmtString.stringList.add(s.substring(1, s.length() - 1));
         } else {
             String stringL = ctx.FmtStringL().getText();
-            fmtString.stringList.add(stringL.substring(1, stringL.length() - 1));
+            fmtString.stringList.add(stringL.substring(2, stringL.length() - 1));
             if(ctx.FmtStringM() != null){
                 ctx.FmtStringM().forEach(m -> {
                     String stringM = m.getText();

@@ -240,7 +240,6 @@ public class IRBuilder implements ASTVisitor {
                 } else {
                     if(it.init instanceof FmtString fmtString) {
                         it.init.accept(this);
-                        // TODO
                         return;
                     } else if(it.init instanceof PrimaryExpr primaryExpr) {
                         IRVariable irVariable = new IRVariable("%" + it.name + "." + num, new IRType("ptr"));
@@ -653,6 +652,10 @@ public class IRBuilder implements ASTVisitor {
     }
 
     @Override public void visit(NewArrayExpr it) {
+        if(it.arrayconst != null){
+            it.arrayconst.accept(this);
+            return;
+        }
         IRVariable retValue = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("ptr"));
         CallInstr callInstr = new CallInstr(currentBlock, "__array.alloca", retValue);
         ArrayList<IREntity> sizeList = new ArrayList<>();
@@ -672,63 +675,58 @@ public class IRBuilder implements ASTVisitor {
     }
 
     @Override public void visit(Arrayconst it) {
-        IRVariable retValue = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("ptr"));
-        CallInstr callInstr = new CallInstr(currentBlock, "_malloc", retValue);
+        IRVariable retValue = new IRVariable("%var" + String.valueOf(counter.varCounter), new IRType("ptr"));
+        CallInstr callInstr = new CallInstr(currentBlock, "__array.alloca", retValue);
         callInstr.argTypes.add(new IRType("i32"));
-        callInstr.args.add(new IRIntLiteral(it.literal.size() * 4));
+        callInstr.args.add(new IRIntLiteral(4));
+        callInstr.argTypes.add(new IRType("i32"));
+        callInstr.args.add(new IRIntLiteral(it.type.dim));
+        callInstr.argTypes.add(new IRType("i32"));
+        callInstr.args.add(new IRIntLiteral(it.type.dim));
+        callInstr.argTypes.add(new IRType("i32"));
+        callInstr.args.add(new IRIntLiteral(it.literal.size()));
+        currentBlock.instructions.add(callInstr);
+
         for(int i = 0; i < it.literal.size(); i++) {
             it.literal.get(i).accept(this);
             IREntity entity = currentEntity;
-            IRVariable retValue1 = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("ptr"));
-            GeteleptrInstr geteleptrInstr = new GeteleptrInstr(currentBlock, retValue1, String.valueOf(i), retValue, Type_To_IRType(it.literal.get(i).type));
+            IRVariable retValue1 = new IRVariable("%var" + String.valueOf(counter.varCounter++), currentEntity.type);
+            GeteleptrInstr geteleptrInstr = new GeteleptrInstr(currentBlock, retValue1, String.valueOf(i), retValue, new IRType("ptr"));
             currentBlock.instructions.add(geteleptrInstr);
-            currentBlock.instructions.add(new StoreInstr(currentBlock, retValue1, new IRType("ptr"), entity));
+            geteleptrInstr.idxList.add(new IRIntLiteral(i));
+            currentBlock.instructions.add(new StoreInstr(currentBlock, retValue1, currentEntity.type, entity));
         }
-        currentBlock.instructions.add(callInstr);
+        currentEntity = currentPtr = retValue;
     }
 
     @Override public void visit(Literal it) {
         if(it.arrayconst == null) {
-            IRVariable retValue = new IRVariable("%var" + String.valueOf(counter.varCounter++), Type_To_IRType(it.type));
+            IRVariable retValue = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("ptr"));
             if(it.isInt){
-                CallInstr callInstr = new CallInstr(currentBlock, "_malloc", retValue);
-                callInstr.argTypes.add(new IRType("i32"));
-                callInstr.args.add(new IRIntLiteral(4));
+                currentEntity = new IRIntLiteral(it.intValue);
             } else if(it.isTrue || it.isFalse){
-                CallInstr callInstr = new CallInstr(currentBlock, "_malloc", retValue);
-                callInstr.argTypes.add(new IRType("i32"));
-                callInstr.args.add(new IRIntLiteral(1));
+                currentEntity = new IRBoolLiteral(it.isTrue);
             } else if(it.isString){
-                int num = counter.strCounter++;
-                String actualName = "@.str.." + num;
-                IRGlobalVariDef irGlobalVariDef = new IRGlobalVariDef(actualName);
-                irGlobalVariDef.irType = new IRType("ptr");
-                irGlobalVariDef.result = new IROtherLiteral(actualName, new IRType("ptr"));
-                irProgram.globalVarDefMap.put(actualName, irGlobalVariDef);
-                CallInstr callInstr = new CallInstr(currentBlock, "_malloc", retValue);
-                callInstr.argTypes.add(new IRType("ptr"));
-                callInstr.args.add(new IRIntLiteral(4));
+                currentEntity = new IROtherLiteral(it.stringValue, new IRType("ptr"));
             } else if(it.isNull){
-                // TODO
-                CallInstr callInstr = new CallInstr(currentBlock, "_malloc", retValue);
-                callInstr.argTypes.add(new IRType("i32"));
-                callInstr.args.add(new IRIntLiteral(4));
+                currentEntity = new IROtherLiteral("null", new IRType("ptr"));
             }
-            currentEntity = retValue;
+            return;
         }
-        IRVariable irVariable = new IRVariable("%var" + String.valueOf(counter.varCounter++), Type_To_IRType(it.type));
+        IRVariable irVariable = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("ptr"));
         CallInstr callInstr = new CallInstr(currentBlock, "_malloc", irVariable);
         callInstr.argTypes.add(new IRType("ptr"));
         callInstr.args.add(new IRIntLiteral(it.arrayconst.literal.size() * 4));
+        currentBlock.instructions.add(callInstr);
         for(int i = 0; i < it.arrayconst.literal.size(); i++) {
             it.arrayconst.literal.get(i).accept(this);
             IREntity entity = currentEntity;
             IRVariable retValue = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("ptr"));
-            GeteleptrInstr geteleptrInstr = new GeteleptrInstr(currentBlock, retValue, String.valueOf(i), entity, Type_To_IRType(it.arrayconst.literal.get(i).type));
+            GeteleptrInstr geteleptrInstr = new GeteleptrInstr(currentBlock, retValue, String.valueOf(i), entity, new IRType("ptr"));
             currentBlock.instructions.add(geteleptrInstr);
+            geteleptrInstr.idxList.add(new IRIntLiteral(i));
             currentBlock.instructions.add(new StoreInstr(currentBlock, irVariable, new IRType("ptr"), retValue));
         }
-        currentBlock.instructions.add(callInstr);
     }
 
     @Override public void visit(NewVarExpr it) {
@@ -893,7 +891,6 @@ public class IRBuilder implements ASTVisitor {
     }
 
     @Override public void visit(FmtString it) {
-        // TODO
         if(it.stringList != null){
             int num = counter.strCounter++;
             String actualName = "@.str.." + num;

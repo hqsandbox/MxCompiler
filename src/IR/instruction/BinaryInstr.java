@@ -1,6 +1,7 @@
 package IR.instruction;
 
 import IR.IRBlock;
+import IR.IRVisitor;
 import IR.entity.IREntity;
 import IR.entity.IRVariable;
 
@@ -35,6 +36,11 @@ public class BinaryInstr extends Instruction {
         }
         ret.append(" ").append(lhs.type.toString()).append(" ").append(lhs.toString()).append(", ").append(rhs.toString()).append("\n");
         return ret.toString();
+    }
+
+    @Override
+    public void accept(IRVisitor visitor) {
+        visitor.visit(this);
     }
 
 }

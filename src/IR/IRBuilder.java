@@ -378,40 +378,107 @@ public class IRBuilder implements ASTVisitor {
         var lhsValue = currentEntity;
 
         if(it.op.equals("&&") || it.op.equals("||")){
+//            IRVariable retVariable = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("ptr"));
+//            currentBlock.instructions.add(new AllocInstr(currentBlock, new IRType("i1"), retVariable));
+//
+//            int num = counter.ifCounter++;
+//            IRBlock thenBlock = new IRBlock(currentBlock.parent, "if.then.." + num);
+//            IRBlock elseBlock = new IRBlock(currentBlock.parent, "if.else.." + num);
+//            IRBlock endBlock = new IRBlock(currentBlock.parent, "if.end.." + num);
+//            currentBlock.instructions.add(new IR.instruction.BrInstr(currentBlock, lhsValue, thenBlock, elseBlock));
+//
+//            currentBlock.parent.addBlock(thenBlock);
+//            currentBlock = thenBlock;
+//            if(it.op.equals("&&")){
+//                it.rhs.accept(this);
+//                currentBlock.instructions.add(new IR.instruction.StoreInstr(currentBlock, retVariable, currentEntity.type, currentEntity));
+//            } else {
+//                currentBlock.instructions.add(new IR.instruction.StoreInstr(currentBlock, retVariable, lhsValue.type, lhsValue));
+//            }
+//            currentBlock.instructions.add(new JumpInstr(currentBlock, endBlock));
+//
+//            currentBlock.parent.addBlock(elseBlock);
+//            currentBlock = elseBlock;
+//            if(it.op.equals("||")){
+//                it.rhs.accept(this);
+//                currentBlock.instructions.add(new IR.instruction.StoreInstr(currentBlock, retVariable, currentEntity.type, currentEntity));
+//            } else {
+//                currentBlock.instructions.add(new IR.instruction.StoreInstr(currentBlock, retVariable, lhsValue.type, lhsValue));
+//            }
+//            currentBlock.instructions.add(new JumpInstr(currentBlock, endBlock));
+//
+//            currentBlock.parent.addBlock(endBlock);
+//
+//            IRVariable retValue = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("i1"));
+//            currentBlock = endBlock;
+//            currentBlock.instructions.add(new LoadInstr(currentBlock, retVariable, retValue, new IRType("i1")));
+//            currentEntity = retValue;
+//            return;
+
+
             int num = counter.landCounter++;
-            IRBlock thenBlock = new IRBlock(currentBlock.parent, "land.then.." + num);
-            IRBlock elseBlock = new IRBlock(currentBlock.parent, "land.else.." + num);
+            IRBlock nextBlock = new IRBlock(currentBlock.parent, "land.next.." + num);
             IRBlock endBlock = new IRBlock(currentBlock.parent, "land.end.." + num);
-            currentBlock.instructions.add(new IR.instruction.BrInstr(currentBlock, lhsValue, thenBlock, elseBlock));
+            IRVariable retVariable = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("ptr"));
+            var lhs = new IRVariable(lhsValue.toString(), new IRType("i1"));
+            currentBlock.instructions.add(new AllocInstr(currentBlock, new IRType("i1"), retVariable));
+            currentBlock.instructions.add(new IR.instruction.StoreInstr(currentBlock, retVariable, currentEntity.type, currentEntity));
+            if(it.op.equals("&&")){
+                currentBlock.instructions.add(new IR.instruction.BrInstr(currentBlock, lhs, nextBlock, endBlock));
+            } else {
+                currentBlock.instructions.add(new IR.instruction.BrInstr(currentBlock, lhs, endBlock, nextBlock));
+            }
 
-            currentBlock.parent.addBlock(thenBlock);
-            currentBlock = thenBlock;
-            if(it.op.equals("&&")) it.rhs.accept(this);
-            currentBlock.instructions.add(new JumpInstr(currentBlock, endBlock));
-            IRBlock block1 = currentBlock;
-
-            currentBlock.parent.addBlock(elseBlock);
-            currentBlock = elseBlock;
-            if(it.op.equals("||")) it.rhs.accept(this);
-            currentBlock.instructions.add(new JumpInstr(currentBlock, endBlock));
-            IRBlock block2 = currentBlock;
+            currentBlock.parent.addBlock(nextBlock);
+            currentBlock = nextBlock;
+            it.rhs.accept(this);
+            var rhsValue = currentEntity;
+            IRVariable rhs = new IRVariable(rhsValue.toString(), new IRType("i1"));
+            currentBlock.instructions.add(new IR.instruction.StoreInstr(currentBlock, retVariable, rhs.type, rhs));
+            currentBlock.instructions.add(new IR.instruction.JumpInstr(currentBlock, endBlock));
 
             currentBlock.parent.addBlock(endBlock);
-
-            IRVariable retValue = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("i1"));
             currentBlock = endBlock;
-            PhiInstr phiInstr = new PhiInstr(currentBlock, retValue, new IRType("i1"));
-            currentBlock.instructions.add(phiInstr);
+            IRVariable retValue = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("i1"));
+            currentBlock.instructions.add(new LoadInstr(currentBlock, retVariable, retValue, new IRType("i1")));
 
-            if(it.op.equals("&&")) {
-                phiInstr.addBranch(currentEntity, block1);
-                phiInstr.addBranch(lhsValue, block2);
-            } else {
-                phiInstr.addBranch(lhsValue, block1);
-                phiInstr.addBranch(currentEntity, block2);
-            }
             currentEntity = retValue;
             return;
+
+
+//            it.lhs.accept(this);
+//            String lhsName = currentTmpValName;
+//            String nextlabel = renamer.rename("shortcircuit.next");
+//            String endlabel = renamer.rename("shortcircuit.end");
+//            IRVar dest = new IRVar("ptr", "%" + renamer.rename("shortcircuit.ptr"), false);
+//            currentBlock.push(new allocaInstNode(it, currentBlock, dest, new IRType(IRType.IRTypeEnum.i1)));
+//            //lhs:
+//            IRVar lhs = new IRVar("i1", lhsName, false);
+//            storeInstNode store = new storeInstNode(it, currentBlock, lhs, dest);
+//            currentBlock.push(store);
+//            if (it.opCode == binaryExprNode.binaryOpType.andLg) {
+//                currentBlock.push(new brInstNode(it, currentBlock, lhs, nextlabel, endlabel));
+//            } else {
+//                currentBlock.push(new brInstNode(it, currentBlock, lhs, endlabel, nextlabel));
+//            }
+//            //next(rhs):
+//            currentBlock = new IRBlockNode(currentBlock, currentFunDef, nextlabel);
+//            currentFunDef.push(currentBlock);
+//            it.rhs.accept(this);
+//            String rhsName = currentTmpValName;
+//            IRVar rhs = new IRVar("i1", rhsName, false);
+//            storeInstNode store2 = new storeInstNode(it, currentBlock, rhs, dest);
+//            currentBlock.push(store2);
+//            currentBlock.push(new brInstNode(it, currentBlock, endlabel));
+//            //end:
+//            currentBlock = new IRBlockNode(currentBlock, currentFunDef, endlabel);
+//            currentFunDef.push(currentBlock);
+//            loadInstNode load = new loadInstNode(it, currentBlock, renamer.getAnonymousName(), dest.name, new IRType(IRType.IRTypeEnum.i1));
+//            currentBlock.push(load);
+//            currentTmpValName = load.dest;
+//            currentLeftVarAddr = null;
+//            return;
+
         }
 
         it.rhs.accept(this);
@@ -500,6 +567,11 @@ public class IRBuilder implements ASTVisitor {
 
     @Override public void visit(ConditionalExpr it) {
         it.condition.accept(this);
+        IRVariable retVariable = null;
+        if(!it.type.isVoid) {
+            retVariable = new IRVariable("%var" + String.valueOf(counter.varCounter++), new IRType("ptr"));
+            currentBlock.instructions.add(new AllocInstr(currentBlock, Type_To_IRType(it.type), retVariable));
+        }
         if(currentEntity instanceof IRBoolLiteral literal) {
             if(literal.value) {
                 it.trueBranch.accept(this);
@@ -517,16 +589,20 @@ public class IRBuilder implements ASTVisitor {
             currentBlock.parent.addBlock(thenBlock);
             currentBlock = thenBlock;
             it.trueBranch.accept(this);
-            var thenValue = (!it.type.isVoid) ? currentEntity : null;
+//            var thenValue = (!it.type.isVoid) ? currentEntity : null;
+//            currentBlock.instructions.add(new IR.instruction.JumpInstr(currentBlock, backBlock));
+//            IRBlock block1 = currentBlock;
+            if(!it.type.isVoid) currentBlock.instructions.add(new StoreInstr(currentBlock, retVariable, currentEntity.type, currentEntity));
             currentBlock.instructions.add(new IR.instruction.JumpInstr(currentBlock, backBlock));
-            IRBlock block1 = currentBlock;
 
             currentBlock.parent.addBlock(elseBlock);
             currentBlock = elseBlock;
             it.falseBranch.accept(this);
-            var elseValue = (!it.type.isVoid) ? currentEntity : null;
+//            var elseValue = (!it.type.isVoid) ? currentEntity : null;
+//            currentBlock.instructions.add(new IR.instruction.JumpInstr(currentBlock, backBlock));
+//            IRBlock block2 = currentBlock;
+            if(!it.type.isVoid) currentBlock.instructions.add(new StoreInstr(currentBlock, retVariable, currentEntity.type, currentEntity));
             currentBlock.instructions.add(new IR.instruction.JumpInstr(currentBlock, backBlock));
-            IRBlock block2 = currentBlock;
 
             currentBlock.parent.addBlock(backBlock);
             currentBlock = backBlock;
@@ -535,13 +611,14 @@ public class IRBuilder implements ASTVisitor {
                 currentEntity = null;
             } else {
                 IRVariable retValue = new IRVariable("%var" + String.valueOf(counter.varCounter++), Type_To_IRType(it.type));
-                PhiInstr phiInstr = new PhiInstr(currentBlock, retValue, Type_To_IRType(it.type));
-                currentBlock.instructions.add(phiInstr);
-
-                phiInstr.addBranch(thenValue, block1);
-                phiInstr.addBranch(elseValue, block2);
-
+//                PhiInstr phiInstr = new PhiInstr(currentBlock, retValue, Type_To_IRType(it.type));
+//                currentBlock.instructions.add(phiInstr);
+//
+//                phiInstr.addBranch(thenValue, block1);
+//                phiInstr.addBranch(elseValue, block2);
+                currentBlock.instructions.add(new LoadInstr(currentBlock, retVariable, retValue, Type_To_IRType(it.type)));
                 currentEntity = retValue;
+                currentPtr = retVariable;
             }
 
         }
@@ -621,11 +698,12 @@ public class IRBuilder implements ASTVisitor {
         String funcName = "";
         if(it.base.type.isString) {
             funcName = "string." + it.methodName;
+        } else if(it.base.type.dim > 0){
+            // 错误：这里dim要放在class前面，因为可能元素是class类型
+            funcName = "array.size";
         } else if(it.base.type.isClass) {
             funcName = className + ".." + it.methodName;
-        } else if(it.base.type.dim > 0){
-            funcName = "array.size";
-        } else {
+        }  else {
             System.out.println("maybe a bug");
         }
         IRFuncDef funcDef = irProgram.getFuncDef(funcName);
@@ -989,7 +1067,7 @@ public class IRBuilder implements ASTVisitor {
         IRBlock condBlock = new IRBlock(currentBlock.parent, "for.cond." + currentNum);
         IRBlock bodyBlock = new IRBlock(currentBlock.parent, "for.body." + currentNum);
         IRBlock stepBlock = new IRBlock(currentBlock.parent, "for.step." + currentNum);
-        currentScope.loopNext = bodyBlock;
+        currentScope.loopNext = stepBlock;
         currentScope.loopEnd = backBlock;
         currentBlock.instructions.add(new IR.instruction.JumpInstr(currentBlock, condBlock));
 
@@ -1108,7 +1186,7 @@ public class IRBuilder implements ASTVisitor {
         IRBlock backBlock = new IRBlock(currentBlock.parent, "while.back." + num);
         IRBlock condBlock = new IRBlock(currentBlock.parent, "while.cond." + num);
         IRBlock bodyBlock = new IRBlock(currentBlock.parent, "while.body." + num);
-        currentScope.loopNext = bodyBlock;
+        currentScope.loopNext = condBlock;
         currentScope.loopEnd = backBlock;
         currentBlock.instructions.add(new IR.instruction.JumpInstr(currentBlock, condBlock));
 

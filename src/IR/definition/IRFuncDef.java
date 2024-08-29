@@ -1,8 +1,10 @@
 package IR.definition;
 
 import IR.IRBlock;
+import IR.IRVisitor;
 import Util.type.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 
 public class IRFuncDef extends IRStatement {
@@ -11,6 +13,11 @@ public class IRFuncDef extends IRStatement {
     public ArrayList<IRType> parameterTypeList = new ArrayList<>();
     public ArrayList<String> parameterNameList = new ArrayList<>();
     public ArrayList<IRBlock> blockList = new ArrayList<>();
+
+    public HashMap<String, String> paraMap = new HashMap<>(); // a0-a7
+    public HashMap<String, Integer> offsetMap = new HashMap<>(); // paras more than 8
+    public int stackSize = 0;
+    public HashMap<String, Integer> nameMap = new HashMap<>();
 
     public IRFuncDef(IRType returnType_) {
         returnType = returnType_;
@@ -42,5 +49,13 @@ public class IRFuncDef extends IRStatement {
         return stringBuilder.toString();
     }
 
+    @Override
+    public void accept(IRVisitor visitor) {
+        visitor.visit(this);
+    }
+    public int getPlace(String name) {
+        if (nameMap.containsKey(name)) return nameMap.get(name);
+        throw new RuntimeException("IRFuncDef: getPlace: no such name");
+    }
 
 }

@@ -1,5 +1,6 @@
 package IR.entity;
 
+import IR.IRVisitor;
 import Util.type.IRType;
 
 public abstract class IREntity {

@@ -3,6 +3,7 @@ package IR.definition;
 import IR.entity.IREntity;
 import IR.entity.IRVariable;
 import Util.type.IRType;
+import IR.IRVisitor;
 
 public class IRGlobalVariDef extends IRStatement {
     public IRType irType;
@@ -33,5 +34,10 @@ public class IRGlobalVariDef extends IRStatement {
             return varName + " = " + "global " + irType.toString() + " null\n";
         }
         return varName + " = " + "global " + irType.toString() + " " + result.toString() + "\n";
+    }
+
+    @Override
+    public void accept(IRVisitor visitor) {
+        visitor.visit(this);
     }
 }

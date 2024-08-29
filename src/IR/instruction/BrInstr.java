@@ -1,6 +1,7 @@
 package IR.instruction;
 
 import IR.IRBlock;
+import IR.IRVisitor;
 import IR.entity.IREntity;
 import IR.entity.IRVariable;
 
@@ -18,5 +19,10 @@ public class BrInstr extends Instruction {
     @Override
     public String toString() {
         return "br i1 " + op + ", label %" + lhs.name + ", label %" + rhs.name + "\n";
+    }
+
+    @Override
+    public void accept(IRVisitor visitor) {
+        visitor.visit(this);
     }
 }

@@ -3,6 +3,7 @@ package IR.definition;
 import java.util.ArrayList;
 import java.util.List;
 import AST.Def.VariableDef;
+import IR.IRVisitor;
 import Util.type.IRType;
 
 public class IRClassDef extends IRStatement {
@@ -28,5 +29,10 @@ public class IRClassDef extends IRStatement {
         }
         sb.append(" }\n");
         return sb.toString();
+    }
+
+    @Override
+    public void accept(IRVisitor visitor) {
+        visitor.visit(this);
     }
 }

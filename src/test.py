@@ -36,7 +36,20 @@ def extract_input_output_exitcode(file_path):
         exitcode = ""
     return content, input_data, output_data, exitcode
 
-
+def extract_cycles_exitcode(stderr):
+	cycle_regex = r'Total cycles: (\d+)'
+	exco_regex = r'Exit code: (\d+)'
+	cycle_match = re.search(cycle_regex, stderr)
+	exco_match = re.search(exco_regex, stderr)
+	if cycle_match:
+		c = cycle_match.group(1)
+	else:
+		c = ""
+	if exco_match:
+		ex = int(exco_match.group(1))
+	else:
+		ex = None
+	return c, ex
 commands = 'make compile'
 process = subprocess.Popen(commands, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
 _, _ = process.communicate(input="")
@@ -48,35 +61,41 @@ blue_msg = "\033[34m{msg}\033[0m"
 pass_cnt = 0
 
 for testcase in test_file:
-    try:
-        content, input_data, output_data, exitcode = extract_input_output_exitcode(testcase)
-        temp = open('test.in', 'w')
-        temp.write(input_data)
-        temp.flush()
-        commands = 'cd .. && make test'
-        process = subprocess.Popen(commands, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
-        _, _ = process.communicate(input=content)
-        compile_status = process.returncode
-        if compile_status != 0:
-            raise Exception("LLVM Compile Error")
-        process.terminate()
-        commands = 'clang-15 -m32 output.ll ./IR/Util/builtin/builtin.ll -o test'
-        process = subprocess.Popen(commands, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
-        stdout, _ = process.communicate(input="")
-        compile_status = process.returncode
-        if compile_status != 0:
-            raise Exception("Binary Compile Error")
-        process.terminate()
-        commands = './test'
-        process = subprocess.Popen(commands, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
-        stdout, _ = process.communicate(input=input_data)
-        print(testcase, green_msg.format(msg="output") if stdout == output_data else red_msg.format(msg="output"),
-                        green_msg.format(msg="retcode") if process.returncode == int(exitcode.strip()) else red_msg.format(msg="retcode"))
+# testcase = r'../testcases/codegen/e1.mx'
+	try:
+		content, input_data, output_data, exitcode = extract_input_output_exitcode(testcase)
+		temp = open('test.in', 'w')
+		temp.write(input_data)
+		temp.flush()
+		commands = 'cd .. && make test'
+		process = subprocess.Popen(commands, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
+		_, _ = process.communicate(input=content)
+		compile_status = process.returncode
+		if compile_status != 0:
+			raise Exception("run Compile Error")
+		process.terminate()
+		with open('test.in', 'w') as f:
+			f.write(input_data)
+			f.flush()
+		commands = 'mv ../bin/test.s test.s && reimu -i=test.in -o=test.out -s=1M'
+		process = subprocess.Popen(commands, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
+		content, stderr = process.communicate(input="")
+		compile_status = process.returncode
+		if compile_status != 0:
+			raise Exception("Binary Compile Error")
+		process.terminate()
+		with open('test.out', 'r') as f:
+			stdout = f.read()
+		cycle, returncode = extract_cycles_exitcode(stderr)
+		print(testcase, green_msg.format(msg="output") if stdout == output_data else red_msg.format(msg="output"),
+						green_msg.format(msg="retcode") if returncode == int(exitcode.strip()) else red_msg.format(msg="retcode"), end=' ')
 
-        if stdout == output_data and process.returncode == int(exitcode.strip()):
-            pass_cnt += 1
-        process.terminate()
-    except Exception as e:
-        print(testcase, red_msg.format(msg=e))
+		if stdout == output_data and returncode == int(exitcode.strip()):
+			print(cycle)
+			pass_cnt += 1
+		else:
+			print('')
+	except Exception as e:
+		print(testcase, red_msg.format(msg=e))
 
 print("\033[32mPassed Cases:", pass_cnt, f"\033[0m, \033[34mTotal Cases: {len(test_file)}\033[0m")

@@ -1,6 +1,7 @@
 package IR.instruction;
 
 import IR.IRBlock;
+import IR.IRVisitor;
 
 public abstract class Instruction {
 
@@ -11,4 +12,5 @@ public abstract class Instruction {
     }
 
     public abstract String toString();
+    public abstract void accept(IRVisitor visitor);
 }

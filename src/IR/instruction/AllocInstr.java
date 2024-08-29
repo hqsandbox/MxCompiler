@@ -1,6 +1,7 @@
 package IR.instruction;
 
 import IR.IRBlock;
+import IR.IRVisitor;
 import IR.entity.IRVariable;
 import Util.type.IRType;
 
@@ -22,6 +23,11 @@ public class AllocInstr extends Instruction {
     @Override
     public String toString() {
         return irVariable.toString() + " = alloca " + irType.toString() + "\n";
+    }
+
+    @Override
+    public void accept(IRVisitor visitor) {
+        visitor.visit(this);
     }
 
 }

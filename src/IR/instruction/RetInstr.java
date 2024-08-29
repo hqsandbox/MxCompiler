@@ -1,5 +1,6 @@
 package IR.instruction;
 
+import IR.IRVisitor;
 import IR.entity.IREntity;
 import IR.IRBlock;
 import Util.type.IRType;
@@ -22,5 +23,10 @@ public class RetInstr extends Instruction {
     public String toString() {
         if(retType.isVoid()) return "ret void\n";
         return "ret " + retType.toString() + " " + retValue.toString() + "\n";
+    }
+
+    @Override
+    public void accept(IRVisitor visitor) {
+        visitor.visit(this);
     }
 }

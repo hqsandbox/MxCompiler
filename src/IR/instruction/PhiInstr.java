@@ -1,6 +1,7 @@
 package IR.instruction;
 
 import IR.IRBlock;
+import IR.IRVisitor;
 import IR.entity.IREntity;
 import IR.entity.IRVariable;
 import Util.type.IRType;
@@ -36,5 +37,10 @@ public class PhiInstr extends Instruction {
         }
         ret.append("\n");
         return ret.toString();
+    }
+
+    @Override
+    public void accept(IRVisitor visitor) {
+        visitor.visit(this);
     }
 }

@@ -23,4 +23,7 @@ public class IRBlock {
         }
         return stringBuilder.toString();
     }
+    public void accept(IRVisitor visitor) {
+        visitor.visit(this);
+    }
 }

@@ -29,7 +29,7 @@ public class Main {
     // 错误：要添加内建函数
     public static void main(String[] args) throws Exception{
 
-//        InputStream input = System.in;
+        InputStream input = System.in;
 //        PrintStream output =new PrintStream(new FileOutputStream("test.s"));
 //        System.setOut(output);
         System.out.println("\t.text\n" +
@@ -648,10 +648,10 @@ public class Main {
                 "\t.section\t\".note.GNU-stack\",\"\",@progbits\n");
 //        String name = "C:\\Users\\31447\\IdeaProjects\\untitled\\testcases\\codegen\\t20.mx";
 
-        String name = "C:\\Users\\31447\\IdeaProjects\\untitled\\src\\test.mx";
-        InputStream input = new FileInputStream(name);
-        PrintStream output =new PrintStream(new FileOutputStream("src/test.s"));
-        System.setOut(output);
+//        String name = "C:\\Users\\31447\\IdeaProjects\\untitled\\src\\test.mx";
+//        InputStream input = new FileInputStream(name);
+//        PrintStream output =new PrintStream(new FileOutputStream("src/test.s"));
+//        System.setOut(output);
 
 
         try {

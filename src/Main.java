@@ -6,6 +6,7 @@ import IR.IRPrinter;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.*;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -30,6 +31,7 @@ public class Main {
     public static void main(String[] args) throws Exception{
 
         InputStream input = System.in;
+//
 //        PrintStream output =new PrintStream(new FileOutputStream("test.s"));
 //        System.setOut(output);
 
@@ -51,6 +53,7 @@ public class Main {
             parser.removeErrorListeners();
             parser.addErrorListener(new MxErrorListener());
             ParseTree parseTreeRoot = null;
+
             try{
                 parseTreeRoot = parser.program();
             } catch (Exception e) {

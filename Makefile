@@ -30,7 +30,7 @@ build:
 # 	find src -name '*.java' | xargs javac -d bin -cp ./ulib/antlr-4.13.2-complete.jar
 
 .PHONY: run
-test:
+run:
 	cd bin && java -cp /ulib/antlr-4.13.2-complete.jar:. Main
 
 # .PHONY: visit

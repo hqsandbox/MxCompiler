@@ -1,14 +1,24 @@
 .PHONY: build
 build:
 	find src -name '*.java' | xargs javac -d bin -cp /ulib/antlr-4.13.2-complete.jar
+.PHONY: run
+run:
+	cd bin && java -cp /ulib/antlr-4.13.2-complete.jar:. Main
+# .PHONY: Semall
+# Semall: build
+# 	./testcases/sema/scripts/test_all.bash 'java -cp ./ulib/antlr-4.13.2-complete.jar:bin Main' testcases/sema/
+#
+# .PHONY: build
+# build:
+# 	find src -name '*.java' | xargs javac -d bin -cp ./ulib/antlr-4.13.2-complete.jar
+# .PHONY: run
+# run:
+# 	cd bin && java -cp ../ulib/antlr-4.13.2-complete.jar:. Main
 
 # .PHONY: run
 # run:
 # 	cd bin && java -cp /ulib/antlr-4.13.2-complete.jar:. Main
 
-.PHONY: run
-run:
-	cd bin && java -cp /ulib/antlr-4.13.2-complete.jar:. Main
 #
 # .PHONY: compile
 # compile:

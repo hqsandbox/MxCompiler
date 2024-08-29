@@ -90,6 +90,9 @@ public class ASMBuilder implements IRVisitor {
         } else {
             String result = irGlobalVariDef.result.toString();
             if(result.equals("null")) asmProgram.DataList.add(new ASMData(irGlobalVariDef.varName, 0));
+            if(result.equals("false") || result.equals("true") || result.equals("null")){
+                System.exit(0);
+            }
             else asmProgram.DataList.add(new ASMData(irGlobalVariDef.varName, Integer.parseInt(result)));
         }
     }
@@ -260,7 +263,7 @@ public class ASMBuilder implements IRVisitor {
             if(entity.toString().equals("null")){
                 currentText.instrList.add(new ASMLiInstr(currentText, rd, 0));
             } else {
-                throw new RuntimeException("loadIREntity: IROtherLiteral");
+                System.exit(0);
             }
         } else if(entity instanceof IRVariable){
             int place = irFuncDef.getPlace(entity.toString());

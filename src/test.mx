@@ -1,265 +1,133 @@
 /*
-Test Package: Codegen
-Author: 16' Yuxi Liu
-Time: 2020-02-03
-Input:
-=== input ===
-=== end ===
-Output:
-=== output ===
-
-abbdbdd\\"d"c\adc"c\ab
-ac""add
-"
-ac
-db"\ab
-ac""add
-"
-ac
-db"
-abbdbdd\\"d"c\adc"c
-abbdbdd\\"d"c\adc"c"
-bda\"
-dbd\c"\"c\c"
-abbdbdd\\"d"c\adc"c\ab
-ac""add
-"
-ac
-db"
-abbdbdd\\"d"c\adc"c\ab
-ac""add
-"
-ac
-db"
-abbdbdd\\"d"c\adc"c
-abbdbdd\\"d"c\adc"c"
-bda\"
-dbd\c"\"c\c""
-bda\"
-dbd\c"\"c\c""
-bda\"
-dbd\c"\"c\c"
-abbdbdd\\"d"c\adc"c
-abbdbdd\\"d"c\adc"c\ab
-ac""add
-"
-ac
-db"\ab
-ac""add
-"
-ac
-db"\ab
-ac""add
-"
-ac
-db"\ab
-ac""add
-"
-ac
-db""
-bda\"
-dbd\c"\"c\c"
-abbdbdd\\"d"c\adc"c\ab
-ac""add
-"
-ac
-db"
-abbdbdd\\"d"c\adc"c
-abbdbdd\\"d"c\adc"c\ab
-ac""add
-"
-ac
-db"\ab
-ac""add
-"
-ac
-db""
-bda\"
-dbd\c"\"c\c"
-abbdbdd\\"d"c\adc"c\ab
-ac""add
-"
-ac
-db""
-bda\"
-dbd\c"\"c\c"
-abbdbdd\\"d"c\adc"c"
-bda\"
-dbd\c"\"c\c""
-bda\"
-dbd\c"\"c\c""
-bda\"
-dbd\c"\"c\c"\ab
-ac""add
-"
-ac
-db"\ab
-ac""add
-"
-ac
-db"\ab
-ac""add
-"
-ac
-db"
-abbdbdd\\"d"c\adc"c\ab
-ac""add
-"
-ac
-db""
-bda\"
-dbd\c"\"c\c"\ab
-ac""add
-"
-ac
-db""
-bda\"
-dbd\c"\"c\c"
-abbdbdd\\"d"c\adc"c
-abbdbdd\\"d"c\adc"c
-abbdbdd\\"d"c\adc"c\ab
-ac""add
-"
-ac
-db"
-abbdbdd\\"d"c\adc"c"
-bda\"
-dbd\c"\"c\c""
-bda\"
-dbd\c"\"c\c""
-bda\"
-dbd\c"\"c\c"
-abbdbdd\\"d"c\adc"c
-abbdbdd\\"d"c\adc"c"
-bda\"
-dbd\c"\"c\c"
-abbdbdd\\"d"c\adc"c\ab
-ac""add
-"
-ac
-db"
-abbdbdd\\"d"c\adc"c
-abbdbdd\\"d"c\adc"c"
-bda\"
-dbd\c"\"c\c"\ab
-ac""add
-"
-ac
-db"\ab
-ac""add
-"
-ac
-db"\ab
-ac""add
-"
-ac
-db"\ab
-ac""add
-"
-ac
-db"
-abbdbdd\\"d"c\adc"c"
-bda\"
-dbd\c"\"c\c"
-abbdbdd\\"d"c\adc"c\ab
-ac""add
-"
-ac
-db""
-bda\"
-dbd\c"\"c\c""
-bda\"
-dbd\c"\"c\c""
-bda\"
-dbd\c"\"c\c""
-bda\"
-dbd\c"\"c\c"
-abbdbdd\\"d"c\adc"c\ab
-ac""add
-"
-ac
-db""
-bda\"
-dbd\c"\"c\c"\ab
-ac""add
-"
-ac
-db"
-abbdbdd\\"d"c\adc"c
-abbdbdd\\"d"c\adc"c\ab
-ac""add
-"
-ac
-db"\ab
-ac""add
-"
-ac
-db"
-abbdbdd\\"d"c\adc"c\ab
-ac""add
-"
-ac
-db""
-bda\"
-dbd\c"\"c\c""
-bda\"
-dbd\c"\"c\c"
-abbdbdd\\"d"c\adc"c\ab
-ac""add
-"
-ac
-db""
-bda\"
-dbd\c"\"c\c""
-bda\"
-dbd\c"\"c\c"
-abbdbdd\\"d"c\adc"c\ab
-ac""add
-"
-ac
-db""
-bda\"
-dbd\c"\"c\c"
-abbdbdd\\"d"c\adc"c\ab
-ac""add
-"
-ac
-db"\ab
-ac""add
-"
-ac
-db"\ab
-ac""add
-"
-ac
-db"
-abbdbdd\\"d"c\adc"c
-abbdbdd\\"d"c\adc"c
-abbdbdd\\"d"c\adc"c\ab
-ac""add
-"
-ac
-db"
-abbdbdd\\"d"c\adc"c
-=== end ===
-ExitCode: 0
-InstLimit: -1
-Origin Package: Codegen Pretest-947
+Test Package: Sema_Local_Preview
+Test Target: Misc
+Author: 10' Hang Wu
+Time: 2019-10-20
+Verdict: Success
+Origin Package: Semantic Pretest
 */
+// Target: Simulate a Bulgarian-solitaire game.
+// Possible opitimization: Dead code elimination, common expression, inline function, loop unrolling, etc.
+// REMARKS: A funny game. If you like, you can try to prove that when n=1+2+..+i(i>0), the game will always stop
+//          and converge to the only solution: {1,2,...i}.   :)
 
+int n;
+int h;
+int now;
+int[] a;
+int A = 48271;
+int M = 2147483647;
+int Q;
+int R;
+int seed=1;
+int random() {
+    int tempseed = A * (seed % Q) - R * (seed / Q);
+    if (tempseed >= 0)
+		return tempseed;
+    else
+		return tempseed + M;
+}
+void initialize(int val) {
+    seed = val;
+}
+void swap(int x,int y) {
+    int temp = a[x];
+    a[x] = a[y];
+    a[y] = temp;
+}
+bool pd(int x) {
+    for (;h <= x; ++h)
+        if (x == h * (h + 1) / 2)
+			return true;
+    return false;
+}
+void show() {
+    int i;
+    for (i = 0; i < now; ++i)
+        print(toString(a[i]) + " ");
+    println("");
+}
+bool win()
+{
+    int i;
+	int j;
+	int[] b = new int[100];
+	int temp;
+    if (now != h)
+		return false;
+    for (j = 0; j < now; ++j)
+        b[j] = a[j];
+    for (i = 0;i < now - 1; ++i)
+        for (j = i + 1;j < now; ++j)
+            if (b[i] > b[j]) {
+                temp = b[i];
+                b[i] = b[j];
+                b[j] = temp;
+            }
+    for (i = 0; i < now; ++i)
+        if (b[i] != i + 1)
+			return false;
+    return true;
+}
+void merge()
+{
+    int i;
+    for (i = 0;i < now; ++i)
+        if (a[i] != 0) {
+            int j;
+            for (j = i+1; j < now; ++j)
+                if (a[j] != 0) {
+                    swap(i,j);
+                    break;
+                }
+        }
+    for (i=0;i<now;++i)
+        if (a[i] != 0) {
+            now = i;
+            break;
+        }
+}
+void move() {
+    int i = 0;
+    for (; i < now; ) {
+        --a[i];
+        i = i + 1;
+    }
+    a[now] = now;
+    now++;
+}
 int main() {
-   string a = "\"\nbda\\\"\ndbd\\c\"\\\"c\\c\"";
-   string b = "\\ab\nac\"\"add\n\"\nac\ndb\"";
-   string c = "\nabbdbdd\\\\\"d\"c\\adc\"c";
-   print(c + b + b + c + c + a + c + b + c + b);
-   print(c + c + a + a + a + c + c + b + b + b);
-   print(b + a + c + b + c + c + b + b + a + c);
-   print(b + a + c + a + a + a + b + b + b + c);
-   print(b + a + b + a + c + c + c + b + c + a);
-   print(a + a + c + c + a + c + b + c + c + a);
-   print(b + b + b + b + c + a + c + b + a + a);
-   print(a + a + c + b + a + b + c + c + b + b);
-   print(c + b + a + a + c + b + a + a + c + b);
-   print(a + c + b + b + b + c + c + c + b + c);
-   return 0;
+    int i = 0;
+	int temp = 0;
+	int count = 0;
+	n = getInt();
+	a = new int[100];
+    Q = M / A;
+    R = M % A;
+    if (!pd(n)) {
+        println("Sorry, the number n must be a number s.t. there exists i satisfying n=1+2+...+i");
+        return 1;
+    }
+    println("Let's start!");
+    initialize(3654898);
+    now = random() % 10 + 1;
+    println(toString(now));
+    for (; i < now - 1; ++i)
+    {
+        a[i] = random() % 10 + 1;
+        while (a[i] + temp > n)
+            a[i] = random() % 10 + 1;
+        temp = temp + a[i];
+    }
+    a[now - 1] = n - temp;
+    show();
+    merge();
+    while (!win()) {
+        println("step :" + toString(++count));
+        move();
+        merge();
+        show();
+    }
+    println("Total: " + toString(count) + " step(s)");
+    return 0;
 }

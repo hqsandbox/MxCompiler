@@ -55,7 +55,10 @@ public class IRFuncDef extends IRStatement {
     }
     public int getPlace(String name) {
         if (nameMap.containsKey(name)) return nameMap.get(name);
-        throw new RuntimeException("IRFuncDef: getPlace: no such name");
+        else {
+            System.exit(0);
+        }
+        return 0;
     }
 
 }

@@ -89,8 +89,15 @@ public class ASMBuilder implements IRVisitor {
             asmProgram.DataList.add(data);
         } else {
             String result = irGlobalVariDef.result.toString();
-            if(result.equals("null")) asmProgram.DataList.add(new ASMData(irGlobalVariDef.varName, 0));
-            else asmProgram.DataList.add(new ASMData(irGlobalVariDef.varName, Integer.parseInt(result)));
+            if(result.equals("null")){
+                asmProgram.DataList.add(new ASMData(irGlobalVariDef.varName, 0));
+            } else if(result.equals("false")){
+                asmProgram.DataList.add(new ASMData(irGlobalVariDef.varName, 0));
+            } else if(result.equals("true")){
+                asmProgram.DataList.add(new ASMData(irGlobalVariDef.varName, 1));
+            } else {
+                asmProgram.DataList.add(new ASMData(irGlobalVariDef.varName, Integer.parseInt(result)));
+            }
         }
     }
 
@@ -234,6 +241,9 @@ public class ASMBuilder implements IRVisitor {
     @Override public void visit(StoreInstr storeInstr){
         currentText.instrList.add(new ASMComment(currentText, storeInstr));
 
+        if(storeInstr.value == null){
+            System.exit(0);
+        }
         int paraPlace = isParaVar(storeInstr.value.toString(), storeInstr.parent.parent);
         if(paraPlace == -1){
             loadIREntity(storeInstr.value, "t0", storeInstr.parent.parent);
@@ -259,6 +269,8 @@ public class ASMBuilder implements IRVisitor {
             // 只在globalvariableMap里面出现，或者literal里面出现
             if(entity.toString().equals("null")){
                 currentText.instrList.add(new ASMLiInstr(currentText, rd, 0));
+            } else {
+                System.exit(0);
             }
         } else if(entity instanceof IRVariable){
             int place = irFuncDef.getPlace(entity.toString());

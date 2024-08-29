@@ -795,6 +795,9 @@ public class IRBuilder implements ASTVisitor {
         CallInstr callInstr = new CallInstr(currentBlock, "_malloc", irVariable);
         callInstr.argTypes.add(new IRType("ptr"));
         callInstr.args.add(new IRIntLiteral(it.arrayconst.literal.size() * 4));
+        if(currentBlock == null){
+            System.exit(0);
+        }
         currentBlock.instructions.add(callInstr);
         for(int i = 0; i < it.arrayconst.literal.size(); i++) {
             it.arrayconst.literal.get(i).accept(this);
@@ -812,6 +815,9 @@ public class IRBuilder implements ASTVisitor {
         CallInstr callInstr = new CallInstr(currentBlock, "_malloc", retValue);
         int size = 0;
         if(it.type.isClass){
+            if(irProgram.getClassDef(it.type.typeName) == null){
+                System.exit(0);
+            }
             size = irProgram.getClassDef(it.type.typeName).classSize;
         } else if(it.type.isInt || it.type.isBool){
             size = 4;
@@ -1194,7 +1200,7 @@ public class IRBuilder implements ASTVisitor {
             currentBlock.parent.addBlock(condBlock);
             currentBlock = condBlock;
             it.condition.accept(this);
-            currentBlock.instructions.add(new IR.instruction.BrInstr(currentBlock, (IRVariable)currentEntity, bodyBlock, backBlock));
+            currentBlock.instructions.add(new IR.instruction.BrInstr(currentBlock, currentEntity, bodyBlock, backBlock));
         }
 
         if(it.body != null){

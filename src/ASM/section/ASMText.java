@@ -7,6 +7,9 @@ public class ASMText extends ASMSection {
 
     public ArrayList<ASMInstr> instrList = new ArrayList<>();
 
+    public ArrayList<ASMText> preds = new ArrayList<>();
+    public ArrayList<ASMText> succs = new ArrayList<>();
+
     public ASMText(String label) {
         super(label);
     }

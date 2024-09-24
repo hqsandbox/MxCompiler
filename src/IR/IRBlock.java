@@ -21,6 +21,7 @@ public class IRBlock {
     public ArrayList<IRBlock> domChildren = null; // 当前基本块直接支配的所有基本块，子节点
     public HashSet<IRBlock> domFrontier = new HashSet<>(); // 支配边界
     public HashMap<String, PhiInstr> phiInsts = null;
+    public boolean alreadyRenamed = false;
 
     public IRBlock(IRFuncDef parent, String name) {
         this.parent = parent;

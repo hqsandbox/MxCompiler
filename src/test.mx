@@ -1,3 +1,8 @@
+class A{
+	int b;
+};
 int main(){
-	string s = "Hello, World!";
+	A a;
+	a.b = 1;
+	return a.b;
 }

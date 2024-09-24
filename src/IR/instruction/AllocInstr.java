@@ -10,6 +10,7 @@ public class AllocInstr extends Instruction {
     public IRType irType;
     public String varName;
     public IRVariable irVariable;
+    public boolean isChecked = false;
 
     public AllocInstr(IRBlock parent) {
         super(parent);

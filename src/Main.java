@@ -32,17 +32,21 @@ public class Main {
     public static void main(String[] args) throws Exception{
 
 //        InputStream input = System.in;
-//
-//        PrintStream output = new PrintStream(new FileOutputStream("test.s"));
+//        PrintStream output =new PrintStream(new FileOutputStream("output.ll"));
 //        System.setOut(output);
 
-//        String name = "C:\\Users\\31447\\IdeaProjects\\untitled\\testcases\\codegen\\t20.mx";
+        int choose = 1;
 
         String name = "C:\\Users\\31447\\IdeaProjects\\untitled\\src\\test.mx";
         InputStream input = new FileInputStream(name);
+        if(choose == 1){
+            PrintStream output =new PrintStream(new FileOutputStream("C:\\Users\\31447\\IdeaProjects\\untitled\\src\\output.ll"));
+            System.setOut(output);
+        } else {
+            PrintStream output =new PrintStream(new FileOutputStream("C:\\Users\\31447\\IdeaProjects\\untitled\\src\\original.out"));
+            System.setOut(output);
+        }
 
-        PrintStream output =new PrintStream(new FileOutputStream("output.ll"));
-        System.setOut(output);
 
         try {
             Program ASTRoot;
@@ -78,8 +82,10 @@ public class Main {
 //            IRPrinter irPrinter = new IRPrinter(irProgram);
 //            irPrinter.print();
 
-            IROptimizer irOptimizer = new IROptimizer(irProgram);
-            irOptimizer.visit(irProgram);
+            if(choose == 1){
+                IROptimizer irOptimizer = new IROptimizer(irProgram);
+                irOptimizer.visit(irProgram);
+            }
 
             IRPrinter irPrinter = new IRPrinter(irProgram);
             irPrinter.print();

@@ -12,13 +12,11 @@ public class AllocInstr extends Instruction {
     public IRVariable irVariable;
     public boolean isChecked = false;
 
-    public AllocInstr(IRBlock parent) {
-        super(parent);
-    }
     public AllocInstr(IRBlock parent, IRType irType_, IRVariable irVariable_) {
         super(parent);
         irType = irType_;
         irVariable = irVariable_;
+        varName = irVariable.toString();
     }
 
     @Override

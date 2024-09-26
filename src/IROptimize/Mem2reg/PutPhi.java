@@ -68,6 +68,7 @@ public class PutPhi {
                         varType.put(var, allocInstr.irType);
                         defBlocks.put(var, new ArrayList<>());
                         useBlocks.put(var, new ArrayList<>());
+                        varRename.put(var, new Stack<>());
                         eraseList.add(j);
                     }
                 }
@@ -100,16 +101,14 @@ public class PutPhi {
         // varName -> defBlock -> insertPhi -> frontiers(insertPhi)
         ArrayList<IRBlock> defBlockList = defBlocks.get(var);
         ArrayList<IRBlock> workList = new ArrayList<>(defBlockList);
-        for(IRBlock block : workList){
-            PhiInstr phiInstr = new PhiInstr(block, new IRVariable(var, varType.get(var)), varType.get(var));
-            for(var pred : block.preds) {
-                phiInstr.addBranch(null, pred);
-            }
-            block.phiInsts.put(var, phiInstr);
+        for(int i = 0; i < workList.size(); ++i){
+            IRBlock block = workList.get(i);
             for(IRBlock frontier : block.domFrontier) {
                 if(!workList.contains(frontier)) {
                     workList.add(frontier);
                 }
+                PhiInstr phiInstr = new PhiInstr(block, new IRVariable(var, varType.get(var)), varType.get(var));
+                block.phiInsts.put(var, phiInstr);
             }
         }
     }
@@ -146,19 +145,23 @@ public class PutPhi {
         }
 
         // 重命名后继节点
-        block.phiInsts.forEach((name, tmp) -> {
-            block.succs.forEach(IRBlock -> {
-                IRBlock.phiInsts.forEach((var, phiInstr) -> {
-                    if(var.equals(name)) {
-                        if(phiInstr.blocks.contains(block)) {
-                            phiInstr.values.set(phiInstr.blocks.indexOf(block), new IRVariable(varRename.get(var).peek(), varType.get(var)));
-                        } else {
-                            phiInstr.addBranch(new IRVariable(varRename.get(var).peek(), varType.get(var)), block);
-                        }
+        block.succs.forEach(IRBlock -> {
+            IRBlock.phiInsts.forEach((var, phiInstr) -> {
+                Stack<String> stack = varRename.get(var);
+                if(!stack.isEmpty()){
+                    phiInstr.addBranch(new IRVariable(stack.peek(), varType.get(var)), block);
+                } else {
+                    IRType type = phiInstr.result.type;
+                    if(type.isI1() || type.isI32()){
+                        phiInstr.addBranch(new IRVariable("0", type), block);
+                    } else if(type.isPtr()){
+                        phiInstr.addBranch(new IRVariable("null", type), block);
+                    } else {
+                        throw new RuntimeException("Mem2Reg: rename: phiInstr type is not i1 or i32 or ptr");
                     }
-                });
-                reNameBlock(IRBlock);
+                }
             });
+            reNameBlock(IRBlock);
         });
 
         // 当前名字出栈

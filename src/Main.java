@@ -40,8 +40,9 @@ public class Main {
 
         String name = "C:\\Users\\31447\\IdeaProjects\\untitled\\src\\test.mx";
         InputStream input = new FileInputStream(name);
-//        PrintStream output =new PrintStream(new FileOutputStream("./test.s"));
-//        System.setOut(output);
+
+        PrintStream output =new PrintStream(new FileOutputStream("output.ll"));
+        System.setOut(output);
 
         try {
             Program ASTRoot;
@@ -74,14 +75,17 @@ public class Main {
             irBuilder.irProgram.visitInfunc();
             irBuilder.irProgram.visitInClass();
             irBuilder.visit(ASTRoot);
-            IRPrinter irPrinter = new IRPrinter(irProgram);
-            irPrinter.print();
+//            IRPrinter irPrinter = new IRPrinter(irProgram);
+//            irPrinter.print();
 
             IROptimizer irOptimizer = new IROptimizer(irProgram);
             irOptimizer.visit(irProgram);
 
-            var asmBuilder = new ASMBuilder(irProgram);
-            asmBuilder.visit(irProgram);
+            IRPrinter irPrinter = new IRPrinter(irProgram);
+            irPrinter.print();
+
+//            var asmBuilder = new ASMBuilder(irProgram);
+//            asmBuilder.visit(irProgram);
 //            ASMPrinter asmPrinter = new ASMPrinter(asmBuilder.asmProgram);
 //            asmPrinter.print();
 //            {

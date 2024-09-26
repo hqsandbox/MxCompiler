@@ -18,10 +18,12 @@ public class DomBuilder {
 
     public void work() {
         getDominators();  //得到支配集
+        getIDom();
+        getDomFrontier();
     }
 
     public void getDominators() {
-        program.funcDefMap.forEach((_, func) -> getDominatorsFunc(func));
+        program.funcDefMap.forEach((tmp, func) -> getDominatorsFunc(func));
     }
 
     public void getDominatorsFunc(IRFuncDef funcDef) {
@@ -37,6 +39,7 @@ public class DomBuilder {
         }
 
         //一个节点的支配集等于其所有前驱节点（ctg）支配集的交集再并上自身。
+
         boolean changed = true;
         while (changed) {
             changed = false;
@@ -52,6 +55,46 @@ public class DomBuilder {
                 if (!newDoms.equals(block.dominators)) {
                     block.dominators = newDoms;
                     changed = true;
+                }
+            }
+        }
+    }
+    public void getIDom() {
+        program.funcDefMap.forEach((tmp, func) -> getIDomFunc(func));
+    }
+
+    public void getIDomFunc(IRFuncDef funcDef) {
+        funcDef.blockList.getFirst().idom = funcDef.blockList.getFirst();
+        for (IRBlock block : funcDef.blockList) {
+            if (block.dominators.size() > 1) {
+                ArrayList<IRBlock> newDomList = new ArrayList<>(block.dominators);
+                newDomList.sort(Comparator.comparingInt(dom -> dom.dominators.size()));
+                for (int i = 0; i < newDomList.size(); i++) {
+                    if(i == 0) {
+                        newDomList.get(i).idom = null;
+                    } else {
+                        newDomList.get(i).idom = newDomList.get(i - 1);
+                    }
+                }
+            }
+        }
+        funcDef.blockList.getFirst().idom = null;
+    }
+
+    public void getDomFrontier() {
+        program.funcDefMap.forEach((tmp, func) -> domFrontierFunc(func));
+    }
+
+    public void domFrontierFunc(IRFuncDef funcDef) {
+        for (IRBlock block : funcDef.blockList) {
+            if(block.idom != null) {
+                block.idom.domChildren.add(block);
+            }
+            for (IRBlock pred : block.preds) {
+                IRBlock runner = pred;
+                while (runner != block.idom) {
+                    runner.domFrontier.add(block);
+                    runner = runner.idom;
                 }
             }
         }

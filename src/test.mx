@@ -1,8 +1,28 @@
-class A{
-	int b;
-};
+/*
+Test Package: Codegen
+Author: Pikachu
+Time: 2020-02-02
+Input:
+=== input ===
+8
+11 12 1 2 13 14 3 4
+=== end ===
+Output:
+=== output ===
+2
+=== end ===
+ExitCode: 0
+InstLimit: -1
+Origin Package: Codeforces 1145A #52445759
+*/
+int n;
+int[] a = new int[20];
+int jud(int x){
+	int i,j;
+	for(i=0;i<n/x;i++){
+	}
+	return 0;
+}
 int main(){
-	A a;
-	a.b = 1;
-	return a.b;
+	jud(1);
 }

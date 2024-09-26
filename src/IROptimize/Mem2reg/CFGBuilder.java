@@ -3,6 +3,7 @@ package IROptimize.Mem2reg;
 import IR.IRBlock;
 import IR.IRProgram;
 import IR.definition.IRFuncDef;
+import IR.instruction.Instruction;
 
 public class CFGBuilder {
 
@@ -13,14 +14,15 @@ public class CFGBuilder {
     }
 
     public void work() {
-        program.funcDefMap.forEach((_, funcDef) -> {
+        program.funcDefMap.forEach((tmp, funcDef) -> {
             funcDef.blockList.forEach(this::workOnBlock);
             removeDeadBlocks(funcDef);
         });
     }
 
     public void workOnBlock(IR.IRBlock block) {
-        block.instructions.forEach(instruction -> {
+        for(int i = 0; i < block.instructions.size(); ++i){
+            Instruction instruction = block.instructions.get(i);
             if(instruction instanceof IR.instruction.RetInstr) {
                 block.succs.clear();
                 block.instructions.removeIf(tmp -> block.instructions.indexOf(tmp) > block.instructions.indexOf(instruction));
@@ -38,7 +40,7 @@ public class CFGBuilder {
                 block.succs.add(targetBlock);
                 block.instructions.removeIf(tmp -> block.instructions.indexOf(tmp) > block.instructions.indexOf(instruction));
             }
-        });
+        }
     }
 
     public void removeDeadBlocks(IRFuncDef funcDef) {

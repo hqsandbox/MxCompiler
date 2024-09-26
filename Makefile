@@ -25,13 +25,13 @@ build:
 # 	cd bin && java -cp /ulib/antlr-4.13.2-complete.jar:. Main
 
 
-# .PHONY: compile
-# compile:
-# 	find src -name '*.java' | xargs javac -d bin -cp ./ulib/antlr-4.13.2-complete.jar
+.PHONY: compile
+compile:
+	find src -name '*.java' | xargs javac -d bin -cp ./ulib/antlr-4.13.2-complete.jar
 
 .PHONY: run
 run:
-	cd bin && java -cp /ulib/antlr-4.13.2-complete.jar:. Main
+	cd bin && java -cp ../ulib/antlr-4.13.2-complete.jar:. Main
 
 # .PHONY: visit
 # visit:

@@ -20,39 +20,77 @@ public class PutPhi {
     public HashMap<String, ArrayList<IRBlock>> defBlocks = new HashMap<>();// var -> defBlocks
     public HashMap<String, ArrayList<IRBlock>> useBlocks = new HashMap<>();// var -> useBlocks
     public HashMap<String, Stack<String>> varRename = new HashMap<>(); // var -> rename
+    public ArrayList<String> getEleName = new ArrayList<>(); // 不能删除的 alloca 指令
+    public HashMap<String, String> reNameMap = new HashMap<>(); // 需要重命名的变量以及其当前值，load导致的
 
     public PutPhi(IRProgram program) {
         this.program = program;
     }
 
     public void work() {
-        program.funcDefMap.forEach((_, func) -> collectDataFunc(func));
+        program.funcDefMap.forEach((tmp, func) -> collectDataFunc(func));
         varType.forEach(this::insertPhi);
-        program.funcDefMap.forEach((_, func) -> reNameFunc(func));
+        program.funcDefMap.forEach((tmp, func) -> reNameFunc(func));
     }
 
     public void collectDataFunc(IRFuncDef funcDef) {
-        funcDef.blockList.forEach(this::collectDataBlock);
+        // 统计有用的变量
+        collectUsefulVar(funcDef);
+        // 初始化变量的定义和使用,去除 alloca
+        collectVar(funcDef);
+        // 获取每个变量的 def 和 use
+        getDefUse(funcDef);
     }
 
-    public void collectDataBlock(IRBlock block) {
-        for (Instruction instruction : block.instructions) {
-            if (instruction instanceof AllocInstr allocInstr) {
-                String var = allocInstr.varName;
-                varType.put(var, allocInstr.irType);
-                defBlocks.put(var, new ArrayList<>());
-                useBlocks.put(var, new ArrayList<>());
-            } else if (instruction instanceof StoreInstr storeInstr) {
-                // TODO
-                String var = storeInstr.ptr.toString();
-                if(varType.containsKey(var)) {
-                    defBlocks.get(var).add(block);
+    public void collectUsefulVar(IRFuncDef funcDef) {
+        for(IRBlock block : funcDef.blockList) {
+            for(Instruction instruction : block.instructions) {
+                if(instruction instanceof GeteleptrInstr geteleptrInstr) {
+                    getEleName.add(geteleptrInstr.result.toString());
+                } else if(instruction instanceof CallInstr callInstr) {
+                    if(callInstr.funcName.equals("string.copy")) {
+                        getEleName.add(callInstr.args.getFirst().toString());
+                    }
                 }
-            } else if (instruction instanceof LoadInstr loadInstr) {
-                // TODO
-                String var = loadInstr.ptr.toString();
-                if(varType.containsKey(var)) {
-                    useBlocks.get(var).add(block);
+            }
+        }
+    }
+
+    public void collectVar(IRFuncDef irFuncDef){
+        for(int i = 0; i < irFuncDef.blockList.size(); ++i){
+            IRBlock block = irFuncDef.blockList.get(i);
+            ArrayList<Integer> eraseList = new ArrayList<>();
+            for(int j = 0; j < block.instructions.size(); ++j){
+                Instruction instruction = block.instructions.get(j);
+                if(instruction instanceof AllocInstr allocInstr){
+                    if(!getEleName.contains(allocInstr.varName)){
+                        String var = allocInstr.varName;
+                        varType.put(var, allocInstr.irType);
+                        defBlocks.put(var, new ArrayList<>());
+                        useBlocks.put(var, new ArrayList<>());
+                        eraseList.add(j);
+                    }
+                }
+            }
+            for(int j = eraseList.size() - 1; j >= 0; --j){
+                block.instructions.remove((int)eraseList.get(j));
+            }
+        }
+    }
+
+    public void getDefUse(IRFuncDef funcDef) {
+        for (IRBlock block : funcDef.blockList) {
+            for (Instruction instruction : block.instructions) {
+                if (instruction instanceof StoreInstr storeInstr) {
+                    String var = storeInstr.ptr.toString();
+                    if(defBlocks.containsKey(var)) {
+                        defBlocks.get(var).add(block);
+                    }
+                } else if (instruction instanceof LoadInstr loadInstr) {
+                    String var = loadInstr.ptr.toString();
+                    if(useBlocks.containsKey(var)) {
+                        useBlocks.get(var).add(block);
+                    }
                 }
             }
         }
@@ -83,23 +121,32 @@ public class PutPhi {
     public void reNameBlock(IRBlock block) {
         if(block.alreadyRenamed) return;
         block.alreadyRenamed = true;
+
+        for (Stack<String> stack : varRename.values()) {
+            if (!stack.isEmpty()) stack.add(stack.getLast());
+            else stack.add("fuck");
+        }
+
+        // 重命名 phi 指令
         block.phiInsts.forEach((var, phiInstr) -> {
             phiInstr.result = new IRVariable(phiInstr.result.toString() + "_" + block.name, phiInstr.result.type);
             varRename.get(var).add(phiInstr.result.toString());
-            for(Instruction instruction : block.instructions) {
-                if(instruction instanceof StoreInstr storeInstr) {
-                    if(storeInstr.value.toString().equals(var)){
-                        storeInstr.value = new IRVariable(phiInstr.result.toString(), storeInstr.value.type);
-                        varRename.get(var).pop();
-                        varRename.get(var).add(storeInstr.ptr.toString());
-                    }
-                } else if(instruction instanceof AllocInstr allocInstr) {
-                    eraseAlloc(allocInstr);
-                }
-                reNameInst(instruction, var, phiInstr.result.toString());
-            }
         });
-        block.phiInsts.forEach((name, _) -> {
+
+        // 重命名 instruction
+        ArrayList<Integer> eraseList = new ArrayList<>();
+        for(int i = 0; i < block.instructions.size(); ++i) {
+            Instruction instruction = block.instructions.get(i);
+            reNameInst(instruction, i, eraseList);
+        }
+
+        // 删除已经重命名的 load 指令
+        for(int i = eraseList.size() - 1; i >= 0; --i) {
+            block.instructions.remove((int)eraseList.get(i));
+        }
+
+        // 重命名后继节点
+        block.phiInsts.forEach((name, tmp) -> {
             block.succs.forEach(IRBlock -> {
                 IRBlock.phiInsts.forEach((var, phiInstr) -> {
                     if(var.equals(name)) {
@@ -113,84 +160,80 @@ public class PutPhi {
                 reNameBlock(IRBlock);
             });
         });
-        block.phiInsts.forEach((var, _) -> varRename.get(var).pop());
+
+        // 当前名字出栈
+        varRename.forEach((var, stack) -> stack.pop());
     }
 
-    public void reNameInst(Instruction instruction, String origin, String rename) {
-        if(instruction instanceof BinaryInstr binaryInstr) {
-            if(binaryInstr.lhs.toString().equals(origin)) {
-                binaryInstr.lhs = new IRVariable(rename, binaryInstr.lhs.type);
+    public void reNameInst(Instruction instruction, int index, ArrayList<Integer> eraseList) {
+        if(instruction instanceof StoreInstr storeInstr) {
+            // 先重命名 storeInstr的 value
+            if (storeInstr.value instanceof IRVariable var) {
+                var.name = reNameMap.getOrDefault(var.name, var.name);
             }
-            if(binaryInstr.rhs.toString().equals(origin)) {
-                binaryInstr.rhs = new IRVariable(rename, binaryInstr.rhs.type);
+            if(varRename.containsKey(storeInstr.ptr.toString())){
+                if (storeInstr.value instanceof IRVariable var && reNameMap.containsKey(storeInstr.value.toString())) {
+                    var.name = reNameMap.get(storeInstr.value.toString());
+                }
+                Stack<String> stack = varRename.get(storeInstr.ptr.toString());
+                stack.pop();
+                stack.add(storeInstr.ptr.toString());
+                eraseList.add(index);
             }
-            if(binaryInstr.result.toString().equals(origin)) {
-                binaryInstr.result = new IRVariable(rename, binaryInstr.result.type);
+        } else if(instruction instanceof LoadInstr loadInstr) {
+            if(varRename.containsKey(loadInstr.ptr.toString())) {
+                loadInstr.ptr = new IRVariable(varRename.get(loadInstr.ptr.toString()).peek(), loadInstr.ptr.type);
+                eraseList.add(index);
+            }
+        } else if(instruction instanceof AllocInstr){
+            // do nothing
+        } else if(instruction instanceof BinaryInstr binaryInstr) {
+            if(binaryInstr.lhs instanceof IRVariable var) {
+                var.name = reNameMap.getOrDefault(var.name, var.name);
+            }
+            if(binaryInstr.rhs instanceof IRVariable var) {
+                var.name = reNameMap.getOrDefault(var.name, var.name);
             }
         } else if(instruction instanceof BrInstr brInstr) {
-            if(brInstr.op.toString().equals(origin)) {
-                brInstr.op = new IRVariable(rename, brInstr.op.type);
+            if(brInstr.op instanceof IRVariable var) {
+                var.name = reNameMap.getOrDefault(var.name, var.name);
             }
         } else if(instruction instanceof CallInstr callInstr) {
-            if(callInstr.result.toString().equals(origin)) {
-                callInstr.result = new IRVariable(rename, callInstr.result.type);
-            }
             for(int i = 0; i < callInstr.args.size(); i++) {
-                if(callInstr.args.get(i).toString().equals(origin)) {
-                    callInstr.args.set(i, new IRVariable(rename, callInstr.args.get(i).type));
+                if(callInstr.args.get(i) instanceof IRVariable var) {
+                    var.name = reNameMap.getOrDefault(var.name, var.name);
                 }
             }
         } else if(instruction instanceof GeteleptrInstr geteleptrInstr){
-            if(geteleptrInstr.result.toString().equals(origin)) {
-                geteleptrInstr.result = new IRVariable(rename, geteleptrInstr.result.type);
+            if(geteleptrInstr.result instanceof IRVariable var) {
+                var.name = reNameMap.getOrDefault(var.name, var.name);
             }
             for (int i = 0; i < geteleptrInstr.idxList.size(); ++i) {
                 IREntity idx = geteleptrInstr.idxList.get(i);
-                if(idx.toString().equals(origin)) {
-                    geteleptrInstr.idxList.set(i, new IRVariable(rename, idx.type));
+                if(idx instanceof IRVariable var) {
+                    var.name = reNameMap.getOrDefault(var.name, var.name);
                 }
             }
         } else if(instruction instanceof IcmpInstr icmpInstr) {
-            if(icmpInstr.lhs.toString().equals(origin)) {
-                icmpInstr.lhs = new IRVariable(rename, icmpInstr.lhs.type);
+            if(icmpInstr.lhs instanceof IRVariable var) {
+                var.name = reNameMap.getOrDefault(var.name, var.name);
             }
-            if(icmpInstr.rhs.toString().equals(origin)) {
-                icmpInstr.rhs = new IRVariable(rename, icmpInstr.rhs.type);
+            if(icmpInstr.rhs instanceof IRVariable var) {
+                var.name = reNameMap.getOrDefault(var.name, var.name);
             }
-            if(icmpInstr.result.toString().equals(origin)) {
-                icmpInstr.result = new IRVariable(rename, icmpInstr.result.type);
-            }
-        } else if(instruction instanceof LoadInstr loadInstr) {
-            if(loadInstr.result.toString().equals(origin)) {
-                loadInstr.result = new IRVariable(rename, loadInstr.result.type);
-            }
-            if(loadInstr.ptr.toString().equals(origin)) {
-                loadInstr.ptr = new IRVariable(rename, loadInstr.ptr.type);
-            }
+        } else if(instruction instanceof JumpInstr jumpInstr) {
+            // do nothing
         } else if(instruction instanceof PhiInstr phiInstr) {
-            if(phiInstr.result.toString().equals(origin)) {
-                phiInstr.result = new IRVariable(rename, phiInstr.result.type);
-            }
-            for(int i = 0; i < phiInstr.values.size(); i++) {
-                if(phiInstr.values.get(i).toString().equals(origin)) {
-                    phiInstr.values.set(i, new IRVariable(rename, phiInstr.values.get(i).type));
-                }
-            }
+            // do nothing
         } else if(instruction instanceof RetInstr retInstr) {
-            if(retInstr.retValue.toString().equals(origin)) {
-                retInstr.retValue = new IRVariable(rename, retInstr.retValue.type);
-            }
-        } else if(instruction instanceof StoreInstr storeInstr) {
-            if(storeInstr.ptr.toString().equals(origin)) {
-                storeInstr.ptr = new IRVariable(rename, storeInstr.ptr.type);
-            }
-            if(storeInstr.value.toString().equals(origin)) {
-                storeInstr.value = new IRVariable(rename, storeInstr.value.type);
+            // TODO
+            if(retInstr.retValue instanceof IRVariable var) {
+                var.name = reNameMap.getOrDefault(var.name, var.name);
             }
         }
     }
 
-    public void eraseAlloc(AllocInstr allocInstr) {
+    public void eraseInstr(AllocInstr allocInstr) {
         if(allocInstr.isChecked) return;
         allocInstr.isChecked = true;
         ArrayList<IRBlock> defList = defBlocks.get(allocInstr.varName);
@@ -244,9 +287,9 @@ public class PutPhi {
                 }
                 allocInstr.parent.instructions.remove(allocInstr);
             }
+        } else if(!getEleName.contains(allocInstr.varName)){
+            allocInstr.parent.instructions.remove(allocInstr);
         }
-
-
     }
 
 }

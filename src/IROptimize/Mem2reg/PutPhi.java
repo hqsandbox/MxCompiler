@@ -4,6 +4,7 @@ import IR.IRBlock;
 import IR.IRProgram;
 import IR.definition.IRFuncDef;
 import IR.entity.IREntity;
+import IR.entity.IRIntLiteral;
 import IR.entity.IRVariable;
 import IR.instruction.*;
 import Util.type.IRType;
@@ -108,7 +109,7 @@ public class PutPhi {
                     workList.add(frontier);
                 }
                 PhiInstr phiInstr = new PhiInstr(block, new IRVariable(var, varType.get(var)), varType.get(var));
-                block.phiInsts.put(var, phiInstr);
+                frontier.phiInsts.put(var, phiInstr);
             }
         }
     }
@@ -129,6 +130,7 @@ public class PutPhi {
         // 重命名 phi 指令
         block.phiInsts.forEach((var, phiInstr) -> {
             phiInstr.result = new IRVariable(phiInstr.result.toString() + "_" + block.name, phiInstr.result.type);
+            varRename.get(var).pop();
             varRename.get(var).add(phiInstr.result.toString());
         });
 
@@ -148,7 +150,7 @@ public class PutPhi {
         block.succs.forEach(IRBlock -> {
             IRBlock.phiInsts.forEach((var, phiInstr) -> {
                 Stack<String> stack = varRename.get(var);
-                if(!stack.isEmpty()){
+                if(!stack.isEmpty() && !stack.peek().equals("fuck")){
                     phiInstr.addBranch(new IRVariable(stack.peek(), varType.get(var)), block);
                 } else {
                     IRType type = phiInstr.result.type;
@@ -180,12 +182,13 @@ public class PutPhi {
                 }
                 Stack<String> stack = varRename.get(storeInstr.ptr.toString());
                 stack.pop();
-                stack.add(storeInstr.ptr.toString());
+                stack.add(storeInstr.value.toString());
                 eraseList.add(index);
             }
         } else if(instruction instanceof LoadInstr loadInstr) {
             if(varRename.containsKey(loadInstr.ptr.toString())) {
-                loadInstr.ptr = new IRVariable(varRename.get(loadInstr.ptr.toString()).peek(), loadInstr.ptr.type);
+//                loadInstr.ptr = new IRVariable(varRename.get(loadInstr.ptr.toString()).peek(), loadInstr.ptr.type);
+                reNameMap.put(loadInstr.result.toString(), varRename.get(loadInstr.ptr.toString()).peek());
                 eraseList.add(index);
             }
         } else if(instruction instanceof AllocInstr){
@@ -208,7 +211,7 @@ public class PutPhi {
                 }
             }
         } else if(instruction instanceof GeteleptrInstr geteleptrInstr){
-            if(geteleptrInstr.result instanceof IRVariable var) {
+            if(geteleptrInstr.ptrValue instanceof IRVariable var) {
                 var.name = reNameMap.getOrDefault(var.name, var.name);
             }
             for (int i = 0; i < geteleptrInstr.idxList.size(); ++i) {

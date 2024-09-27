@@ -1,39 +1,40 @@
-@a = global ptr null
+@.str..1 = private unnamed_addr constant [3 x i8] c"NO\00"
+@.str..0 = private unnamed_addr constant [4 x i8] c"YES\00"
 @n = global i32 0
 define void @__init() {
 entry:
-%var0 = call ptr @__array.alloca(i32 4, i32 1, i32 1, i32 20)
-store ptr %var0, ptr @a
 ret void
-
-}
-define i32 @jud(i32 %x) {
-entry:
-br label %for.cond.0
-
-for.cond.0:
-%i.1_for.cond.0 = phi i32 [ %i.1, %entry ], [ %i.1, %for.step.0 ]
-%var3 = load i32, ptr @n
-%var5 = sdiv i32 %var3, %var4
-%var6 = icmp slt i32 %var2, %var5
-br i1 %var6, label %for.body.0, label %for.back.0
-
-for.body.0:
-br label %for.step.0
-
-for.step.0:
-%i.1_for.step.0 = phi i32 [ %i.1_for.cond.0, %for.body.0 ]
-%var8 = add i32 %var7, 1
-br label %for.cond.0
-
-for.back.0:
-ret i32 0
 
 }
 define i32 @main() {
 entry:
 call void @__init()
-%var10 = call i32 @jud(i32 1)
+%var1 = load i32, ptr @n
+store i32 47, ptr @n
+%var2 = load i32, ptr @n
+%var3 = srem i32 %var2, 7
+%var4 = icmp eq i32 %var3, 0
+br i1 %var4, label %land.end..0, label %land.next..0
+
+land.next..0:
+%var5_land.next..0 = phi i1 [ %var4, %entry ]
+%var6 = load i32, ptr @n
+%var7 = srem i32 %var6, 47
+%var8 = icmp eq i32 %var7, 0
+br label %land.end..0
+
+land.end..0:
+br i1 %var4, label %if.then.0, label %if.else.0
+
+if.then.0:
+call void @print(ptr @.str..0)
+br label %if.back.0
+
+if.else.0:
+call void @print(ptr @.str..1)
+br label %if.back.0
+
+if.back.0:
 ret i32 0
 
 }

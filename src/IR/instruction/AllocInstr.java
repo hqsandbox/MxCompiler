@@ -5,6 +5,8 @@ import IR.IRVisitor;
 import IR.entity.IRVariable;
 import Util.type.IRType;
 
+import java.util.ArrayList;
+
 public class AllocInstr extends Instruction {
 
     public IRType irType;
@@ -29,4 +31,13 @@ public class AllocInstr extends Instruction {
         visitor.visit(this);
     }
 
+    @Override
+    public ArrayList<String> getUse(){
+        return new ArrayList<>();
+    }
+
+    @Override
+    public String getDef() {
+        return irVariable.toString();
+    }
 }

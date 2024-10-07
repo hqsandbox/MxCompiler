@@ -3,6 +3,8 @@ package IR.instruction;
 import IR.IRBlock;
 import IR.IRVisitor;
 
+import java.util.ArrayList;
+
 public class JumpInstr extends Instruction {
     public IRBlock target;
 
@@ -19,5 +21,15 @@ public class JumpInstr extends Instruction {
     @Override
     public void accept(IRVisitor visitor) {
         visitor.visit(this);
+    }
+
+    @Override
+    public ArrayList<String> getUse(){
+        return new ArrayList<>();
+    }
+
+    @Override
+    public String getDef(){
+        return null;
     }
 }

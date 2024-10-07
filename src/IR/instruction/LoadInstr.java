@@ -5,6 +5,8 @@ import IR.IRVisitor;
 import IR.entity.IRVariable;
 import Util.type.IRType;
 
+import java.util.ArrayList;
+
 public class LoadInstr extends Instruction {
 
     public IRVariable ptr;
@@ -26,5 +28,17 @@ public class LoadInstr extends Instruction {
     @Override
     public void accept(IRVisitor visitor) {
         visitor.visit(this);
+    }
+
+    @Override
+    public ArrayList<String> getUse(){
+        ArrayList<String> ans = new ArrayList<>();
+        ans.add(ptr.toString());
+        return ans;
+    }
+
+    @Override
+    public String getDef(){
+        return result.toString();
     }
 }

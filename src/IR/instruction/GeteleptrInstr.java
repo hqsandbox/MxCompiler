@@ -45,4 +45,23 @@ public class GeteleptrInstr extends Instruction {
     public void accept(IRVisitor visitor) {
         visitor.visit(this);
     }
+
+    @Override
+    public ArrayList<String> getUse(){
+        ArrayList<String> ans = new ArrayList<>();
+        if(ptrValue instanceof IRVariable){
+            ans.add(ptrValue.toString());
+        }
+        for (IREntity idx : idxList) {
+            if(idx instanceof IRVariable){
+                ans.add(idx.toString());
+            }
+        }
+        return ans;
+    }
+
+    @Override
+    public String getDef() {
+        return result.toString();
+    }
 }

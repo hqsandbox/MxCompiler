@@ -5,6 +5,8 @@ import IR.IRVisitor;
 import IR.entity.IREntity;
 import IR.entity.IRVariable;
 
+import java.util.ArrayList;
+
 public class IcmpInstr extends Instruction {
 
     public String op;
@@ -39,5 +41,18 @@ public class IcmpInstr extends Instruction {
     @Override
     public void accept(IRVisitor visitor) {
         visitor.visit(this);
+    }
+
+    @Override
+    public ArrayList<String> getUse(){
+        ArrayList<String> ans = new ArrayList<>();
+        if(lhs instanceof IRVariable) ans.add(lhs.toString());
+        if(rhs instanceof IRVariable) ans.add(rhs.toString());
+        return ans;
+    }
+
+    @Override
+    public String getDef(){
+        return result.toString();
     }
 }

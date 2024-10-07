@@ -5,6 +5,8 @@ import IR.IRVisitor;
 import IR.entity.IREntity;
 import IR.entity.IRVariable;
 
+import java.util.ArrayList;
+
 public class BrInstr extends Instruction {
     public IREntity op;
     public IRBlock lhs, rhs;
@@ -24,5 +26,19 @@ public class BrInstr extends Instruction {
     @Override
     public void accept(IRVisitor visitor) {
         visitor.visit(this);
+    }
+
+    @Override
+    public ArrayList<String> getUse(){
+        ArrayList<String> ans = new ArrayList<>();
+        if(op instanceof IRVariable irVariable){
+            ans.add(irVariable.toString());
+        }
+        return ans;
+    }
+
+    @Override
+    public String getDef() {
+        return null;
     }
 }

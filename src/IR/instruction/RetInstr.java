@@ -3,7 +3,10 @@ package IR.instruction;
 import IR.IRVisitor;
 import IR.entity.IREntity;
 import IR.IRBlock;
+import IR.entity.IRVariable;
 import Util.type.IRType;
+
+import java.util.ArrayList;
 
 public class RetInstr extends Instruction {
     public IREntity retValue;
@@ -28,5 +31,17 @@ public class RetInstr extends Instruction {
     @Override
     public void accept(IRVisitor visitor) {
         visitor.visit(this);
+    }
+
+    @Override
+    public ArrayList<String> getUse(){
+        ArrayList<String> ans = new ArrayList<>();
+        if(retValue instanceof IRVariable irVariable) ans.add(irVariable.toString());
+        return ans;
+    }
+
+    @Override
+    public String getDef(){
+        return null;
     }
 }

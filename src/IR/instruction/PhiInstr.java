@@ -43,4 +43,20 @@ public class PhiInstr extends Instruction {
     public void accept(IRVisitor visitor) {
         visitor.visit(this);
     }
+
+    @Override
+    public ArrayList<String> getUse(){
+        ArrayList<String> ans = new ArrayList<>();
+        for (IREntity entity : values) {
+            if (entity instanceof IRVariable irVariable) {
+                ans.add(irVariable.toString());
+            }
+        }
+        return ans;
+    }
+
+    @Override
+    public String getDef(){
+        return result.toString();
+    }
 }

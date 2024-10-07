@@ -21,7 +21,10 @@ public class IRBlock {
     public ArrayList<IRBlock> domChildren = new ArrayList<>(); // 当前基本块直接支配的所有基本块，子节点
     public HashSet<IRBlock> domFrontier = new HashSet<>(); // 支配边界
     public HashMap<String, PhiInstr> phiInsts = new HashMap<>();
+    public HashSet<String> phiLiveIn = new HashSet<>();
+    public HashSet<String> phiLiveOut = new HashSet<>();
     public boolean alreadyRenamed = false;
+    public boolean liveVisited = false;
 
     public IRBlock(IRFuncDef parent, String name) {
         this.parent = parent;
@@ -42,4 +45,28 @@ public class IRBlock {
     public void accept(IRVisitor visitor) {
         visitor.visit(this);
     }
+
+    public Instruction getTerminator() {
+        return instructions.getLast();
+    }
+
+    public boolean hasPhiDef(String name) {
+        boolean flag = false;
+        for (PhiInstr phiInstr : phiInsts.values()) {
+            if (name.equals(phiInstr.getDef())) {
+                flag = true;
+                break;
+            }
+        }
+        return flag;
+    }
+
+    // 默认phiInsts不空
+    public void addPhiIn(String var){
+        phiLiveIn.add(var);
+    }
+    public void addPhiOut(String var){
+        phiLiveOut.add(var);
+    }
+
 }

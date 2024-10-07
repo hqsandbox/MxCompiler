@@ -42,4 +42,23 @@ public class CallInstr extends Instruction {
     public void accept(IRVisitor visitor) {
         visitor.visit(this);
     }
+
+    @Override
+    public ArrayList<String> getUse(){
+        ArrayList<String> ans = new ArrayList<>();
+        for(IREntity arg : args){
+            if(arg instanceof IRVariable irVariable){
+                ans.add(irVariable.toString());
+            }
+        }
+        return ans;
+    }
+
+    @Override
+    public String getDef(){
+        if(!result.type.isVoid()){
+            return result.toString();
+        }
+        return null;
+    }
 }

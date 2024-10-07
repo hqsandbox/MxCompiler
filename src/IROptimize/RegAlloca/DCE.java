@@ -93,9 +93,9 @@ public class DCE {
             } else {
                 ArrayList<String> useList = instruction.getUse();
                 instruction.parent.instructions.remove(instruction);
-//                if(instruction instanceof PhiInstr phiInstr){
-//                    phiInstr.parent.phiInsts.remove(phiInstr.result.name);
-//                }
+                if(instruction instanceof PhiInstr phiInstr){
+                    phiInstr.parent.phiInsts.entrySet().removeIf(entry -> entry.getValue().equals(instruction));
+                }
                 for(String use : useList){
                     if(useCnt.containsKey(use)){ // 局部变量
                         useCnt.put(use, useCnt.get(use) - 1);

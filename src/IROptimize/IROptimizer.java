@@ -14,7 +14,7 @@ public class IROptimizer {
 
     public void visit(IRProgram program) {
         new Mem2Reg(program).work();
-//        new RegAllocation(program).work();
+        new RegAllocation(program).work();
         // System.out.write(program.toString().getBytes());
     }
 

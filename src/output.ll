@@ -150,13 +150,11 @@ land.next..0:
 br label %land.end..0
 
 land.end..0:
-%var103_land.end..0 = phi i1 [ %var102, %for.back.6 ], [ %var105, %land.next..0 ]
 br label %while.cond.0
 
 while.cond.0:
 %flag.1_while.cond.0 = phi i32 [ 0, %land.end..0 ], [ %flag.1_for.cond.7, %for.back.7 ]
 %var133_while.cond.0 = phi i1 [ 0, %land.end..0 ], [ %var133_for.cond.7, %for.back.7 ]
-%var110_while.cond.0 = phi i1 [ 0, %land.end..0 ], [ %var110_land.end..1, %for.back.7 ]
 %var107 = load i32, ptr @open
 %var108 = load i32, ptr @closed
 %var109 = icmp slt i32 %var107, %var108

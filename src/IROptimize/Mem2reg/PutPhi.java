@@ -108,7 +108,7 @@ public class PutPhi {
                 if(!workList.contains(frontier)) {
                     workList.add(frontier);
                 }
-                PhiInstr phiInstr = new PhiInstr(block, new IRVariable(var, varType.get(var)), varType.get(var));
+                PhiInstr phiInstr = new PhiInstr(frontier, new IRVariable(var, varType.get(var)), varType.get(var));
                 frontier.phiInsts.put(var, phiInstr);
             }
         }

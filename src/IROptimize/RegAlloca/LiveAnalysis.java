@@ -49,12 +49,16 @@ public class LiveAnalysis {
     }
 
     public void getVarUse(Instruction instruction) {
-        instruction.getUse().forEach(var -> {
-            if (!varUse.containsKey(var)) {
+        ArrayList<String> useList = instruction.getUse();
+        for(String var : useList){
+            if(var.startsWith("@")){
+                continue;
+            }
+            if(!varUse.containsKey(var)){
                 varUse.put(var, new ArrayList<>());
             }
             varUse.get(var).add(instruction);
-        });
+        }
     }
 
     public void ssa_liveness() {

@@ -31,21 +31,21 @@ public class Main {
     // 错误：要添加内建函数
     public static void main(String[] args) throws Exception{
 
-        InputStream input = System.in;
-        PrintStream output =new PrintStream(new FileOutputStream("output.ll"));
-        System.setOut(output);
-        int choose = 1;
-
+//        InputStream input = System.in;
+//        PrintStream output =new PrintStream(new FileOutputStream("output.ll"));
+//        System.setOut(output);
 //        int choose = 1;
-//        String name = "C:\\Users\\31447\\IdeaProjects\\untitled\\src\\test.mx";
-//        InputStream input = new FileInputStream(name);
-//        if(choose == 1){
-//            PrintStream output =new PrintStream(new FileOutputStream("C:\\Users\\31447\\IdeaProjects\\untitled\\src\\output.ll"));
-//            System.setOut(output);
-//        } else {
-//            PrintStream output =new PrintStream(new FileOutputStream("C:\\Users\\31447\\IdeaProjects\\untitled\\src\\original.out"));
-//            System.setOut(output);
-//        }
+
+        int choose = 1;
+        String name = "C:\\Users\\31447\\IdeaProjects\\untitled\\src\\test.mx";
+        InputStream input = new FileInputStream(name);
+        if(choose == 1){
+            PrintStream output =new PrintStream(new FileOutputStream("C:\\Users\\31447\\IdeaProjects\\untitled\\src\\output.ll"));
+            System.setOut(output);
+        } else {
+            PrintStream output =new PrintStream(new FileOutputStream("C:\\Users\\31447\\IdeaProjects\\untitled\\src\\original.out"));
+            System.setOut(output);
+        }
 
 
         try {
@@ -83,9 +83,15 @@ public class Main {
 //            irPrinter.print();
 
             if(choose == 1){
+                PrintStream output1 =new PrintStream(new FileOutputStream("spill.ll"));
+                System.setOut(output1);
                 IROptimizer irOptimizer = new IROptimizer(irProgram);
                 irOptimizer.visit(irProgram);
             }
+
+            PrintStream output2 =new PrintStream(new FileOutputStream("output.ll"));
+            System.setOut(output2);
+
 
             IRPrinter irPrinter = new IRPrinter(irProgram);
             irPrinter.print();

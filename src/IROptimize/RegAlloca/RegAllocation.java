@@ -14,5 +14,6 @@ public class RegAllocation {
         new DCE(program).work();
         new LiveAnalysis(program).work();
         new Spill(program).work();
+        new Color(program).work();
     }
 }

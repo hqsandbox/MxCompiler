@@ -38,6 +38,7 @@ public class Spill {
                 }
             }
         }
+        printSpillNum();
     }
 
     public void doSpill(Instruction instruction, int num){
@@ -50,5 +51,10 @@ public class Spill {
             spillList.add(var);
         }
         instruction.liveOut_.removeAll(spillList);
+    }
+
+    public void printSpillNum(){
+        System.out.print(spilledVars.size());
+        System.out.print(" ");
     }
 }

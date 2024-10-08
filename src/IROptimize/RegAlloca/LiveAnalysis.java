@@ -41,6 +41,7 @@ public class LiveAnalysis {
                 for(PhiInstr phiInstr : block.phiInsts.values()){
                     phiInstr.liveIn = block.phiLiveIn;
                     phiInstr.liveOut = block.phiLiveOut;
+                    phiInstr.liveOut_ = block.phiLiveOut_;
                     getVarUse(phiInstr);
                 }
             }
@@ -103,6 +104,7 @@ public class LiveAnalysis {
 
     public void scan_liveOut(Instruction instruction, String var){
         instruction.liveOut.add(var);
+        instruction.liveOut_.add(var);
         String def = instruction.getDef();
         if(def == null || !def.equals(var)){
             scan_liveIn(instruction, var);

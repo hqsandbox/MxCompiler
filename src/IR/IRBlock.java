@@ -23,6 +23,7 @@ public class IRBlock {
     public HashMap<String, PhiInstr> phiInsts = new HashMap<>();
     public HashSet<String> phiLiveIn = new HashSet<>();
     public HashSet<String> phiLiveOut = new HashSet<>();
+    public HashSet<String> phiLiveOut_ = new HashSet<>();
     public boolean alreadyRenamed = false;
     public boolean liveVisited = false;
 
@@ -67,6 +68,7 @@ public class IRBlock {
     }
     public void addPhiOut(String var){
         phiLiveOut.add(var);
+        phiLiveOut_.add(var);
     }
 
 }

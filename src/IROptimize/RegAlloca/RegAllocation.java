@@ -13,5 +13,6 @@ public class RegAllocation {
     public void work() {
         new DCE(program).work();
         new LiveAnalysis(program).work();
+        new Spill(program).work();
     }
 }

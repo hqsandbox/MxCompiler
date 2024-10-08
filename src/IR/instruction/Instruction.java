@@ -11,6 +11,7 @@ public abstract class Instruction {
     public IRBlock parent;
     public HashSet<String> liveIn = new HashSet<>();
     public HashSet<String> liveOut = new HashSet<>();
+    public HashSet<String> liveOut_ = new HashSet<>(); // 溢出后的 liveOut
 
     public Instruction(IRBlock parent) {
         this.parent = parent;

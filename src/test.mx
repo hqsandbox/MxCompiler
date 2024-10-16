@@ -1,5 +1,5 @@
 int main(){
-	string s = "123";
-	string s1;
-	s1 = s;
+	//int[] a = new int[5];
+	int[] a ;
+	a[1] = 2;
 }

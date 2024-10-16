@@ -1,4 +1,3 @@
-@.str..0 = private unnamed_addr constant [4 x i8] c"123\00"
 define void @__init() {
 entry:
 ret void
@@ -7,7 +6,9 @@ ret void
 define i32 @main() {
 entry:
 call void @__init()
-%var3 = call ptr @string.copy(ptr @.str..0)
+%var2 = getelementptr i32, ptr 0, i32 1
+%var3 = load i32, ptr %var2
+store i32 2, ptr %var2
 ret i32 0
 
 }

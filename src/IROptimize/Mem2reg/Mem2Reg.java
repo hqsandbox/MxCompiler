@@ -20,6 +20,7 @@ public class Mem2Reg {
         new CFGBuilder(program).work();
         new DomBuilder(program).work();
         new PutPhi(program).work();
+//        new AllocChecker(program).work();
     }
 
 }

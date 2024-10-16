@@ -48,11 +48,12 @@ public class PutPhi {
             for(Instruction instruction : block.instructions) {
                 if(instruction instanceof GeteleptrInstr geteleptrInstr) {
                     getEleName.add(geteleptrInstr.result.toString());
-                } else if(instruction instanceof CallInstr callInstr) {
-                    if(callInstr.funcName.equals("string.copy")) {
-                        getEleName.add(callInstr.args.getFirst().toString());
-                    }
                 }
+//                else if(instruction instanceof CallInstr callInstr) {
+//                    if(callInstr.funcName.equals("string.copy")) {
+//                        getEleName.add(callInstr.args.getFirst().toString());
+//                    }
+//                }
             }
         }
     }

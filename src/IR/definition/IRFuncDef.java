@@ -2,9 +2,11 @@ package IR.definition;
 
 import IR.IRBlock;
 import IR.IRVisitor;
+import IR.instruction.Instruction;
 import Util.type.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 
 public class IRFuncDef extends IRStatement {
@@ -59,5 +61,15 @@ public class IRFuncDef extends IRStatement {
             System.exit(0);
             throw new RuntimeException("getPlace error");
         }
+    }
+
+    public HashSet<String> getDef(){
+        HashSet<String> def = new HashSet<>();
+        for (IRBlock block : blockList) {
+            for(Instruction instruction : block.instructions){
+                def.add(instruction.getDef());
+            }
+        }
+        return def;
     }
 }

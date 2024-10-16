@@ -18,6 +18,11 @@ public class BrInstr extends Instruction {
         this.rhs = rhs;
     }
 
+    public void replaceTarget(IRBlock oldTarget, IRBlock newTarget) {
+        if(lhs == oldTarget) lhs = newTarget;
+        if(rhs == oldTarget) rhs = newTarget;
+    }
+
     @Override
     public String toString() {
         return "br i1 " + op + ", label %" + lhs.name + ", label %" + rhs.name + "\n";

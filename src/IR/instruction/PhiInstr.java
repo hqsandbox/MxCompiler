@@ -13,6 +13,7 @@ public class PhiInstr extends Instruction {
     public IRType irType;
     public ArrayList<IREntity> values = new ArrayList<>();
     public ArrayList<IRBlock> blocks = new ArrayList<>();
+    public ArrayList<Boolean> visited = new ArrayList<>();
 
     public PhiInstr(IRBlock parent, IRVariable result, IRType irType) {
         super(parent);
@@ -23,6 +24,15 @@ public class PhiInstr extends Instruction {
     public void addBranch(IREntity value, IRBlock block) {
         values.add(value);
         blocks.add(block);
+        visited.add(false);
+    }
+
+    public void replaceTarget(IRBlock oldBlock, IRBlock newBlock){
+        for (int i = 0; i < blocks.size(); i++) {
+            if(blocks.get(i) == oldBlock){
+                blocks.set(i, newBlock);
+            }
+        }
     }
 
     @Override

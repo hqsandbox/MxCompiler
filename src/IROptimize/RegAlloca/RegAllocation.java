@@ -15,5 +15,6 @@ public class RegAllocation {
         new LiveAnalysis(program).work();
         new Spill(program).work();
         new Color(program).work();
+        new CriticalEdge(program).work();
     }
 }

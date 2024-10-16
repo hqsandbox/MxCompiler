@@ -1,11 +1,14 @@
 package IR;
 
+import ASM.section.ASMText;
 import IR.definition.*;
 import Util.infor.FuncInfor;
 import Util.type.IRType;
+import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class IRProgram {
 
@@ -13,6 +16,9 @@ public class IRProgram {
     public HashMap<String, IRFuncDef> funcDefMap = new HashMap<>();
     public HashMap<String, IRClassDef> classDefMap = new HashMap<>();
     public HashMap<String, IRGlobalVariDef> globalVarDefMap = new HashMap<>();
+    public HashMap<String, Integer> regMap = null; // 寄存器分配，用于记录变量的寄存器编号
+    public List<Pair<IRBlock, IRBlock>> criticalEdge = new ArrayList<>();
+    public HashMap<IRBlock, ASMText> blockTextMap = new HashMap<>();
 
     public void visitInfunc(){
         var paraType1 = new ArrayList<IRType>();paraType1.add(new IRType("ptr"));

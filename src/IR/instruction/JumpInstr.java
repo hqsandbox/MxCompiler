@@ -13,6 +13,12 @@ public class JumpInstr extends Instruction {
         this.target = target;
     }
 
+    public void replaceTarget(IRBlock oldTarget, IRBlock newTarget) {
+        if (target == oldTarget) {
+            target = newTarget;
+        }
+    }
+
     @Override
     public String toString(){
         return "br label %" + target.name + "\n";

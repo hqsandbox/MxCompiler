@@ -9,7 +9,6 @@ import IR.instruction.PhiInstr;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Set;
 
 public class Color {
 
@@ -26,9 +25,11 @@ public class Color {
         for(IRFuncDef func : program.funcDefMap.values()) {
             preOrder(func.blockList.getFirst());
         }
+        program.regMap = tempMap;
     }
 
     public void preOrder(IRBlock block) {
+        inUse.clear();// TODO: clear inUse?
         block.phiLiveIn.forEach(var -> {
             if(!tempMap.containsKey(var)){
                 tempMap.put(var, getNewReg());

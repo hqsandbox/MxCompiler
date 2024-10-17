@@ -58,7 +58,8 @@ public class PhiInstr extends Instruction {
     public ArrayList<String> getUse(){
         ArrayList<String> ans = new ArrayList<>();
         for (IREntity entity : values) {
-            if (entity instanceof IRVariable irVariable) {
+            // 排除数字的情况
+            if (entity instanceof IRVariable irVariable && irVariable.toString().charAt(0) == '%') {
                 ans.add(irVariable.toString());
             }
         }

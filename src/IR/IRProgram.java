@@ -8,6 +8,7 @@ import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 public class IRProgram {
@@ -19,6 +20,7 @@ public class IRProgram {
     public HashMap<String, Integer> regMap = null; // 寄存器分配，用于记录变量的寄存器编号
     public List<Pair<IRBlock, IRBlock>> criticalEdge = new ArrayList<>();
     public HashMap<IRBlock, ASMText> blockTextMap = new HashMap<>();
+    public HashSet<String> spilledVars = new HashSet<>();// for colorChecker
 
     public void visitInfunc(){
         var paraType1 = new ArrayList<IRType>();paraType1.add(new IRType("ptr"));

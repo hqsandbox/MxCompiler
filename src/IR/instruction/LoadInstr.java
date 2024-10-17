@@ -33,7 +33,7 @@ public class LoadInstr extends Instruction {
     @Override
     public ArrayList<String> getUse(){
         ArrayList<String> ans = new ArrayList<>();
-        ans.add(ptr.toString());
+        if(ptr.toString().charAt(0) == '%') ans.add(ptr.toString());
         return ans;
     }
 

@@ -24,7 +24,6 @@ public class IRBlock {
     public HashSet<String> phiLiveOut = new HashSet<>();
     public HashSet<String> phiLiveOut_ = new HashSet<>();
     public boolean alreadyRenamed = false;
-    public boolean liveVisited = false;
 
     public IRBlock(IRFuncDef parent, String name) {
         this.parent = parent;
@@ -66,8 +65,18 @@ public class IRBlock {
         phiLiveIn.add(var);
     }
     public void addPhiOut(String var){
+        if(var.equals("1")){
+            throw new RuntimeException("add 1");
+        }
         phiLiveOut.add(var);
         phiLiveOut_.add(var);
+    }
+    public HashSet<String> getPhiDef(){
+        HashSet<String> res = new HashSet<>();
+        for (PhiInstr phiInstr : phiInsts.values()) {
+            res.add(phiInstr.getDef());
+        }
+        return res;
     }
 
 }

@@ -36,7 +36,8 @@ public class StoreInstr extends Instruction {
     @Override
     public ArrayList<String> getUse(){
         ArrayList<String> ans = new ArrayList<>();
-        if(ptr instanceof IRVariable) ans.add(ptr.toString());
+        // 全局变量不能算进去
+        if(ptr instanceof IRVariable && ptr.toString().charAt(0) == '%') ans.add(ptr.toString());
         if(value instanceof IRVariable) ans.add(value.toString());
         return ans;
     }

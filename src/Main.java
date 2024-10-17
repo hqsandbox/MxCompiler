@@ -31,22 +31,22 @@ public class Main {
     // 错误：要添加内建函数
     public static void main(String[] args) throws Exception{
 
-        InputStream input = System.in;
-        PrintStream output =new PrintStream(new FileOutputStream("output.ll"));
-        System.setOut(output);
-        int choose = 1;
-
-//        assert false;
+//        InputStream input = System.in;
+//        PrintStream output =new PrintStream(new FileOutputStream("output.ll"));
+//        System.setOut(output);
 //        int choose = 1;
-//        String name = "C:\\Users\\31447\\IdeaProjects\\untitled\\src\\test.mx";
-//        InputStream input = new FileInputStream(name);
-//        if(choose == 1){
-//            PrintStream output =new PrintStream(new FileOutputStream("C:\\Users\\31447\\IdeaProjects\\untitled\\src\\output.ll"));
-//            System.setOut(output);
-//        } else {
-//            PrintStream output =new PrintStream(new FileOutputStream("C:\\Users\\31447\\IdeaProjects\\untitled\\src\\original.out"));
-//            System.setOut(output);
-//        }
+
+
+        int choose = 1;
+        String name = "C:\\Users\\31447\\IdeaProjects\\untitled\\src\\test.mx";
+        InputStream input = new FileInputStream(name);
+        if(choose == 1){
+            PrintStream output =new PrintStream(new FileOutputStream("C:\\Users\\31447\\IdeaProjects\\untitled\\src\\output.ll"));
+            System.setOut(output);
+        } else {
+            PrintStream output =new PrintStream(new FileOutputStream("C:\\Users\\31447\\IdeaProjects\\untitled\\src\\original.out"));
+            System.setOut(output);
+        }
 
 
         try {

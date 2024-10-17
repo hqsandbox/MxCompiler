@@ -22,6 +22,7 @@ public class Spill {
 
     public void work(){
         program.funcDefMap.forEach((key, func) -> workOnFunc(func));
+        program.spilledVars = spilledVars;
     }
 
     public void workOnFunc(IRFuncDef func) {
@@ -38,6 +39,12 @@ public class Spill {
                 }
             }
         }
+        for(IRBlock block : func.blockList){
+            block.phiLiveOut_.removeAll(spilledVars);
+            for(Instruction instruction : block.instructions){
+                instruction.liveOut_.removeAll(spilledVars);
+            }
+        }
         printSpillNum();
     }
 
@@ -47,9 +54,9 @@ public class Spill {
         HashSet<String> spillList = new HashSet<>();
         for(int i = 0; i < num; ++i){
             String var = iterator.next();
-            spilledVars.add(var);
             spillList.add(var);
         }
+        spilledVars.addAll(spillList);
         instruction.liveOut_.removeAll(spillList);
     }
 

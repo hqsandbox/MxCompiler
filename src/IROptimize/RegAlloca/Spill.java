@@ -29,8 +29,13 @@ public class Spill {
         for(IRBlock block : func.blockList){
             block.phiLiveOut_.removeAll(spilledVars);
             if(block.phiLiveOut_.size() > regNum){
-                Iterator<Map.Entry<String, PhiInstr>> iterator = block.phiInsts.entrySet().iterator();
-                doSpill(iterator.next().getValue(), block.phiLiveOut_.size() - regNum);
+                // 错误：如果是第一个block，由于没有phiInsts，所以要单独处理
+                if(block.equals(func.blockList.getFirst())){
+                    doFirstBlockSpill(block, block.phiLiveOut_.size() - regNum);
+                } else {
+                    Iterator<Map.Entry<String, PhiInstr>> iterator = block.phiInsts.entrySet().iterator();
+                    doSpill(iterator.next().getValue(), block.phiLiveOut_.size() - regNum);
+                }
             }
             for(Instruction instruction : block.instructions){
                 instruction.liveOut_.removeAll(spilledVars);
@@ -58,6 +63,17 @@ public class Spill {
         }
         spilledVars.addAll(spillList);
         instruction.liveOut_.removeAll(spillList);
+    }
+
+    public void doFirstBlockSpill(IRBlock block, int num){
+        Iterator<String> iterator = block.phiLiveOut_.iterator();
+        HashSet<String> spillList = new HashSet<>();
+        for(int i = 0; i < num; ++i){
+            String var = iterator.next();
+            spillList.add(var);
+        }
+        spilledVars.addAll(spillList);
+        block.phiLiveOut_.removeAll(spillList);
     }
 
     public void printSpillNum(){

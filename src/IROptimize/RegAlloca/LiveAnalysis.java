@@ -105,7 +105,8 @@ public class LiveAnalysis {
             scan_liveOut(prev, var);
         } else {
             boolean hasPhiDef = instruction.parent.hasPhiDef(var);
-            if(!instruction.parent.phiInsts.isEmpty()){
+            // 如果是第一个block，那么将变量加入phiLiveOut
+            if(!instruction.parent.phiInsts.isEmpty() || instruction.parent.equals(instruction.parent.parent.blockList.getFirst())){
                 instruction.parent.addPhiOut(var);
             }
             if(!hasPhiDef){

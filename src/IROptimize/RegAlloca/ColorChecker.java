@@ -52,9 +52,6 @@ public class ColorChecker {
         if(vars.size() != program.regMap.size() + program.spilledVars.size()) {
             return false;
         }
-        if(vars.isEmpty()){
-            return false;
-        }
         return true;
     }
 

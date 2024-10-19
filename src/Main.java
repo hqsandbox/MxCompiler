@@ -32,25 +32,30 @@ public class Main {
     // 错误：要添加内建函数
     public static void main(String[] args) throws Exception{
 
-        InputStream input = System.in;
-        PrintStream output =new PrintStream(new FileOutputStream("output.ll"));
-        System.setOut(output);
+        // script:
+        boolean debug = false;
         int choose = 1;
 
+        // script code
+//        InputStream input = System.in;
+//        PrintStream output =new PrintStream(new FileOutputStream("test.s"));
+//        System.setOut(output);
+//        choose = 1;
 
         // TODO: asmBuilder里面两个exit
 
+        // debug code
+        debug = true;
+        choose = 1;
+        String name = "C:\\Users\\31447\\IdeaProjects\\untitled\\src\\test.mx";
+        InputStream input = new FileInputStream(name);
 
-//        int choose = 1;
+        // past code
+//        debug = true;
+//        choose = 2;
 //        String name = "C:\\Users\\31447\\IdeaProjects\\untitled\\src\\test.mx";
 //        InputStream input = new FileInputStream(name);
-//        if(choose == 1){
-//            PrintStream output =new PrintStream(new FileOutputStream("C:\\Users\\31447\\IdeaProjects\\untitled\\src\\test.s"));
-//            System.setOut(output);
-//        } else {
-//            PrintStream output =new PrintStream(new FileOutputStream("C:\\Users\\31447\\IdeaProjects\\untitled\\src\\original.out"));
-//            System.setOut(output);
-//        }
+
 
 
         try {
@@ -94,22 +99,30 @@ public class Main {
                 irOptimizer.visit(irProgram);
             }
 
-//            PrintStream output2 =new PrintStream(new FileOutputStream("output.ll"));
-//            System.setOut(output2);
+            if(debug){
+                PrintStream output4 =new PrintStream(new FileOutputStream("C:\\Users\\31447\\IdeaProjects\\untitled\\src\\output.ll"));
+                System.setOut(output4);
+                IRPrinter irPrinter = new IRPrinter(irProgram);
+                irPrinter.print();
 
-//            PrintStream output4 =new PrintStream(new FileOutputStream("C:\\Users\\31447\\IdeaProjects\\untitled\\src\\output.ll"));
-//            System.setOut(output4);
+                PrintStream output3 =new PrintStream(new FileOutputStream("C:\\Users\\31447\\IdeaProjects\\untitled\\src\\test.s"));
+                System.setOut(output3);
+            }
 
-            IRPrinter irPrinter = new IRPrinter(irProgram);
-            irPrinter.print();
+            if(choose == 1){
+                var asmBuilder = new ASMBuilderPlus(irProgram);
+                asmBuilder.visit(irProgram);
+                ASMPrinter asmPrinter = new ASMPrinter(asmBuilder.asmProgram);
+                asmPrinter.print();
+            }
 
-//            PrintStream output3 =new PrintStream(new FileOutputStream("C:\\Users\\31447\\IdeaProjects\\untitled\\src\\test.s"));
-//            System.setOut(output3);
+            if(choose == 2){
+                var asmBuilder = new ASMBuilder(irProgram);
+                asmBuilder.visit(irProgram);
+                ASMPrinter asmPrinter = new ASMPrinter(asmBuilder.asmProgram);
+                asmPrinter.print();
+            }
 
-            var asmBuilder = new ASMBuilderPlus(irProgram);
-            asmBuilder.visit(irProgram);
-//            ASMPrinter asmPrinter = new ASMPrinter(asmBuilder.asmProgram);
-//            asmPrinter.print();
 //            {
 //            System.out.println("\t.text\n" +
 //                    "\t.attribute\t4, 16\n" +

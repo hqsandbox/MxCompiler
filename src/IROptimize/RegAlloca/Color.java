@@ -84,7 +84,8 @@ public class Color {
         String defVar = instruction.getDef();
         for(String var : useList) {
             if(!instruction.liveOut_.contains(var)){
-                inUse.remove(tempMap.get(var));
+                Integer tmp = tempMap.get(var);
+                inUse.remove(tmp);
             }
         }
         // 错误：这里判断要加上元素属于liveOut_

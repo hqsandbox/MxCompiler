@@ -573,9 +573,8 @@ public class ASMBuilderPlus implements IRVisitor {
         // 将function的 liveOut-def中用到的寄存器存下来
         HashSet<String> varList = callInstr.liveOut_;
         HashSet<String> regList = new HashSet<>();
-        if(irProgram.funcDefMap.containsKey(callInstr.funcName)){
-            IRFuncDef funcDef = irProgram.funcDefMap.get(callInstr.funcName);
-            varList.removeAll(funcDef.getDef());
+        if(callInstr.getDef() != null){
+            varList.remove(callInstr.getDef());
         }
         for(String var : varList){
             String reg = getVarReg(var);
@@ -595,7 +594,7 @@ public class ASMBuilderPlus implements IRVisitor {
             int size = (callInstr.args.size() - 8) * 4;
             for(int i = 8; i < callInstr.args.size(); ++i){
                 int offSet = -size + 4 * (i - 8);
-                loadIREntity(callInstr.args.get(i), "t0", callInstr.parent.parent);
+                actual_load_entity(callInstr.args.get(i), "t0", callInstr.parent.parent);
                 currentText.instrList.add(new ASMSwInstr(currentText, "t0", "sp", offSet));
             }
             currentText.instrList.add(new ASMArithImmInstr(currentText, "sp", "sp", "+", -size));
@@ -676,7 +675,7 @@ public class ASMBuilderPlus implements IRVisitor {
 
     @Override public void visit(LoadInstr loadInstr){
         currentText.instrList.add(new ASMComment(currentText, loadInstr));
-        loadIREntity(loadInstr.ptr, "t0", loadInstr.parent.parent);
+        actual_load_entity(loadInstr.ptr, "t0", loadInstr.parent.parent);
         if(isReg(loadInstr.result)){
             String reg = getVarReg(loadInstr.result.toString());
             currentText.instrList.add(new ASMLwInstr(currentText, reg, "t0", 0));
@@ -694,7 +693,7 @@ public class ASMBuilderPlus implements IRVisitor {
     @Override public void visit(RetInstr retInstr){
         currentText.instrList.add(new ASMComment(currentText, retInstr));
         if(!retInstr.retType.isVoid()){
-            loadIREntity(retInstr.retValue, "a0", retInstr.parent.parent);
+            actual_load_entity(retInstr.retValue, "a0", retInstr.parent.parent);
         }
         if(retInstr.parent.parent.stackSize < 2000){
             currentText.instrList.add(new ASMArithImmInstr(currentText, "sp", "sp", "+", retInstr.parent.parent.stackSize + 12));
@@ -725,11 +724,12 @@ public class ASMBuilderPlus implements IRVisitor {
                 currentText.instrList.add(new ASMSwInstr(currentText, r0, "sp", storeInstr.parent.parent.offsetMap.get(storeInstr.value.toString())));
             }
         }
-        loadIREntity(storeInstr.ptr, "t1", storeInstr.parent.parent);
-        currentText.instrList.add(new ASMSwInstr(currentText, r0, "t1", 0));
+        String r1 = loadIREntity(storeInstr.ptr, "t1", storeInstr.parent.parent);
+        currentText.instrList.add(new ASMSwInstr(currentText, r0, r1, 0));
     }
 
     // 将entity存到 rd中
+    // 这个有两个目的：一个就是为了存入变量，还有一个是为了将变量读到寄存器里面
     private String loadIREntity(IREntity entity, String rd, IRFuncDef irFuncDef) {
         if(entity instanceof IRIntLiteral){
             currentText.instrList.add(new ASMLiInstr(currentText, rd, ((IRIntLiteral) entity).value));
@@ -754,6 +754,25 @@ public class ASMBuilderPlus implements IRVisitor {
             throw new RuntimeException("invalid entity");
         }
         return rd;
+    }
+
+    public void actual_load_entity(IREntity entity, String rd, IRFuncDef irFuncDef){
+        if(entity instanceof IRVariable){
+            if(isReg(entity)){
+                currentText.instrList.add(new ASMMvInstr(currentText, rd, getVarReg(entity.toString())));
+            } else if(inStack(entity)){
+                int place = irFuncDef.getPlace(entity.toString());
+                currentText.instrList.add(new ASMLwInstr(currentText, rd, "sp", place));
+            } else if(nameIsReg(entity)){
+                currentText.instrList.add(new ASMMvInstr(currentText, rd, entity.toString()));
+            } else if(isGlobal(entity)){
+                currentText.instrList.add(new ASMLaInstr(currentText, rd, entity.toString()));
+            } else {
+                throw new RuntimeException("actual_load_entity: entity is not reg or stack");
+            }
+        } else {
+            loadIREntity(entity, rd, irFuncDef);
+        }
     }
 
     private boolean isGlobalVar(String name) {
@@ -862,6 +881,14 @@ public class ASMBuilderPlus implements IRVisitor {
 
     public boolean isReg(IREntity entity) {
         return entity instanceof IRVariable && irProgram.regMap.containsKey(entity.toString());
+    }
+
+    public boolean nameIsReg(IREntity entity) {
+        String[] strings = {"x0", "x1", "x2", "x3", "x4", "t0", "t1", "t2", "x8", "x9", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "x18", "x19", "x20", "x21", "x22", "x23", "x24", "x25", "x26", "x27", "t3", "t4", "t5", "t6"};
+        for(String string : strings){
+            if(entity.toString().equals(string)) return true;
+        }
+        return false;
     }
 
     public String getVarReg(String var) {

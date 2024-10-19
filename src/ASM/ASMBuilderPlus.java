@@ -31,7 +31,7 @@ public class ASMBuilderPlus implements IRVisitor {
     public ASMText currentText = null;
 
     public IRFuncDef currentFunc;
-    public HashMap<IRBlock, HashMap<IREntity, ArrayList<IREntity>>> graphs;
+    public HashMap<IRBlock, HashMap<IREntity, ArrayList<IREntity>>> graphs = new HashMap<>();
     private final HashSet<ArrayList<IREntity>> allCycles = new HashSet<>();
 
     public ASMBuilderPlus(IRProgram irProgram) {
@@ -62,7 +62,13 @@ public class ASMBuilderPlus implements IRVisitor {
                 if(!graph.containsKey(key)){
                     graph.put(key, new ArrayList<>());
                 }
-                graph.get(key).add(value);
+                if(value.toString().equals("null")){
+//                    System.out.println("debug");
+                }
+                if(!graph.containsKey(value)){
+                    graph.put(value, new ArrayList<>());
+                }
+                graph.get(value).add(key);
             }
         }
     }
@@ -158,22 +164,13 @@ public class ASMBuilderPlus implements IRVisitor {
         // src: reg sp num global
         // key: reg sp
         ASMText asmText = irProgram.blockTextMap.get(targetBlock);
-        if(src instanceof IRIntLiteral){
+        if(isInt(src)){
+            int value = getInt(src);
             if(isReg(key)){
-                asmText.addBeforeEnd(new ASMLiInstr(asmText, getVarReg(key.toString()), ((IRIntLiteral) src).value));
+                asmText.addBeforeEnd(new ASMLiInstr(asmText, getVarReg(key.toString()), value));
             } else if (inStack(key)){
                 int resultPlace = currentFunc.getPlace(key.toString());
-                asmText.addBeforeEnd(new ASMLiInstr(asmText, "t2", ((IRIntLiteral) src).value));
-                asmText.addBeforeEnd(new ASMSwInstr(currentText,"t2", "sp", resultPlace));
-            } else {
-                throw new RuntimeException("naive_phi_elimination: key is not reg or stack");
-            }
-        } else if(src instanceof IRBoolLiteral){
-            if(isReg(key)){
-                asmText.addBeforeEnd(new ASMLiInstr(asmText, getVarReg(key.toString()), ((IRBoolLiteral) src).value ? 1 : 0));
-            } else if (inStack(key)){
-                int resultPlace = currentFunc.getPlace(key.toString());
-                asmText.addBeforeEnd(new ASMLiInstr(asmText, "t2", ((IRBoolLiteral) src).value ? 1 : 0));
+                asmText.addBeforeEnd(new ASMLiInstr(asmText, "t2", value));
                 asmText.addBeforeEnd(new ASMSwInstr(currentText,"t2", "sp", resultPlace));
             } else {
                 throw new RuntimeException("naive_phi_elimination: key is not reg or stack");
@@ -200,14 +197,20 @@ public class ASMBuilderPlus implements IRVisitor {
             } else {
                 throw new RuntimeException("naive_phi_elimination: key is not reg or stack");
             }
+        } else if(isGlobal(src)){
+            if(isReg(key)){
+                currentText.instrList.add(new ASMLaInstr(currentText, getVarReg(key.toString()), src.toString()));
+            } else if (inStack(key)){
+                int resultPlace = currentFunc.getPlace(key.toString());
+                currentText.instrList.add(new ASMLaInstr(currentText, "t0", src.toString()));
+                currentText.instrList.add(new ASMSwInstr(currentText,"t0", "sp", resultPlace));
+            } else {
+                throw new RuntimeException("naive_phi_elimination: key is not reg or stack");
+            }
         } else {
             throw new RuntimeException("naive_phi_elimination: src is not reg or stack");
         }
     }
-
-    // TODO: string_copy 的 alloac
-    // TODO: geteleptr 的 alloac
-    // TODO: color P.110 的具体实现
 
     @Override public void visit(IRProgram irProgram){
         for(IRGlobalVariDef irGlobal : irProgram.globalVarDefMap.values()) {
@@ -217,6 +220,7 @@ public class ASMBuilderPlus implements IRVisitor {
             irClass.accept(this);
         }
         for(IRFuncDef irFunction : irProgram.funcDefMap.values()) {
+            currentFunc = irFunction;
             irFunction.accept(this);
         }
     }
@@ -238,6 +242,13 @@ public class ASMBuilderPlus implements IRVisitor {
         ASMText startText = new ASMText(irFuncDef.functionName);
         asmProgram.TextList.add(startText);
 
+        // 错误：这里统计一定要在block之前，因为可能先扫到后面的block，然后phi指令会出错
+        for(IRBlock irBlock : irFuncDef.blockList){
+            ASMText newText = new ASMText(irBlock.parent.functionName + "_" + irBlock.name);
+            asmProgram.TextList.add(newText);
+            irProgram.blockTextMap.put(irBlock, newText);
+        }
+
         irFuncDef.blockList.forEach(block -> block.accept(this));
 
         // addi越界的问题
@@ -254,9 +265,7 @@ public class ASMBuilderPlus implements IRVisitor {
     }
 
     @Override public void visit(IRBlock irBlock) {
-        currentText = new ASMText(irBlock.parent.functionName + "_" + irBlock.name);
-        asmProgram.TextList.add(currentText);
-        irProgram.blockTextMap.put(irBlock, currentText);
+        currentText = irProgram.blockTextMap.get(irBlock);
 
         phi_eliminator(irBlock);
 
@@ -363,12 +372,21 @@ public class ASMBuilderPlus implements IRVisitor {
     }
 
     public HashMap<IREntity, ArrayList<IREntity>> buildCallGraph(CallInstr callInstr){
+
+        if(callInstr.funcName.equals("print") && callInstr.args.getFirst().toString().equals("@.str..0")){
+//            System.out.println("debug");
+        }
+
         HashMap<IREntity, ArrayList<IREntity>> graph = new HashMap<>();
         int num = callInstr.args.size();
         if(num > 8) num = 8;
         // arg: reg sp num global
         for(int i = 0; i < num; ++i){
             IREntity arg = callInstr.args.get(i);
+            IRRegister register = new IRRegister("a" + i);
+            if(!containRegMap(graph, register)){
+                graph.put(register, new ArrayList<>());
+            }
             if(isReg(arg)){
                 arg = new IRRegister(getVarReg(arg.toString()));
             }
@@ -380,8 +398,37 @@ public class ASMBuilderPlus implements IRVisitor {
         return graph;
     }
 
+    // 已知register是一个寄存器，判断graph、List里面有没有
+    // 错误：不能用contain来判断是否在里面，因为只有同一个对象才能判定相等，而这里只是名字相同而已
+    public boolean containRegMap(HashMap<IREntity, ArrayList<IREntity>> graph, IREntity register){
+        for(IREntity key : graph.keySet()){
+            if (key.toString().equals(register.toString())) return true;
+        }
+        return false;
+    }
+    public boolean containRegList(ArrayList<IREntity> regList, IREntity register){
+        for(IREntity var : regList){
+            if(var.toString().equals(register.toString())) return true;
+        }
+        return false;
+    }
+    public void removeRegList(ArrayList<IREntity> regList, IREntity register){
+        ArrayList<IREntity> removeList = new ArrayList<>();
+        for(IREntity var : regList){
+            if(var.toString().equals(register.toString())){
+                removeList.add(var);
+            }
+        }
+        for(IREntity var : removeList){
+            regList.remove(var);
+        }
+    }
+
     public void findCallCycles(CallInstr callInstr, HashMap<IREntity, ArrayList<IREntity>> graph){
         // 先对出度为0的点消除，然后剩下的图就全是环了
+        if(callInstr.funcName.equals("print") && callInstr.args.getFirst().toString().equals("@.str..0")){
+//            System.out.println("debug");
+        }
         while(true){
             ArrayList<IREntity> removeList = findEmpty(graph);
             if(removeList.isEmpty()) break;
@@ -389,9 +436,9 @@ public class ASMBuilderPlus implements IRVisitor {
             // 然后将指向key的边删掉（指向指的是result为key）
             for(IREntity key : removeList){
                 for(IREntity src : graph.keySet()){
-                    if(graph.get(src).contains(key)){
+                    if(containRegList(graph.get(src), key)){
                         naive_elimination(src, key);
-                        graph.get(src).remove(key);
+                        removeRegList(graph.get(src), key);
                     }
                 }
             }
@@ -422,23 +469,16 @@ public class ASMBuilderPlus implements IRVisitor {
     public void naive_elimination(IREntity src, IREntity key){
         // src: reg sp num global
         // key: reg sp
-        if(src instanceof IRIntLiteral){
+        if(isInt(src)){
+            int value = getInt(src);
             if(isReg(key)){
-                currentText.instrList.add(new ASMLiInstr(currentText, getVarReg(key.toString()), ((IRIntLiteral) src).value));
+                currentText.instrList.add(new ASMLiInstr(currentText, getVarReg(key.toString()), value));
             } else if (inStack(key)){
                 int resultPlace = currentFunc.getPlace(key.toString());
-                currentText.instrList.add(new ASMLiInstr(currentText, "t2", ((IRIntLiteral) src).value));
+                currentText.instrList.add(new ASMLiInstr(currentText, "t2", value));
                 currentText.instrList.add(new ASMSwInstr(currentText,"t2", "sp", resultPlace));
-            } else {
-                throw new RuntimeException("naive_phi_elimination: key is not reg or stack");
-            }
-        } else if(src instanceof IRBoolLiteral){
-            if(isReg(key)){
-                currentText.instrList.add(new ASMLiInstr(currentText, getVarReg(key.toString()), ((IRBoolLiteral) src).value ? 1 : 0));
-            } else if (inStack(key)){
-                int resultPlace = currentFunc.getPlace(key.toString());
-                currentText.instrList.add(new ASMLiInstr(currentText, "t2", ((IRBoolLiteral) src).value ? 1 : 0));
-                currentText.instrList.add(new ASMSwInstr(currentText,"t2", "sp", resultPlace));
+            } else if(key instanceof IRRegister){
+                currentText.instrList.add(new ASMLiInstr(currentText, key.toString(), value));
             } else {
                 throw new RuntimeException("naive_phi_elimination: key is not reg or stack");
             }
@@ -453,6 +493,8 @@ public class ASMBuilderPlus implements IRVisitor {
                 int resultPlace = currentFunc.getPlace(key.toString());
                 currentText.instrList.add(new ASMMvInstr(currentText, "t2", srcReg));
                 currentText.instrList.add(new ASMSwInstr(currentText,"t2", "sp", resultPlace));
+            } else if(key instanceof IRRegister){
+                currentText.instrList.add(new ASMMvInstr(currentText, key.toString(), srcReg));
             } else {
                 throw new RuntimeException("naive_phi_elimination: key is not reg or stack");
             }
@@ -464,10 +506,24 @@ public class ASMBuilderPlus implements IRVisitor {
             } else if (inStack(key)){
                 int resultPlace = currentFunc.getPlace(key.toString());
                 currentText.instrList.add(new ASMSwInstr(currentText,"t0", "sp", resultPlace));
+            } else if(key instanceof IRRegister){
+                currentText.instrList.add(new ASMMvInstr(currentText, key.toString(), "t0"));
             } else {
                 throw new RuntimeException("naive_phi_elimination: key is not reg or stack");
             }
-        } else{
+        } else if(isGlobal(src)){
+            if(isReg(key)){
+                currentText.instrList.add(new ASMLaInstr(currentText, getVarReg(key.toString()), src.toString()));
+            } else if (inStack(key)){
+                int resultPlace = currentFunc.getPlace(key.toString());
+                currentText.instrList.add(new ASMLaInstr(currentText, "t0", src.toString()));
+                currentText.instrList.add(new ASMSwInstr(currentText,"t0", "sp", resultPlace));
+            } else if(key instanceof IRRegister){
+                currentText.instrList.add(new ASMLaInstr(currentText, key.toString(), src.toString()));
+            } else {
+                throw new RuntimeException("naive_phi_elimination: key is not reg or stack");
+            }
+        } else {
             throw new RuntimeException("naive_phi_elimination: src is not reg or stack");
         }
     }
@@ -550,7 +606,12 @@ public class ASMBuilderPlus implements IRVisitor {
         }
 
         currentText.instrList.add(new ASMLwInstr(currentText, "ra", "sp", callInstr.parent.parent.stackSize - 4));
-        currentText.instrList.add(new ASMSwInstr(currentText, "a0", "sp", callInstr.parent.parent.getPlace(callInstr.result.toString())));
+        // result -> a0
+        if(isReg(callInstr.result)){
+            currentText.instrList.add(new ASMMvInstr(currentText, getVarReg(callInstr.result.toString()), "a0"));
+        } else {
+            currentText.instrList.add(new ASMSwInstr(currentText, "a0", "sp", callInstr.parent.parent.getPlace(callInstr.result.toString())));
+        }
 
         // 恢复 a0-a7, t0-t3, t6, 以及用到的变量
         callRegLoad(callInstr, callInstr.args.size(), regList);
@@ -566,7 +627,12 @@ public class ASMBuilderPlus implements IRVisitor {
         currentText.instrList.add(new ASMArithInstr(currentText, r1, "t2", r1, "*"));
         currentText.instrList.add(new ASMArithInstr(currentText, r1, r0, r0, "+"));
 
-        currentText.instrList.add(new ASMSwInstr(currentText, r0, "sp", geteleptrInstr.parent.parent.getPlace(geteleptrInstr.result.toString())));
+        // result: reg or stack
+        if(isReg(geteleptrInstr.result)){
+            currentText.instrList.add(new ASMMvInstr(currentText, getVarReg(geteleptrInstr.result.toString()), r0));
+        } else {
+            currentText.instrList.add(new ASMSwInstr(currentText, r0, "sp", geteleptrInstr.parent.parent.getPlace(geteleptrInstr.result.toString())));
+        }
     }
 
     @Override public void visit(IcmpInstr icmpInstr){
@@ -676,7 +742,7 @@ public class ASMBuilderPlus implements IRVisitor {
             if(entity.toString().equals("null")){
                 currentText.instrList.add(new ASMLiInstr(currentText, rd, 0));
             } else {
-                System.exit(0);
+//                System.exit(0);
             }
         } else if(entity instanceof IRVariable){
             if(irProgram.regMap.containsKey(entity.toString())){
@@ -708,9 +774,21 @@ public class ASMBuilderPlus implements IRVisitor {
     private int getStackSize(IRFuncDef irFuncDef){
         int stackSize = 0;
         stackSize = regStackSize(irFuncDef);
+        for(int i = 0; i < irFuncDef.parameterNameList.size(); ++i){
+            String var = irFuncDef.parameterNameList.get(i);
+            if(i >= 8){
+                irFuncDef.nameMap.put(var, stackSize);
+                stackSize += 4;
+            } else {
+                irFuncDef.paraMap.put(var, "a" + i);
+                if(irProgram.spilledVars.contains(var)){
+                    irFuncDef.nameMap.put(var, stackSize);
+                    stackSize += 4;
+                }
+            }
+        }
         for(int i = 0; i < irFuncDef.blockList.size(); ++i){
-            for(int j = 0; j < irFuncDef.blockList.get(i).phiInsts.size(); ++j){
-                PhiInstr phiInstr = irFuncDef.blockList.get(i).phiInsts.get(j);
+            for(PhiInstr phiInstr : irFuncDef.blockList.get(i).phiInsts.values()){
                 if(!isReg(phiInstr.result) && !irFuncDef.nameMap.containsKey(phiInstr.result.toString())){
                     irFuncDef.nameMap.put(phiInstr.result.toString(), stackSize);
                     stackSize += 4;
@@ -764,11 +842,16 @@ public class ASMBuilderPlus implements IRVisitor {
     private int regStackSize(IRFuncDef irFuncDef){
         int stackSize = 0;
         // TODO
-        for(int i = 0; i < 20; ++i){
-            irFuncDef.nameMap.put(getReg(i), stackSize);
+        for(int i = 0; i < 32; ++i){
+            irFuncDef.nameMap.put(allReg(i), stackSize);
             stackSize += 4;
         }
         return stackSize;
+    }
+
+    public String allReg(Integer idx) {
+        String[] strings = {"x0", "x1", "x2", "x3", "x4", "t0", "t1", "t2", "x8", "x9", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "x18", "x19", "x20", "x21", "x22", "x23", "x24", "x25", "x26", "x27", "t3", "t4", "t5", "t6"};
+        return strings[idx];
     }
 
     public String getReg(Integer idx) {
@@ -788,6 +871,33 @@ public class ASMBuilderPlus implements IRVisitor {
 
     public boolean inStack(IREntity entity) {
         return entity instanceof IRVariable && currentFunc.nameMap.containsKey(entity.toString());
+    }
+
+    public boolean isGlobal(IREntity entity){
+        return (entity.toString().charAt(0) == '@');
+    }
+
+    public boolean isInt(IREntity entity){
+        if(entity instanceof IRRegister) return false;
+        if(entity instanceof IRIntLiteral) return true;
+        if(entity instanceof IRBoolLiteral) return true;
+        if(entity instanceof IRVariable){
+            char first = entity.toString().charAt(0);
+            if(first != '@' && first != '%') return true;
+        }
+        return false;
+    }
+
+    public Integer getInt(IREntity entity) {
+        if(entity instanceof IRIntLiteral intLiteral) return intLiteral.value;
+        if(entity instanceof IRBoolLiteral boolLiteral) return (boolLiteral.value ? 1 : 0);
+        if(entity instanceof IRVariable irVariable) {
+            if(irVariable.toString().equals("false")) return 0;
+            if(irVariable.toString().equals("true")) return 1;
+            if(irVariable.toString().equals("null")) return 0;
+            return Integer.parseInt(irVariable.toString());
+        }
+        throw new RuntimeException("getInt: entity is not int");
     }
 
 }

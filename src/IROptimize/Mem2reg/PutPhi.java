@@ -233,7 +233,6 @@ public class PutPhi {
         } else if(instruction instanceof PhiInstr phiInstr) {
             // do nothing
         } else if(instruction instanceof RetInstr retInstr) {
-            // TODO
             if(retInstr.retValue instanceof IRVariable var) {
                 var.name = reNameMap.getOrDefault(var.name, var.name);
             }

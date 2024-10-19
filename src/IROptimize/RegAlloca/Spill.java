@@ -50,7 +50,7 @@ public class Spill {
                 instruction.liveOut_.removeAll(spilledVars);
             }
         }
-        printSpillNum();
+//        printSpillNum();
     }
 
     public void doSpill(Instruction instruction, int num){

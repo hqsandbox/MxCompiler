@@ -38,6 +38,9 @@ public class CriticalEdge {
             IRBlock first = edge.a;
             IRBlock second = edge.b;
             IRBlock newBlock = new IRBlock(first.parent, first.name + "_and_" + second.name);
+            if(newBlock.name.equals("for.body.0_and_land.end..0")) {
+//                System.out.println("debug");
+            }
             first.parent.blockList.add(newBlock);
 
             Instruction instruction = first.getTerminator();

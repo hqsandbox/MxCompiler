@@ -1,4 +1,5 @@
 import ASM.ASMBuilder;
+import ASM.ASMBuilderPlus;
 import ASM.ASMPrinter;
 import ASM.ASMProgram;
 import AST.Program;
@@ -37,11 +38,14 @@ public class Main {
         int choose = 1;
 
 
+        // TODO: asmBuilder里面两个exit
+
+
 //        int choose = 1;
 //        String name = "C:\\Users\\31447\\IdeaProjects\\untitled\\src\\test.mx";
 //        InputStream input = new FileInputStream(name);
 //        if(choose == 1){
-//            PrintStream output =new PrintStream(new FileOutputStream("C:\\Users\\31447\\IdeaProjects\\untitled\\src\\output.ll"));
+//            PrintStream output =new PrintStream(new FileOutputStream("C:\\Users\\31447\\IdeaProjects\\untitled\\src\\test.s"));
 //            System.setOut(output);
 //        } else {
 //            PrintStream output =new PrintStream(new FileOutputStream("C:\\Users\\31447\\IdeaProjects\\untitled\\src\\original.out"));
@@ -84,21 +88,26 @@ public class Main {
 //            irPrinter.print();
 
             if(choose == 1){
-                PrintStream output1 =new PrintStream(new FileOutputStream("spill.ll"));
-                System.setOut(output1);
+//                PrintStream output1 = new PrintStream(new FileOutputStream("spill.ll"));
+//                System.setOut(output1);
                 IROptimizer irOptimizer = new IROptimizer(irProgram);
                 irOptimizer.visit(irProgram);
             }
 
-            PrintStream output2 =new PrintStream(new FileOutputStream("output.ll"));
-            System.setOut(output2);
+//            PrintStream output2 =new PrintStream(new FileOutputStream("output.ll"));
+//            System.setOut(output2);
 
+//            PrintStream output4 =new PrintStream(new FileOutputStream("C:\\Users\\31447\\IdeaProjects\\untitled\\src\\output.ll"));
+//            System.setOut(output4);
 
             IRPrinter irPrinter = new IRPrinter(irProgram);
             irPrinter.print();
 
-//            var asmBuilder = new ASMBuilder(irProgram);
-//            asmBuilder.visit(irProgram);
+//            PrintStream output3 =new PrintStream(new FileOutputStream("C:\\Users\\31447\\IdeaProjects\\untitled\\src\\test.s"));
+//            System.setOut(output3);
+
+            var asmBuilder = new ASMBuilderPlus(irProgram);
+            asmBuilder.visit(irProgram);
 //            ASMPrinter asmPrinter = new ASMPrinter(asmBuilder.asmProgram);
 //            asmPrinter.print();
 //            {

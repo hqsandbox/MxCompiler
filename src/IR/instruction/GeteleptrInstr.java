@@ -49,11 +49,11 @@ public class GeteleptrInstr extends Instruction {
     @Override
     public ArrayList<String> getUse(){
         ArrayList<String> ans = new ArrayList<>();
-        if(ptrValue instanceof IRVariable && !isInt(ptrValue.toString())){
+        if(ptrValue instanceof IRVariable){
             ans.add(ptrValue.toString());
         }
         for (IREntity idx : idxList) {
-            if(idx instanceof IRVariable && !isInt(idx.toString())){
+            if(idx instanceof IRVariable){
                 ans.add(idx.toString());
             }
         }

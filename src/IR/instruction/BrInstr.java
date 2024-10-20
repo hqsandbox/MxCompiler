@@ -36,7 +36,7 @@ public class BrInstr extends Instruction {
     @Override
     public ArrayList<String> getUse(){
         ArrayList<String> ans = new ArrayList<>();
-        if(op instanceof IRVariable irVariable && !isInt(irVariable.toString())){
+        if(op instanceof IRVariable irVariable){
             ans.add(irVariable.toString());
         }
         return ans;

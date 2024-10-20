@@ -50,6 +50,7 @@ for.cond.0:
 br i1 %var20, label %for.body.0, label %for.back.0
 
 for.body.0:
+%var21 = load i32, ptr @i
 %var22 = icmp sle i32 1, %var21
 br i1 %var22, label %land.next..0, label %for.body.0_and_land.end..0
 

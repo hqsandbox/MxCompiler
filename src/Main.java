@@ -41,18 +41,18 @@ public class Main {
         int choose = 1;
 
         // script code
-//        InputStream input = System.in;
-//        PrintStream output =new PrintStream(new FileOutputStream("test.s"));
-//        System.setOut(output);
-//        choose = 1;
+        InputStream input = System.in;
+        PrintStream output =new PrintStream(new FileOutputStream("test.s"));
+        System.setOut(output);
+        choose = 1;
 
         // TODO: asmBuilder里面两个exit
 
         // debug code
-        debug = true;
-        choose = 1;
-        String name = "C:\\Users\\31447\\IdeaProjects\\untitled\\src\\test.mx";
-        InputStream input = new FileInputStream(name);
+//        debug = true;
+//        choose = 1;
+//        String name = "C:\\Users\\31447\\IdeaProjects\\untitled\\src\\test.mx";
+//        InputStream input = new FileInputStream(name);
 
         // past code
 //        debug = true;
@@ -117,26 +117,26 @@ public class Main {
                 System.setOut(output3);
             }
 //
-//            if(choose == 1){
-//                var asmBuilder = new ASMBuilderPlus(irProgram);
-//                asmBuilder.visit(irProgram);
-//                ASMPrinter asmPrinter = new ASMPrinter(asmBuilder.asmProgram);
-//                asmPrinter.print();
-//            }
-//
-//            if(choose == 2){
-//                var asmBuilder = new ASMBuilder(irProgram);
-//                asmBuilder.visit(irProgram);
-//                ASMPrinter asmPrinter = new ASMPrinter(asmBuilder.asmProgram);
-//                asmPrinter.print();
-//            }
-//
-//            if(choose == 3){
-//                IRPrinter irPrinter = new IRPrinter(irProgram);
-//                irPrinter.print();
-//                var asmBuilder = new ASMBuilderPlus(irProgram);
-//                asmBuilder.visit(irProgram);
-//            }
+            if(choose == 1){
+                var asmBuilder = new ASMBuilderPlus(irProgram);
+                asmBuilder.visit(irProgram);
+                ASMPrinter asmPrinter = new ASMPrinter(asmBuilder.asmProgram);
+                asmPrinter.print();
+            }
+
+            if(choose == 2){
+                var asmBuilder = new ASMBuilder(irProgram);
+                asmBuilder.visit(irProgram);
+                ASMPrinter asmPrinter = new ASMPrinter(asmBuilder.asmProgram);
+                asmPrinter.print();
+            }
+
+            if(choose == 3){
+                IRPrinter irPrinter = new IRPrinter(irProgram);
+                irPrinter.print();
+                var asmBuilder = new ASMBuilderPlus(irProgram);
+                asmBuilder.visit(irProgram);
+            }
 
 //            {
 //            System.out.println("\t.text\n" +

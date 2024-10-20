@@ -16,8 +16,10 @@ public class IRFuncDef extends IRStatement {
     public ArrayList<String> parameterNameList = new ArrayList<>();
     public ArrayList<IRBlock> blockList = new ArrayList<>();
 
+    // useless
     public HashMap<String, String> paraMap = new HashMap<>(); // a0-a7
     public HashMap<String, Integer> offsetMap = new HashMap<>(); // paras more than 8
+
     public int stackSize = 0;
     public HashMap<String, Integer> nameMap = new HashMap<>();
 

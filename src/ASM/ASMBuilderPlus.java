@@ -232,13 +232,13 @@ public class ASMBuilderPlus implements IRVisitor {
 
         irFuncDef.stackSize = stackSize;
         int paraSize = irFuncDef.parameterNameList.size();
-        for(int i = 0; i < paraSize; ++i) {
-            if(i >= 8){
-                irFuncDef.offsetMap.put(irFuncDef.parameterNameList.get(i), stackSize + 4 * (i - 8));
-            } else {
-                irFuncDef.paraMap.put(irFuncDef.parameterNameList.get(i), "a" + i);
-            }
-        }
+//        for(int i = 0; i < paraSize; ++i) {
+//            if(i >= 8){
+//                irFuncDef.offsetMap.put(irFuncDef.parameterNameList.get(i), stackSize + 4 * (i - 8));
+//            } else {
+//                irFuncDef.paraMap.put(irFuncDef.parameterNameList.get(i), "a" + i);
+//            }
+//        }
         ASMText startText = new ASMText(irFuncDef.functionName);
         asmProgram.TextList.add(startText);
 
@@ -262,6 +262,23 @@ public class ASMBuilderPlus implements IRVisitor {
         startText.instrList.add(new ASMSwInstr(currentText, "t1", "sp", stackSize + 4));
         startText.instrList.add(new ASMSwInstr(currentText, "t2", "sp", stackSize + 8));
 
+        // 函数参数的载入
+        // a0-a7 -> var(reg、stack)
+        // 假设var全是局部变量（猜测）
+        if(paraSize > 8) paraSize = 8;
+        for(int i = 0; i < paraSize; ++i){
+            String var = irFuncDef.parameterNameList.get(i);
+            String register = "a" + i;
+            if(irProgram.regMap.containsKey(var)){
+                startText.instrList.add(new ASMMvInstr(currentText, getVarReg(var), register));
+            } else if(irFuncDef.nameMap.containsKey(var)){
+                int place = irFuncDef.getPlace(var);
+                startText.instrList.add(new ASMSwInstr(currentText, register, "sp", place));
+            } else {
+                // doNothing
+                // 函数参数在函数中没有被用到
+            }
+        }
     }
 
     @Override public void visit(IRBlock irBlock) {
@@ -714,16 +731,16 @@ public class ASMBuilderPlus implements IRVisitor {
             System.exit(0);
         }
         String r0 = loadIREntity(storeInstr.value, "t0", storeInstr.parent.parent);
-        int paraPlace = isParaVar(storeInstr.value.toString(), storeInstr.parent.parent);
-        if(paraPlace == -1){
-            // doNothing
-        } else {
-            if(paraPlace < 8){
-                currentText.instrList.add(new ASMMvInstr(currentText, r0, "a" + paraPlace));
-            } else {
-                currentText.instrList.add(new ASMSwInstr(currentText, r0, "sp", storeInstr.parent.parent.offsetMap.get(storeInstr.value.toString())));
-            }
-        }
+//        int paraPlace = isParaVar(storeInstr.value.toString(), storeInstr.parent.parent);
+//        if(paraPlace == -1){
+//            // doNothing
+//        } else {
+//            if(paraPlace < 8){
+//                currentText.instrList.add(new ASMMvInstr(currentText, r0, "a" + paraPlace));
+//            } else {
+//                currentText.instrList.add(new ASMSwInstr(currentText, r0, "sp", storeInstr.parent.parent.offsetMap.get(storeInstr.value.toString())));
+//            }
+//        }
         String r1 = loadIREntity(storeInstr.ptr, "t1", storeInstr.parent.parent);
         currentText.instrList.add(new ASMSwInstr(currentText, r0, r1, 0));
     }
@@ -799,7 +816,7 @@ public class ASMBuilderPlus implements IRVisitor {
                 irFuncDef.nameMap.put(var, stackSize);
                 stackSize += 4;
             } else {
-                irFuncDef.paraMap.put(var, "a" + i);
+//                irFuncDef.paraMap.put(var, "a" + i);
                 if(irProgram.spilledVars.contains(var)){
                     irFuncDef.nameMap.put(var, stackSize);
                     stackSize += 4;

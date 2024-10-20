@@ -1,111 +1,123 @@
+@p = global i32 0
+@.str..1 = private unnamed_addr constant [2 x i8] c"(\00"
+@.str..2 = private unnamed_addr constant [3 x i8] c") \00"
+@.str..0 = private unnamed_addr constant [4 x i8] c"<< \00"
+@i = global i32 0
+@k = global i32 0
+@n = global i32 0
+@.str..3 = private unnamed_addr constant [2 x i8] c" \00"
+@.str..4 = private unnamed_addr constant [4 x i8] c">> \00"
 define void @__init() {
 entry:
 ret void
 
 }
-define i32 @gcd(i32 %x, i32 %y) {
-entry:
-%var2 = srem i32 %x, %y
-%var3 = icmp eq i32 %var2, 0
-br i1 %var3, label %if.then.0, label %if.else.0
-
-if.then.0:
-ret i32 %y
-
-if.else.0:
-%var9 = srem i32 %x, %y
-%var5 = call i32 @gcd5(i32 %y, i32 %var9)
-ret i32 %var5
-
-}
-define i32 @gcd1(i32 %x, i32 %y) {
-entry:
-%var12 = srem i32 %x, %y
-%var13 = icmp eq i32 %var12, 0
-br i1 %var13, label %if.then.1, label %if.else.1
-
-if.then.1:
-ret i32 %y
-
-if.else.1:
-%var19 = srem i32 %x, %y
-%var15 = call i32 @gcd(i32 %y, i32 %var19)
-ret i32 %var15
-
-}
-define i32 @gcd2(i32 %x, i32 %y) {
-entry:
-%var22 = srem i32 %x, %y
-%var23 = icmp eq i32 %var22, 0
-br i1 %var23, label %if.then.2, label %if.else.2
-
-if.then.2:
-ret i32 %y
-
-if.else.2:
-%var29 = srem i32 %x, %y
-%var25 = call i32 @gcd1(i32 %y, i32 %var29)
-ret i32 %var25
-
-}
 define i32 @main() {
 entry:
 call void @__init()
-%var63 = call i32 @gcd(i32 10, i32 1)
-%var62 = call ptr @toString(i32 %var63)
-call void @println(ptr %var62)
-%var66 = call i32 @gcd(i32 34986, i32 3087)
-%var65 = call ptr @toString(i32 %var66)
-call void @println(ptr %var65)
-%var69 = call i32 @gcd(i32 2907, i32 1539)
-%var68 = call ptr @toString(i32 %var69)
-call void @println(ptr %var68)
-ret i32 0
+%var2 = call i32 @getInt()
+store i32 %var2, ptr @n
+%var4 = call i32 @getInt()
+store i32 %var4, ptr @p
+%var6 = call i32 @getInt()
+store i32 %var6, ptr @k
+%var7 = load i32, ptr @p
+%var8 = load i32, ptr @k
+%var9 = sub i32 %var7, %var8
+%var10 = icmp sgt i32 %var9, 1
+br i1 %var10, label %if.then.0, label %if.else.0
 
-}
-define i32 @gcd3(i32 %x, i32 %y) {
-entry:
-%var32 = srem i32 %x, %y
-%var33 = icmp eq i32 %var32, 0
-br i1 %var33, label %if.then.3, label %if.else.3
+if.then.0:
+call void @print(ptr @.str..0)
+br label %if.back.0
+
+if.else.0:
+br label %if.back.0
+
+if.back.0:
+%var13 = load i32, ptr @p
+%var14 = load i32, ptr @k
+%var15 = sub i32 %var13, %var14
+store i32 %var15, ptr @i
+br label %for.cond.0
+
+for.cond.0:
+%var16 = load i32, ptr @i
+%var17 = load i32, ptr @p
+%var18 = load i32, ptr @k
+%var19 = add i32 %var17, %var18
+%var20 = icmp sle i32 %var16, %var19
+br i1 %var20, label %for.body.0, label %for.back.0
+
+for.body.0:
+%var22 = icmp sle i32 1, %var21
+br i1 %var22, label %land.next..0, label %for.body.0_and_land.end..0
+
+land.next..0:
+%var24 = load i32, ptr @i
+%var25 = load i32, ptr @n
+%var26 = icmp sle i32 %var24, %var25
+br label %land.end..0
+
+land.end..0:
+%var23_land.end..0 = phi i1 [ %var22, %for.body.0_and_land.end..0 ], [ %var26, %land.next..0 ]
+br i1 %var23_land.end..0, label %if.then.1, label %if.else.1
+
+if.then.1:
+%var28 = load i32, ptr @i
+%var29 = load i32, ptr @p
+%var30 = icmp eq i32 %var28, %var29
+br i1 %var30, label %if.then.2, label %if.else.2
+
+if.then.2:
+call void @print(ptr @.str..1)
+%var34 = load i32, ptr @i
+%var33 = call ptr @toString(i32 %var34)
+call void @print(ptr %var33)
+call void @print(ptr @.str..2)
+br label %if.back.2
+
+if.else.2:
+%var37 = load i32, ptr @i
+call void @printInt(i32 %var37)
+call void @print(ptr @.str..3)
+br label %if.back.2
+
+if.back.2:
+br label %if.back.1
+
+if.else.1:
+br label %if.back.1
+
+if.back.1:
+br label %for.step.0
+
+for.step.0:
+%var39 = load i32, ptr @i
+%var40 = add i32 %var39, 1
+store i32 %var40, ptr @i
+br label %for.cond.0
+
+for.back.0:
+%var41 = load i32, ptr @p
+%var42 = load i32, ptr @k
+%var43 = add i32 %var41, %var42
+%var44 = load i32, ptr @n
+%var45 = icmp slt i32 %var43, %var44
+br i1 %var45, label %if.then.3, label %if.else.3
 
 if.then.3:
-ret i32 %y
+call void @print(ptr @.str..4)
+br label %if.back.3
 
 if.else.3:
-%var39 = srem i32 %x, %y
-%var35 = call i32 @gcd2(i32 %y, i32 %var39)
-ret i32 %var35
+br label %if.back.3
 
-}
-define i32 @gcd4(i32 %x, i32 %y) {
-entry:
-%var42 = srem i32 %x, %y
-%var43 = icmp eq i32 %var42, 0
-br i1 %var43, label %if.then.4, label %if.else.4
+if.back.3:
+ret i32 0
 
-if.then.4:
-ret i32 %y
-
-if.else.4:
-%var49 = srem i32 %x, %y
-%var45 = call i32 @gcd(i32 %y, i32 %var49)
-ret i32 %var45
-
-}
-define i32 @gcd5(i32 %x, i32 %y) {
-entry:
-%var52 = srem i32 %x, %y
-%var53 = icmp eq i32 %var52, 0
-br i1 %var53, label %if.then.5, label %if.else.5
-
-if.then.5:
-ret i32 %y
-
-if.else.5:
-%var59 = srem i32 %x, %y
-%var55 = call i32 @gcd2(i32 %y, i32 %var59)
-ret i32 %var55
+for.body.0_and_land.end..0:
+br label %land.end..0
 
 }
 declare void @print(ptr)

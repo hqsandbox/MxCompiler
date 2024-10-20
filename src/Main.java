@@ -32,6 +32,10 @@ public class Main {
     // 错误：要添加内建函数
     public static void main(String[] args) throws Exception{
 
+        // TODO: 函数参数怎么传
+        // TODO: 函数参数没用到？
+        // TODO: storeInstr的修改
+
         // script:
         boolean debug = false;
         int choose = 1;
@@ -56,7 +60,11 @@ public class Main {
 //        String name = "C:\\Users\\31447\\IdeaProjects\\untitled\\src\\test.mx";
 //        InputStream input = new FileInputStream(name);
 
-
+        // IR code: test asm code, script
+//        InputStream input = System.in;
+//        PrintStream output =new PrintStream(new FileOutputStream("output.ll"));
+//        System.setOut(output);
+//        choose = 3;
 
         try {
             Program ASTRoot;
@@ -92,7 +100,7 @@ public class Main {
 //            IRPrinter irPrinter = new IRPrinter(irProgram);
 //            irPrinter.print();
 
-            if(choose == 1){
+            if(choose == 1 || choose == 3){
 //                PrintStream output1 = new PrintStream(new FileOutputStream("spill.ll"));
 //                System.setOut(output1);
                 IROptimizer irOptimizer = new IROptimizer(irProgram);
@@ -108,20 +116,27 @@ public class Main {
                 PrintStream output3 =new PrintStream(new FileOutputStream("C:\\Users\\31447\\IdeaProjects\\untitled\\src\\test.s"));
                 System.setOut(output3);
             }
-
-            if(choose == 1){
-                var asmBuilder = new ASMBuilderPlus(irProgram);
-                asmBuilder.visit(irProgram);
-                ASMPrinter asmPrinter = new ASMPrinter(asmBuilder.asmProgram);
-                asmPrinter.print();
-            }
-
-            if(choose == 2){
-                var asmBuilder = new ASMBuilder(irProgram);
-                asmBuilder.visit(irProgram);
-                ASMPrinter asmPrinter = new ASMPrinter(asmBuilder.asmProgram);
-                asmPrinter.print();
-            }
+//
+//            if(choose == 1){
+//                var asmBuilder = new ASMBuilderPlus(irProgram);
+//                asmBuilder.visit(irProgram);
+//                ASMPrinter asmPrinter = new ASMPrinter(asmBuilder.asmProgram);
+//                asmPrinter.print();
+//            }
+//
+//            if(choose == 2){
+//                var asmBuilder = new ASMBuilder(irProgram);
+//                asmBuilder.visit(irProgram);
+//                ASMPrinter asmPrinter = new ASMPrinter(asmBuilder.asmProgram);
+//                asmPrinter.print();
+//            }
+//
+//            if(choose == 3){
+//                IRPrinter irPrinter = new IRPrinter(irProgram);
+//                irPrinter.print();
+//                var asmBuilder = new ASMBuilderPlus(irProgram);
+//                asmBuilder.visit(irProgram);
+//            }
 
 //            {
 //            System.out.println("\t.text\n" +

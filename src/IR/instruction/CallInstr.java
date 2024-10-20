@@ -47,7 +47,7 @@ public class CallInstr extends Instruction {
     public ArrayList<String> getUse(){
         ArrayList<String> ans = new ArrayList<>();
         for(IREntity arg : args){
-            if(arg instanceof IRVariable irVariable){
+            if(arg instanceof IRVariable irVariable && !isInt(irVariable.toString())){
                 ans.add(irVariable.toString());
             }
         }

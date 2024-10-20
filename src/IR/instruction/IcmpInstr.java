@@ -46,8 +46,8 @@ public class IcmpInstr extends Instruction {
     @Override
     public ArrayList<String> getUse(){
         ArrayList<String> ans = new ArrayList<>();
-        if(lhs instanceof IRVariable) ans.add(lhs.toString());
-        if(rhs instanceof IRVariable) ans.add(rhs.toString());
+        if(lhs instanceof IRVariable && !isInt(lhs.toString())) ans.add(lhs.toString());
+        if(rhs instanceof IRVariable && !isInt(lhs.toString())) ans.add(rhs.toString());
         return ans;
     }
 

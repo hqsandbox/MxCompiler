@@ -16,6 +16,12 @@ public abstract class Instruction {
     public Instruction(IRBlock parent) {
         this.parent = parent;
     }
+    public boolean isInt(String s) {
+        if(s.charAt(0) == '@' || s.charAt(0) == '%'){
+            return false;
+        }
+        return true;
+    }
 
     public abstract String toString();
     public abstract ArrayList<String> getUse();

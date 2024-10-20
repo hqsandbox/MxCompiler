@@ -98,6 +98,15 @@ public class ASMBuilderPlus implements IRVisitor {
         }
     }
 
+    public void graphKeyRemove(HashMap<Node, ArrayList<Node>> graph, Node key){
+        for(Node tmp : graph.keySet()){
+            if(tmp.judgeEqual(key)){
+                graph.remove(tmp);
+                return;
+            }
+        }
+    }
+
     public void buildGraph(HashMap<String, PhiInstr> phiInsts){
         for (String tmp : phiInsts.keySet()) {
             PhiInstr phiInstr = phiInsts.get(tmp);
@@ -154,12 +163,12 @@ public class ASMBuilderPlus implements IRVisitor {
             Node nextNode;
             path.add(firstEntry.getKey());
             while(true){
-                nextNode = graph.get(currentNode).getFirst();
-                if(firstEntry.getKey().equals(nextNode)) break;
+                nextNode = takeOut(graph, currentNode).getFirst();
+                if(firstEntry.getKey().judgeEqual(nextNode)) break;
                 path.add(nextNode);
                 currentNode = nextNode;
             }
-            for(Node key : path) graph.remove(key);
+            for(Node key : path) graphKeyRemove(graph, key);
             allCycles.add(path);
         }
     }
@@ -453,17 +462,6 @@ public class ASMBuilderPlus implements IRVisitor {
 
     // 已知register是一个寄存器，判断graph、List里面有没有
     // 错误：不能用contain来判断是否在里面，因为只有同一个对象才能判定相等，而这里只是名字相同而已
-    public void removeRegList(ArrayList<IREntity> regList, IREntity register){
-        ArrayList<IREntity> removeList = new ArrayList<>();
-        for(IREntity var : regList){
-            if(var.toString().equals(register.toString())){
-                removeList.add(var);
-            }
-        }
-        for(IREntity var : removeList){
-            regList.remove(var);
-        }
-    }
 
     public void findCallCycles(CallInstr callInstr, HashMap<Node, ArrayList<Node>> graph){
         // 先对出度为0的点消除，然后剩下的图就全是环了
@@ -497,12 +495,12 @@ public class ASMBuilderPlus implements IRVisitor {
             Node nextNode;
             path.add(firstEntry.getKey());
             while(true){
-                nextNode = graph.get(currentNode).getFirst();
-                if(firstEntry.getKey().equals(nextNode)) break;
+                nextNode = takeOut(graph, currentNode).getFirst();
+                if(firstEntry.getKey().judgeEqual(nextNode)) break;
                 path.add(nextNode);
                 currentNode = nextNode;
             }
-            for(Node key : path) graph.remove(key);
+            for(Node key : path) graphKeyRemove(graph, key);
             allCycles.add(path);
         }
     }
@@ -629,18 +627,19 @@ public class ASMBuilderPlus implements IRVisitor {
     @Override public void visit(GeteleptrInstr geteleptrInstr){
         currentText.instrList.add(new ASMComment(currentText, geteleptrInstr));
 
-        String r0 = loadIREntity(geteleptrInstr.ptrValue, "t0", geteleptrInstr.parent.parent);
-        String r1 = loadIREntity(geteleptrInstr.idxList.getLast(), "t1", geteleptrInstr.parent.parent);
+        // 错误：这里是actual_load_entity，而不是loadIREntity
+        actual_load_entity(geteleptrInstr.ptrValue, "t0", geteleptrInstr.parent.parent);
+        actual_load_entity(geteleptrInstr.idxList.getLast(), "t1", geteleptrInstr.parent.parent);
 
         currentText.instrList.add(new ASMLiInstr(currentText, "t2", 4));
-        currentText.instrList.add(new ASMArithInstr(currentText, r1, "t2", r1, "*"));
-        currentText.instrList.add(new ASMArithInstr(currentText, r1, r0, r0, "+"));
+        currentText.instrList.add(new ASMArithInstr(currentText, "t1", "t2", "t1", "*"));
+        currentText.instrList.add(new ASMArithInstr(currentText, "t1", "t0", "t0", "+"));
 
         // result: reg or stack
         if(isReg(geteleptrInstr.result)){
-            currentText.instrList.add(new ASMMvInstr(currentText, getVarReg(geteleptrInstr.result.toString()), r0));
+            currentText.instrList.add(new ASMMvInstr(currentText, getVarReg(geteleptrInstr.result.toString()), "t0"));
         } else {
-            currentText.instrList.add(new ASMSwInstr(currentText, r0, "sp", geteleptrInstr.parent.parent.getPlace(geteleptrInstr.result.toString())));
+            currentText.instrList.add(new ASMSwInstr(currentText, "t0", "sp", geteleptrInstr.parent.parent.getPlace(geteleptrInstr.result.toString())));
         }
     }
 

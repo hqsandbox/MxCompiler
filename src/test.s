@@ -1,106 +1,21 @@
    .section .text
-   .globl printBoard
-printBoard:
-   addi sp, sp, -160
-   sw t0, 148(sp)
-   sw t1, 152(sp)
+   .globl Queue_int..push
+Queue_int..push:
+   addi sp, sp, -148
+   sw t0, 136(sp)
+   sw t1, 140(sp)
+   sw t2, 144(sp)
+   mv x3, a0
    # phi start 
    # phi end 
-   sw t2, 156(sp)
+   mv x3, a1
 
    .section .text
-   .globl printBoard_entry
-printBoard_entry:
-   # br label %for.cond.0
+   .globl Queue_int..push_entry
+Queue_int..push_entry:
+   # %var1 = call i32 @Queue_int..size(ptr %_this)
 
-   # phi start 
-   li x3, 0
-   # phi end 
-   j printBoard_for.cond.0
-
-   .section .text
-   .globl printBoard_for.cond.0
-printBoard_for.cond.0:
-   # %var5 = load i32, ptr @N
-
-   la t0, @N
-   lw x4, 0(t0)
-   # %var6 = icmp slt i32 %i.1_for.cond.0, %var5
-
-   sub t2, x3, x4
-   sltz    x4, t2
-   # br i1 %var6, label %for.body.0, label %for.back.0
-
-   bne      x4, x0, .+8
-   j printBoard_for.back.0
-   # phi start 
-   # phi end 
-   j printBoard_for.body.0
-
-   .section .text
-   .globl printBoard_for.body.0
-printBoard_for.body.0:
-   # br label %for.cond.1
-
-   # phi start 
-   li x4, 0
-   # phi end 
-   j printBoard_for.cond.1
-
-   .section .text
-   .globl printBoard_for.cond.1
-printBoard_for.cond.1:
-   # %var9 = load i32, ptr @N
-
-   la t0, @N
-   lw x8, 0(t0)
-   # %var10 = icmp slt i32 %j.1_for.cond.1, %var9
-
-   sub t2, x4, x8
-   sltz    x8, t2
-   # br i1 %var10, label %for.body.1, label %for.back.1
-
-   bne      x8, x0, .+8
-   j printBoard_for.back.1
-   # phi start 
-   # phi end 
-   j printBoard_for.body.1
-
-   .section .text
-   .globl printBoard_for.body.1
-printBoard_for.body.1:
-   # %var11 = load ptr, ptr @col
-
-   la t0, @col
-   lw x8, 0(t0)
-   # %var13 = getelementptr i32, ptr %var11, i32 %i.1_for.cond.0
-
-   li t2, 4
-   mul x3, x3, t2
-   add x8, x3, x8
-   mv x8, x8
-   # %var14 = load i32, ptr %var13
-
-   mv t0, x8
-   lw x8, 0(t0)
-   # %var16 = icmp eq i32 %var14, %j.1_for.cond.1
-
-   sub t2, x8, x4
-   seqz    x8, t2
-   # br i1 %var16, label %if.then.0, label %if.else.0
-
-   bne      x8, x0, .+8
-   j printBoard_if.else.0
-   # phi start 
-   # phi end 
-   j printBoard_if.then.0
-
-   .section .text
-   .globl printBoard_if.then.0
-printBoard_if.then.0:
-   # call void @print(ptr @.str..0)
-
-   sw ra, 144(sp)
+   sw ra, 132(sp)
    sw a0, 40(sp)
    sw t0, 20(sp)
    sw t1, 24(sp)
@@ -108,10 +23,84 @@ printBoard_if.then.0:
    sw t3, 112(sp)
    sw t6, 124(sp)
    sw x3, 12(sp)
-   sw x4, 16(sp)
-   la a0, @.str..0
-   call print
-   lw ra, 144(sp)
+   mv a0, x3
+   call Queue_int..size
+   lw ra, 132(sp)
+   mv x8, a0
+   lw a0, 40(sp)
+   lw t0, 20(sp)
+   lw t1, 24(sp)
+   lw t2, 28(sp)
+   lw t3, 112(sp)
+   lw t6, 124(sp)
+   lw x3, 12(sp)
+   # %var3 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 0
+
+   mv t0, x3
+   li t1, 0
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv x9, t0
+   # %var4 = load ptr, ptr %var3
+
+   mv t0, x9
+   lw x9, 0(t0)
+   # %var5 = call i32 @array.size(ptr %var4)
+
+   sw ra, 132(sp)
+   sw a0, 40(sp)
+   sw t0, 20(sp)
+   sw t1, 24(sp)
+   sw t2, 28(sp)
+   sw t3, 112(sp)
+   sw t6, 124(sp)
+   sw x8, 32(sp)
+   sw x3, 12(sp)
+   mv a0, x9
+   call array.size
+   lw ra, 132(sp)
+   mv x9, a0
+   lw a0, 40(sp)
+   lw t0, 20(sp)
+   lw t1, 24(sp)
+   lw t2, 28(sp)
+   lw t3, 112(sp)
+   lw t6, 124(sp)
+   lw x8, 32(sp)
+   lw x3, 12(sp)
+   # %var6 = sub i32 %var5, 1
+
+   li t1, 1
+   sub x9, x9, t1
+   # %var7 = icmp eq i32 %var1, %var6
+
+   sub t2, x8, x9
+   seqz    x8, t2
+   # br i1 %var7, label %if.then.0, label %if.else.0
+
+   bne      x8, x0, .+8
+   j Queue_int..push_if.else.0
+   # phi start 
+   # phi end 
+   j Queue_int..push_if.then.0
+
+   .section .text
+   .globl Queue_int..push_if.then.0
+Queue_int..push_if.then.0:
+   # call void @Queue_int..doubleStorage(ptr %_this)
+
+   sw ra, 132(sp)
+   sw a0, 40(sp)
+   sw t0, 20(sp)
+   sw t1, 24(sp)
+   sw t2, 28(sp)
+   sw t3, 112(sp)
+   sw t6, 124(sp)
+   sw x3, 12(sp)
+   mv a0, x3
+   call Queue_int..doubleStorage
+   lw ra, 132(sp)
    sw a0, 128(sp)
    lw a0, 40(sp)
    lw t0, 20(sp)
@@ -120,135 +109,127 @@ printBoard_if.then.0:
    lw t3, 112(sp)
    lw t6, 124(sp)
    lw x3, 12(sp)
-   lw x4, 16(sp)
    # br label %if.back.0
 
    # phi start 
    # phi end 
-   j printBoard_if.back.0
+   j Queue_int..push_if.back.0
 
    .section .text
-   .globl printBoard_if.else.0
-printBoard_if.else.0:
-   # call void @print(ptr @.str..1)
-
-   sw ra, 144(sp)
-   sw a0, 40(sp)
-   sw t0, 20(sp)
-   sw t1, 24(sp)
-   sw t2, 28(sp)
-   sw t3, 112(sp)
-   sw t6, 124(sp)
-   sw x3, 12(sp)
-   sw x4, 16(sp)
-   la a0, @.str..1
-   call print
-   lw ra, 144(sp)
-   sw a0, 132(sp)
-   lw a0, 40(sp)
-   lw t0, 20(sp)
-   lw t1, 24(sp)
-   lw t2, 28(sp)
-   lw t3, 112(sp)
-   lw t6, 124(sp)
-   lw x3, 12(sp)
-   lw x4, 16(sp)
+   .globl Queue_int..push_if.else.0
+Queue_int..push_if.else.0:
    # br label %if.back.0
 
    # phi start 
    # phi end 
-   j printBoard_if.back.0
+   j Queue_int..push_if.back.0
 
    .section .text
-   .globl printBoard_if.back.0
-printBoard_if.back.0:
-   # br label %for.step.1
+   .globl Queue_int..push_if.back.0
+Queue_int..push_if.back.0:
+   # %var11 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 0
 
-   # phi start 
-   # phi end 
-   j printBoard_for.step.1
+   mv t0, x3
+   li t1, 0
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv x8, t0
+   # %var12 = load ptr, ptr %var11
 
-   .section .text
-   .globl printBoard_for.step.1
-printBoard_for.step.1:
-   # %var20 = add i32 %j.1_for.cond.1, 1
+   mv t0, x8
+   lw x8, 0(t0)
+   # %var14 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 2
+
+   mv t0, x3
+   li t1, 2
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv x9, t0
+   # %var15 = load i32, ptr %var14
+
+   mv t0, x9
+   lw x9, 0(t0)
+   # %var16 = getelementptr i32, ptr %var12, i32 %var15
+
+   mv t0, x8
+   mv t1, x9
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv x8, t0
+   # store i32 %v, ptr %var16
+
+   sw x3, 0(x8)
+   # %var20 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 2
+
+   mv t0, x3
+   li t1, 2
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv x3, t0
+   # %var23 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 2
+
+   mv t0, x3
+   li t1, 2
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv x8, t0
+   # %var24 = load i32, ptr %var23
+
+   mv t0, x8
+   lw x8, 0(t0)
+   # %var25 = add i32 %var24, 1
 
    li t1, 1
-   add x4, x4, t1
-   # br label %for.cond.1
+   add x8, x8, t1
+   # %var27 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 0
 
-   # phi start 
-   # phi end 
-   j printBoard_for.cond.1
+   mv t0, x3
+   li t1, 0
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv x4, t0
+   # %var28 = load ptr, ptr %var27
 
-   .section .text
-   .globl printBoard_for.back.1
-printBoard_for.back.1:
-   # call void @println(ptr @.str..2)
+   mv t0, x4
+   lw x4, 0(t0)
+   # %var29 = call i32 @array.size(ptr %var28)
 
-   sw ra, 144(sp)
+   sw ra, 132(sp)
    sw a0, 40(sp)
    sw t0, 20(sp)
    sw t1, 24(sp)
    sw t2, 28(sp)
    sw t3, 112(sp)
    sw t6, 124(sp)
+   sw x8, 32(sp)
    sw x3, 12(sp)
-   la a0, @.str..2
-   call println
-   lw ra, 144(sp)
-   sw a0, 136(sp)
+   mv a0, x4
+   call array.size
+   lw ra, 132(sp)
+   mv x4, a0
    lw a0, 40(sp)
    lw t0, 20(sp)
    lw t1, 24(sp)
    lw t2, 28(sp)
    lw t3, 112(sp)
    lw t6, 124(sp)
+   lw x8, 32(sp)
    lw x3, 12(sp)
-   # br label %for.step.0
+   # %var30 = srem i32 %var25, %var29
 
-   # phi start 
-   # phi end 
-   j printBoard_for.step.0
+   rem x4, x8, x4
+   # store i32 %var30, ptr %var20
 
-   .section .text
-   .globl printBoard_for.step.0
-printBoard_for.step.0:
-   # %var23 = add i32 %i.1_for.cond.0, 1
-
-   li t1, 1
-   add x3, x3, t1
-   # br label %for.cond.0
-
-   # phi start 
-   # phi end 
-   j printBoard_for.cond.0
-
-   .section .text
-   .globl printBoard_for.back.0
-printBoard_for.back.0:
-   # call void @println(ptr @.str..3)
-
-   sw ra, 144(sp)
-   sw a0, 40(sp)
-   sw t0, 20(sp)
-   sw t1, 24(sp)
-   sw t2, 28(sp)
-   sw t3, 112(sp)
-   sw t6, 124(sp)
-   la a0, @.str..3
-   call println
-   lw ra, 144(sp)
-   sw a0, 140(sp)
-   lw a0, 40(sp)
-   lw t0, 20(sp)
-   lw t1, 24(sp)
-   lw t2, 28(sp)
-   lw t3, 112(sp)
-   lw t6, 124(sp)
+   sw x4, 0(x3)
    # ret void
 
-   addi sp, sp, 160
+   addi sp, sp, 148
    lw t0, -12(sp)
    lw t1, -8(sp)
    lw t2, -4(sp)
@@ -257,340 +238,22 @@ printBoard_for.back.0:
    ret
 
    .section .text
-   .globl search
-search:
-   addi sp, sp, -152
-   sw t0, 140(sp)
-   sw t1, 144(sp)
-   sw t2, 148(sp)
+   .globl Queue_int..pop
+Queue_int..pop:
+   addi sp, sp, -148
+   sw t0, 136(sp)
+   sw t1, 140(sp)
+   sw t2, 144(sp)
    # phi start 
    # phi end 
    mv x3, a0
 
    .section .text
-   .globl search_entry
-search_entry:
-   # %var26 = load i32, ptr @N
-
-   la t0, @N
-   lw x4, 0(t0)
-   # %var27 = icmp eq i32 %c, %var26
-
-   sub t2, x3, x4
-   seqz    x4, t2
-   # br i1 %var27, label %if.then.1, label %if.else.1
-
-   bne      x4, x0, .+8
-   j search_if.else.1
-   # phi start 
-   # phi end 
-   j search_if.then.1
-
-   .section .text
-   .globl search_if.then.1
-search_if.then.1:
-   # call void @printBoard()
-
-   sw ra, 136(sp)
-   sw t0, 20(sp)
-   sw t1, 24(sp)
-   sw t2, 28(sp)
-   sw t3, 112(sp)
-   sw t6, 124(sp)
-   call printBoard
-   lw ra, 136(sp)
-   sw a0, 128(sp)
-   lw t0, 20(sp)
-   lw t1, 24(sp)
-   lw t2, 28(sp)
-   lw t3, 112(sp)
-   lw t6, 124(sp)
-   # br label %if.back.1
-
-   # phi start 
-   # phi end 
-   j search_if.back.1
-
-   .section .text
-   .globl search_if.else.1
-search_if.else.1:
-   # br label %for.cond.2
-
-   # phi start 
-   li x4, 0
-   # phi end 
-   j search_for.cond.2
-
-   .section .text
-   .globl search_for.cond.2
-search_for.cond.2:
-   # %var31 = load i32, ptr @N
-
-   la t0, @N
-   lw x8, 0(t0)
-   # %var32 = icmp slt i32 %r.1_for.cond.2, %var31
-
-   sub t2, x4, x8
-   sltz    x8, t2
-   # br i1 %var32, label %for.body.2, label %for.back.2
-
-   bne      x8, x0, .+8
-   j search_for.back.2
-   # phi start 
-   # phi end 
-   j search_for.body.2
-
-   .section .text
-   .globl search_for.body.2
-search_for.body.2:
-   # %var33 = load ptr, ptr @row
-
-   la t0, @row
-   lw x8, 0(t0)
-   # %var35 = getelementptr i32, ptr %var33, i32 %r.1_for.cond.2
-
-   li t2, 4
-   mul x4, x4, t2
-   add x8, x4, x8
-   mv x8, x8
-   # %var36 = load i32, ptr %var35
-
-   mv t0, x8
-   lw x8, 0(t0)
-   # %var37 = icmp eq i32 %var36, 0
-
-   li t1, 0
-   sub t2, x8, t1
-   seqz    x8, t2
-   # br i1 %var37, label %land.next..0, label %for.body.2_and_land.end..0
-
-   bne      x8, x0, .+8
-   j search_for.body.2_and_land.end..0
-   # phi start 
-   # phi end 
-   j search_land.next..0
-
-   .section .text
-   .globl search_land.next..0
-search_land.next..0:
-   # %var39 = load ptr, ptr @d
-
-   la t0, @d
-   lw x8, 0(t0)
-   # %var40 = getelementptr ptr, ptr %var39, i32 0
-
-   li t1, 0
-   li t2, 4
-   mul t1, t1, t2
-   add x8, t1, x8
-   mv x8, x8
-   # %var41 = load ptr, ptr %var40
-
-   mv t0, x8
-   lw x8, 0(t0)
-   # %var44 = add i32 %r.1_for.cond.2, %c
-
-   add x9, x4, x3
-   # %var45 = getelementptr i32, ptr %var41, i32 %var44
-
-   li t2, 4
-   mul x9, x9, t2
-   add x8, x9, x8
-   mv x8, x8
-   # %var46 = load i32, ptr %var45
-
-   mv t0, x8
-   lw x8, 0(t0)
-   # %var47 = icmp eq i32 %var46, 0
-
-   li t1, 0
-   sub t2, x8, t1
-   seqz    x8, t2
-   # br label %land.end..0
-
-   # phi start 
-   # phi end 
-   j search_land.end..0
-
-   .section .text
-   .globl search_land.end..0
-search_land.end..0:
-   # br i1 %var38_land.end..0, label %land.next..1, label %land.end..0_and_land.end..1
-
-   bne      x8, x0, .+8
-   j search_land.end..0_and_land.end..1
-   # phi start 
-   # phi end 
-   j search_land.next..1
-
-   .section .text
-   .globl search_land.next..1
-search_land.next..1:
-   # %var50 = load ptr, ptr @d
-
-   la t0, @d
-   lw x8, 0(t0)
-   # %var51 = getelementptr ptr, ptr %var50, i32 1
-
-   li t1, 1
-   li t2, 4
-   mul t1, t1, t2
-   add x8, t1, x8
-   mv x8, x8
-   # %var52 = load ptr, ptr %var51
-
-   mv t0, x8
-   lw x8, 0(t0)
-   # %var54 = load i32, ptr @N
-
-   la t0, @N
-   lw x9, 0(t0)
-   # %var55 = add i32 %r.1_for.cond.2, %var54
-
-   add x9, x4, x9
-   # %var56 = sub i32 %var55, 1
-
-   li t1, 1
-   sub x9, x9, t1
-   # %var58 = sub i32 %var56, %c
-
-   sub x9, x9, x3
-   # %var59 = getelementptr i32, ptr %var52, i32 %var58
-
-   li t2, 4
-   mul x9, x9, t2
-   add x8, x9, x8
-   mv x8, x8
-   # %var60 = load i32, ptr %var59
-
-   mv t0, x8
-   lw x8, 0(t0)
-   # %var61 = icmp eq i32 %var60, 0
-
-   li t1, 0
-   sub t2, x8, t1
-   seqz    x8, t2
-   # br label %land.end..1
-
-   # phi start 
-   # phi end 
-   j search_land.end..1
-
-   .section .text
-   .globl search_land.end..1
-search_land.end..1:
-   # br i1 %var49_land.end..1, label %if.then.2, label %if.else.2
-
-   bne      x8, x0, .+8
-   j search_if.else.2
-   # phi start 
-   # phi end 
-   j search_if.then.2
-
-   .section .text
-   .globl search_if.then.2
-search_if.then.2:
-   # %var63 = load ptr, ptr @d
-
-   la t0, @d
-   lw x8, 0(t0)
-   # %var64 = getelementptr ptr, ptr %var63, i32 1
-
-   li t1, 1
-   li t2, 4
-   mul t1, t1, t2
-   add x8, t1, x8
-   mv x8, x8
-   # %var65 = load ptr, ptr %var64
-
-   mv t0, x8
-   lw x8, 0(t0)
-   # %var67 = load i32, ptr @N
-
-   la t0, @N
-   lw x9, 0(t0)
-   # %var68 = add i32 %r.1_for.cond.2, %var67
-
-   add x9, x4, x9
-   # %var69 = sub i32 %var68, 1
-
-   li t1, 1
-   sub x9, x9, t1
-   # %var71 = sub i32 %var69, %c
-
-   sub x9, x9, x3
-   # %var72 = getelementptr i32, ptr %var65, i32 %var71
-
-   li t2, 4
-   mul x9, x9, t2
-   add x8, x9, x8
-   mv x8, x8
-   # store i32 1, ptr %var72
-
-   li t0, 1
-   sw t0, 0(x8)
-   # %var74 = load ptr, ptr @d
-
-   la t0, @d
-   lw x8, 0(t0)
-   # %var75 = getelementptr ptr, ptr %var74, i32 0
-
-   li t1, 0
-   li t2, 4
-   mul t1, t1, t2
-   add x8, t1, x8
-   mv x8, x8
-   # %var76 = load ptr, ptr %var75
-
-   mv t0, x8
-   lw x8, 0(t0)
-   # %var79 = add i32 %r.1_for.cond.2, %c
-
-   add x9, x4, x3
-   # %var80 = getelementptr i32, ptr %var76, i32 %var79
-
-   li t2, 4
-   mul x9, x9, t2
-   add x8, x9, x8
-   mv x8, x8
-   # store i32 1, ptr %var80
-
-   li t0, 1
-   sw t0, 0(x8)
-   # %var82 = load ptr, ptr @row
-
-   la t0, @row
-   lw x8, 0(t0)
-   # %var84 = getelementptr i32, ptr %var82, i32 %r.1_for.cond.2
-
-   li t2, 4
-   mul x4, x4, t2
-   add x8, x4, x8
-   mv x8, x8
-   # store i32 1, ptr %var84
-
-   li t0, 1
-   sw t0, 0(x8)
-   # %var86 = load ptr, ptr @col
-
-   la t0, @col
-   lw x8, 0(t0)
-   # %var88 = getelementptr i32, ptr %var86, i32 %c
-
-   li t2, 4
-   mul x3, x3, t2
-   add x8, x3, x8
-   mv x8, x8
-   # store i32 %r.1_for.cond.2, ptr %var88
-
-   sw x4, 0(x8)
-   # %var93 = add i32 %c, 1
-
-   li t1, 1
-   add x8, x3, t1
-   # call void @search(i32 %var93)
-
-   sw ra, 136(sp)
+   .globl Queue_int..pop_entry
+Queue_int..pop_entry:
+   # %var40 = call i32 @Queue_int..size(ptr %_this)
+
+   sw ra, 132(sp)
    sw a0, 40(sp)
    sw t0, 20(sp)
    sw t1, 24(sp)
@@ -598,11 +261,10 @@ search_if.then.2:
    sw t3, 112(sp)
    sw t6, 124(sp)
    sw x3, 12(sp)
-   sw x4, 16(sp)
-   mv a0, x8
-   call search
-   lw ra, 136(sp)
-   sw a0, 132(sp)
+   mv a0, x3
+   call Queue_int..size
+   lw ra, 132(sp)
+   mv x4, a0
    lw a0, 40(sp)
    lw t0, 20(sp)
    lw t1, 24(sp)
@@ -610,140 +272,153 @@ search_if.then.2:
    lw t3, 112(sp)
    lw t6, 124(sp)
    lw x3, 12(sp)
-   lw x4, 16(sp)
-   # %var94 = load ptr, ptr @row
-
-   la t0, @row
-   lw x8, 0(t0)
-   # %var96 = getelementptr i32, ptr %var94, i32 %r.1_for.cond.2
-
-   li t2, 4
-   mul x4, x4, t2
-   add x8, x4, x8
-   mv x8, x8
-   # store i32 0, ptr %var96
-
-   li t0, 0
-   sw t0, 0(x8)
-   # %var98 = load ptr, ptr @d
-
-   la t0, @d
-   lw x8, 0(t0)
-   # %var99 = getelementptr ptr, ptr %var98, i32 0
+   # %var41 = icmp eq i32 %var40, 0
 
    li t1, 0
-   li t2, 4
-   mul t1, t1, t2
-   add x8, t1, x8
-   mv x8, x8
-   # %var100 = load ptr, ptr %var99
+   sub t2, x4, t1
+   seqz    x4, t2
+   # br i1 %var41, label %if.then.1, label %if.else.1
 
-   mv t0, x8
-   lw x8, 0(t0)
-   # %var103 = add i32 %r.1_for.cond.2, %c
-
-   add x9, x4, x3
-   # %var104 = getelementptr i32, ptr %var100, i32 %var103
-
-   li t2, 4
-   mul x9, x9, t2
-   add x8, x9, x8
-   mv x8, x8
-   # store i32 0, ptr %var104
-
-   li t0, 0
-   sw t0, 0(x8)
-   # %var106 = load ptr, ptr @d
-
-   la t0, @d
-   lw x8, 0(t0)
-   # %var107 = getelementptr ptr, ptr %var106, i32 1
-
-   li t1, 1
-   li t2, 4
-   mul t1, t1, t2
-   add x8, t1, x8
-   mv x8, x8
-   # %var108 = load ptr, ptr %var107
-
-   mv t0, x8
-   lw x8, 0(t0)
-   # %var110 = load i32, ptr @N
-
-   la t0, @N
-   lw x9, 0(t0)
-   # %var111 = add i32 %r.1_for.cond.2, %var110
-
-   add x9, x4, x9
-   # %var112 = sub i32 %var111, 1
-
-   li t1, 1
-   sub x9, x9, t1
-   # %var114 = sub i32 %var112, %c
-
-   sub x9, x9, x3
-   # %var115 = getelementptr i32, ptr %var108, i32 %var114
-
-   li t2, 4
-   mul x9, x9, t2
-   add x8, x9, x8
-   mv x8, x8
-   # store i32 0, ptr %var115
-
-   li t0, 0
-   sw t0, 0(x8)
-   # br label %if.back.2
-
+   bne      x4, x0, .+8
+   j Queue_int..pop_if.else.1
    # phi start 
    # phi end 
-   j search_if.back.2
+   j Queue_int..pop_if.then.1
 
    .section .text
-   .globl search_if.else.2
-search_if.else.2:
-   # br label %if.back.2
+   .globl Queue_int..pop_if.then.1
+Queue_int..pop_if.then.1:
+   # call void @println(ptr @.str..0)
 
-   # phi start 
-   # phi end 
-   j search_if.back.2
-
-   .section .text
-   .globl search_if.back.2
-search_if.back.2:
-   # br label %for.step.2
-
-   # phi start 
-   # phi end 
-   j search_for.step.2
-
-   .section .text
-   .globl search_for.step.2
-search_for.step.2:
-   # %var118 = add i32 %r.1_for.cond.2, 1
-
-   li t1, 1
-   add x4, x4, t1
-   # br label %for.cond.2
-
-   # phi start 
-   # phi end 
-   j search_for.cond.2
-
-   .section .text
-   .globl search_for.back.2
-search_for.back.2:
+   sw ra, 132(sp)
+   sw a0, 40(sp)
+   sw t0, 20(sp)
+   sw t1, 24(sp)
+   sw t2, 28(sp)
+   sw t3, 112(sp)
+   sw t6, 124(sp)
+   sw x3, 12(sp)
+   la a0, @.str..0
+   call println
+   lw ra, 132(sp)
+   sw a0, 128(sp)
+   lw a0, 40(sp)
+   lw t0, 20(sp)
+   lw t1, 24(sp)
+   lw t2, 28(sp)
+   lw t3, 112(sp)
+   lw t6, 124(sp)
+   lw x3, 12(sp)
    # br label %if.back.1
 
    # phi start 
    # phi end 
-   j search_if.back.1
+   j Queue_int..pop_if.back.1
 
    .section .text
-   .globl search_if.back.1
-search_if.back.1:
-   # ret void
+   .globl Queue_int..pop_if.else.1
+Queue_int..pop_if.else.1:
+   # br label %if.back.1
 
-   addi sp, sp, 152
+   # phi start 
+   # phi end 
+   j Queue_int..pop_if.back.1
+
+   .section .text
+   .globl Queue_int..pop_if.back.1
+Queue_int..pop_if.back.1:
+   # %var44 = call i32 @Queue_int..top(ptr %_this)
+
+   sw ra, 132(sp)
+   sw a0, 40(sp)
+   sw t0, 20(sp)
+   sw t1, 24(sp)
+   sw t2, 28(sp)
+   sw t3, 112(sp)
+   sw t6, 124(sp)
+   sw x3, 12(sp)
+   mv a0, x3
+   call Queue_int..top
+   lw ra, 132(sp)
+   mv x4, a0
+   lw a0, 40(sp)
+   lw t0, 20(sp)
+   lw t1, 24(sp)
+   lw t2, 28(sp)
+   lw t3, 112(sp)
+   lw t6, 124(sp)
+   lw x3, 12(sp)
+   # %var46 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 1
+
+   mv t0, x3
+   li t1, 1
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv x8, t0
+   # %var49 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 1
+
+   mv t0, x3
+   li t1, 1
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv x9, t0
+   # %var50 = load i32, ptr %var49
+
+   mv t0, x9
+   lw x9, 0(t0)
+   # %var51 = add i32 %var50, 1
+
+   li t1, 1
+   add x9, x9, t1
+   # %var53 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 0
+
+   mv t0, x3
+   li t1, 0
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv x3, t0
+   # %var54 = load ptr, ptr %var53
+
+   mv t0, x3
+   lw x3, 0(t0)
+   # %var55 = call i32 @array.size(ptr %var54)
+
+   sw ra, 132(sp)
+   sw a0, 40(sp)
+   sw t0, 20(sp)
+   sw t1, 24(sp)
+   sw t2, 28(sp)
+   sw t3, 112(sp)
+   sw t6, 124(sp)
+   sw x8, 32(sp)
+   sw x9, 36(sp)
+   sw x4, 16(sp)
+   mv a0, x3
+   call array.size
+   lw ra, 132(sp)
+   mv x3, a0
+   lw a0, 40(sp)
+   lw t0, 20(sp)
+   lw t1, 24(sp)
+   lw t2, 28(sp)
+   lw t3, 112(sp)
+   lw t6, 124(sp)
+   lw x8, 32(sp)
+   lw x9, 36(sp)
+   lw x4, 16(sp)
+   # %var56 = srem i32 %var51, %var55
+
+   rem x3, x9, x3
+   # store i32 %var56, ptr %var46
+
+   sw x3, 0(x8)
+   # ret i32 %var44
+
+   mv a0, x4
+   addi sp, sp, 148
    lw t0, -12(sp)
    lw t1, -8(sp)
    lw t2, -4(sp)
@@ -752,22 +427,154 @@ search_if.back.1:
    ret
 
    .section .text
-   .globl search_for.body.2_and_land.end..0
-search_for.body.2_and_land.end..0:
-   # br label %land.end..0
-
+   .globl Queue_int..Queue_int
+Queue_int..Queue_int:
+   addi sp, sp, -144
+   sw t0, 132(sp)
+   sw t1, 136(sp)
+   sw t2, 140(sp)
    # phi start 
    # phi end 
-   j search_land.end..0
+   mv x3, a0
 
    .section .text
-   .globl search_land.end..0_and_land.end..1
-search_land.end..0_and_land.end..1:
-   # br label %land.end..1
+   .globl Queue_int..Queue_int_entry
+Queue_int..Queue_int_entry:
+   # %var127 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 1
 
+   mv t0, x3
+   li t1, 1
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv x4, t0
+   # store i32 0, ptr %var127
+
+   li t0, 0
+   sw t0, 0(x4)
+   # %var130 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 2
+
+   mv t0, x3
+   li t1, 2
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv x4, t0
+   # store i32 0, ptr %var130
+
+   li t0, 0
+   sw t0, 0(x4)
+   # %var133 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 0
+
+   mv t0, x3
+   li t1, 0
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv x3, t0
+   # %var135 = call ptr @__array.alloca(i32 4, i32 1, i32 1, i32 16)
+
+   sw ra, 128(sp)
+   sw a0, 40(sp)
+   sw a1, 44(sp)
+   sw a2, 48(sp)
+   sw a3, 52(sp)
+   sw t0, 20(sp)
+   sw t1, 24(sp)
+   sw t2, 28(sp)
+   sw t3, 112(sp)
+   sw t6, 124(sp)
+   sw x3, 12(sp)
+   li a2, 1
+   li a3, 16
+   li a1, 1
+   li a0, 4
+   call __array.alloca
+   lw ra, 128(sp)
+   mv x4, a0
+   lw a0, 40(sp)
+   lw a1, 44(sp)
+   lw a2, 48(sp)
+   lw a3, 52(sp)
+   lw t0, 20(sp)
+   lw t1, 24(sp)
+   lw t2, 28(sp)
+   lw t3, 112(sp)
+   lw t6, 124(sp)
+   lw x3, 12(sp)
+   # store ptr %var135, ptr %var133
+
+   sw x4, 0(x3)
+   # ret void
+
+   addi sp, sp, 144
+   lw t0, -12(sp)
+   lw t1, -8(sp)
+   lw t2, -4(sp)
    # phi start 
    # phi end 
-   j search_land.end..1
+   ret
+
+   .section .text
+   .globl Queue_int..top
+Queue_int..top:
+   addi sp, sp, -144
+   sw t0, 132(sp)
+   sw t1, 136(sp)
+   sw t2, 140(sp)
+   # phi start 
+   # phi end 
+   mv x3, a0
+
+   .section .text
+   .globl Queue_int..top_entry
+Queue_int..top_entry:
+   # %var32 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 0
+
+   mv t0, x3
+   li t1, 0
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv x4, t0
+   # %var33 = load ptr, ptr %var32
+
+   mv t0, x4
+   lw x4, 0(t0)
+   # %var35 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 1
+
+   mv t0, x3
+   li t1, 1
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv x3, t0
+   # %var36 = load i32, ptr %var35
+
+   mv t0, x3
+   lw x3, 0(t0)
+   # %var37 = getelementptr i32, ptr %var33, i32 %var36
+
+   mv t0, x4
+   mv t1, x3
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv x3, t0
+   # %var38 = load i32, ptr %var37
+
+   mv t0, x3
+   lw x3, 0(t0)
+   # ret i32 %var38
+
+   mv a0, x3
+   addi sp, sp, 144
+   lw t0, -12(sp)
+   lw t1, -8(sp)
+   lw t2, -4(sp)
+   # phi start 
+   # phi end 
+   ret
 
    .section .text
    .globl __init
@@ -782,7 +589,234 @@ __init:
    .section .text
    .globl __init_entry
 __init_entry:
-   # %var0 = call ptr @__array.alloca(i32 4, i32 1, i32 1, i32 8)
+   # ret void
+
+   addi sp, sp, 144
+   lw t0, -12(sp)
+   lw t1, -8(sp)
+   lw t2, -4(sp)
+   # phi start 
+   # phi end 
+   ret
+
+   .section .text
+   .globl Queue_int..size
+Queue_int..size:
+   addi sp, sp, -144
+   sw t0, 132(sp)
+   sw t1, 136(sp)
+   sw t2, 140(sp)
+   # phi start 
+   # phi end 
+   mv x3, a0
+
+   .section .text
+   .globl Queue_int..size_entry
+Queue_int..size_entry:
+   # %var59 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 2
+
+   mv t0, x3
+   li t1, 2
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv x4, t0
+   # %var60 = load i32, ptr %var59
+
+   mv t0, x4
+   lw x4, 0(t0)
+   # %var62 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 0
+
+   mv t0, x3
+   li t1, 0
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv x8, t0
+   # %var63 = load ptr, ptr %var62
+
+   mv t0, x8
+   lw x8, 0(t0)
+   # %var64 = call i32 @array.size(ptr %var63)
+
+   sw ra, 128(sp)
+   sw a0, 40(sp)
+   sw t0, 20(sp)
+   sw t1, 24(sp)
+   sw t2, 28(sp)
+   sw t3, 112(sp)
+   sw t6, 124(sp)
+   sw x3, 12(sp)
+   sw x4, 16(sp)
+   mv a0, x8
+   call array.size
+   lw ra, 128(sp)
+   mv x8, a0
+   lw a0, 40(sp)
+   lw t0, 20(sp)
+   lw t1, 24(sp)
+   lw t2, 28(sp)
+   lw t3, 112(sp)
+   lw t6, 124(sp)
+   lw x3, 12(sp)
+   lw x4, 16(sp)
+   # %var65 = add i32 %var60, %var64
+
+   add x4, x4, x8
+   # %var67 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 1
+
+   mv t0, x3
+   li t1, 1
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv x8, t0
+   # %var68 = load i32, ptr %var67
+
+   mv t0, x8
+   lw x8, 0(t0)
+   # %var69 = sub i32 %var65, %var68
+
+   sub x4, x4, x8
+   # %var71 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 0
+
+   mv t0, x3
+   li t1, 0
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv x3, t0
+   # %var72 = load ptr, ptr %var71
+
+   mv t0, x3
+   lw x3, 0(t0)
+   # %var73 = call i32 @array.size(ptr %var72)
+
+   sw ra, 128(sp)
+   sw a0, 40(sp)
+   sw t0, 20(sp)
+   sw t1, 24(sp)
+   sw t2, 28(sp)
+   sw t3, 112(sp)
+   sw t6, 124(sp)
+   sw x4, 16(sp)
+   mv a0, x3
+   call array.size
+   lw ra, 128(sp)
+   mv x3, a0
+   lw a0, 40(sp)
+   lw t0, 20(sp)
+   lw t1, 24(sp)
+   lw t2, 28(sp)
+   lw t3, 112(sp)
+   lw t6, 124(sp)
+   lw x4, 16(sp)
+   # %var74 = srem i32 %var69, %var73
+
+   rem x3, x4, x3
+   # ret i32 %var74
+
+   mv a0, x3
+   addi sp, sp, 144
+   lw t0, -12(sp)
+   lw t1, -8(sp)
+   lw t2, -4(sp)
+   # phi start 
+   # phi end 
+   ret
+
+   .section .text
+   .globl Queue_int..doubleStorage
+Queue_int..doubleStorage:
+   addi sp, sp, -144
+   sw t0, 132(sp)
+   sw t1, 136(sp)
+   sw t2, 140(sp)
+   # phi start 
+   # phi end 
+   mv x3, a0
+
+   .section .text
+   .globl Queue_int..doubleStorage_entry
+Queue_int..doubleStorage_entry:
+   # %var76 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 0
+
+   mv t0, x3
+   li t1, 0
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv x4, t0
+   # %var77 = load ptr, ptr %var76
+
+   mv t0, x4
+   lw x4, 0(t0)
+   # %var79 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 1
+
+   mv t0, x3
+   li t1, 1
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv x8, t0
+   # %var80 = load i32, ptr %var79
+
+   mv t0, x8
+   lw x8, 0(t0)
+   # %var82 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 2
+
+   mv t0, x3
+   li t1, 2
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv x9, t0
+   # %var83 = load i32, ptr %var82
+
+   mv t0, x9
+   lw x9, 0(t0)
+   # %var85 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 0
+
+   mv t0, x3
+   li t1, 0
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv a0, t0
+   # %var89 = call i32 @array.size(ptr %var77)
+
+   sw ra, 128(sp)
+   sw a0, 40(sp)
+   sw t0, 20(sp)
+   sw t1, 24(sp)
+   sw t2, 28(sp)
+   sw t3, 112(sp)
+   sw t6, 124(sp)
+   sw x8, 32(sp)
+   sw x9, 36(sp)
+   sw x3, 12(sp)
+   sw x4, 16(sp)
+   sw a0, 40(sp)
+   mv a0, x4
+   call array.size
+   lw ra, 128(sp)
+   mv a1, a0
+   lw a0, 40(sp)
+   lw t0, 20(sp)
+   lw t1, 24(sp)
+   lw t2, 28(sp)
+   lw t3, 112(sp)
+   lw t6, 124(sp)
+   lw x8, 32(sp)
+   lw x9, 36(sp)
+   lw x3, 12(sp)
+   lw x4, 16(sp)
+   lw a0, 40(sp)
+   # %var90 = mul i32 %var89, 2
+
+   li t1, 2
+   mul a1, a1, t1
+   # %var87 = call ptr @__array.alloca(i32 4, i32 1, i32 1, i32 %var90)
 
    sw ra, 128(sp)
    sw a0, 40(sp)
@@ -794,13 +828,18 @@ __init_entry:
    sw t2, 28(sp)
    sw t3, 112(sp)
    sw t6, 124(sp)
-   li a2, 1
+   sw x8, 32(sp)
+   sw x9, 36(sp)
+   sw x3, 12(sp)
+   sw x4, 16(sp)
+   sw a0, 40(sp)
    li a0, 4
+   li a2, 1
+   mv a3, a1
    li a1, 1
-   li a3, 8
    call __array.alloca
    lw ra, 128(sp)
-   mv x3, a0
+   mv a1, a0
    lw a0, 40(sp)
    lw a1, 44(sp)
    lw a2, 48(sp)
@@ -810,74 +849,171 @@ __init_entry:
    lw t2, 28(sp)
    lw t3, 112(sp)
    lw t6, 124(sp)
-   # store ptr %var0, ptr @row
+   lw x8, 32(sp)
+   lw x9, 36(sp)
+   lw x3, 12(sp)
+   lw x4, 16(sp)
+   lw a0, 40(sp)
+   # store ptr %var87, ptr %var85
 
-   la t1, @row
-   sw x3, 0(t1)
-   # %var1 = call ptr @__array.alloca(i32 4, i32 1, i32 1, i32 8)
+   sw a1, 0(a0)
+   # %var92 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 1
+
+   mv t0, x3
+   li t1, 1
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv a0, t0
+   # store i32 0, ptr %var92
+
+   li t0, 0
+   sw t0, 0(a0)
+   # %var95 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 2
+
+   mv t0, x3
+   li t1, 2
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv a0, t0
+   # store i32 0, ptr %var95
+
+   li t0, 0
+   sw t0, 0(a0)
+   # br label %while.cond.0
+
+   # phi start 
+   # phi end 
+   j Queue_int..doubleStorage_while.cond.0
+
+   .section .text
+   .globl Queue_int..doubleStorage_while.cond.0
+Queue_int..doubleStorage_while.cond.0:
+   # %var103 = icmp ne i32 %i.1_while.cond.0, %var83
+
+   sub t2, x8, x9
+   snez    a0, t2
+   # br i1 %var103, label %while.body.0, label %while.back.0
+
+   bne      a0, x0, .+8
+   j Queue_int..doubleStorage_while.back.0
+   # phi start 
+   # phi end 
+   j Queue_int..doubleStorage_while.body.0
+
+   .section .text
+   .globl Queue_int..doubleStorage_while.body.0
+Queue_int..doubleStorage_while.body.0:
+   # %var105 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 0
+
+   mv t0, x3
+   li t1, 0
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv a0, t0
+   # %var106 = load ptr, ptr %var105
+
+   mv t0, a0
+   lw a0, 0(t0)
+   # %var108 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 2
+
+   mv t0, x3
+   li t1, 2
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv a1, t0
+   # %var109 = load i32, ptr %var108
+
+   mv t0, a1
+   lw a1, 0(t0)
+   # %var110 = getelementptr i32, ptr %var106, i32 %var109
+
+   mv t0, a0
+   mv t1, a1
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv a0, t0
+   # %var114 = getelementptr i32, ptr %var77, i32 %i.1_while.cond.0
+
+   mv t0, x4
+   mv t1, x8
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv a1, t0
+   # %var115 = load i32, ptr %var114
+
+   mv t0, a1
+   lw a1, 0(t0)
+   # store i32 %var115, ptr %var110
+
+   sw a1, 0(a0)
+   # %var117 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 2
+
+   mv t0, x3
+   li t1, 2
+   li t2, 4
+   mul t1, t1, t2
+   add t0, t1, t0
+   mv a0, t0
+   # %var118 = load i32, ptr %var117
+
+   mv t0, a0
+   lw a1, 0(t0)
+   # %var119 = add i32 %var118, 1
+
+   li t1, 1
+   add a1, a1, t1
+   # store i32 %var119, ptr %var117
+
+   sw a1, 0(a0)
+   # %var122 = add i32 %i.1_while.cond.0, 1
+
+   li t1, 1
+   add x8, x8, t1
+   # %var124 = call i32 @array.size(ptr %var77)
 
    sw ra, 128(sp)
    sw a0, 40(sp)
-   sw a1, 44(sp)
-   sw a2, 48(sp)
-   sw a3, 52(sp)
    sw t0, 20(sp)
    sw t1, 24(sp)
    sw t2, 28(sp)
    sw t3, 112(sp)
    sw t6, 124(sp)
-   li a1, 1
-   li a2, 1
-   li a3, 8
-   li a0, 4
-   call __array.alloca
+   sw x8, 32(sp)
+   sw x9, 36(sp)
+   sw x3, 12(sp)
+   sw x4, 16(sp)
+   mv a0, x4
+   call array.size
    lw ra, 128(sp)
-   mv x3, a0
+   mv a0, a0
    lw a0, 40(sp)
-   lw a1, 44(sp)
-   lw a2, 48(sp)
-   lw a3, 52(sp)
    lw t0, 20(sp)
    lw t1, 24(sp)
    lw t2, 28(sp)
    lw t3, 112(sp)
    lw t6, 124(sp)
-   # store ptr %var1, ptr @col
+   lw x8, 32(sp)
+   lw x9, 36(sp)
+   lw x3, 12(sp)
+   lw x4, 16(sp)
+   # %var125 = srem i32 %var122, %var124
 
-   la t1, @col
-   sw x3, 0(t1)
-   # %var2 = call ptr @__array.alloca(i32 4, i32 2, i32 1, i32 2)
+   rem x8, x8, a0
+   # br label %while.cond.0
 
-   sw ra, 128(sp)
-   sw a0, 40(sp)
-   sw a1, 44(sp)
-   sw a2, 48(sp)
-   sw a3, 52(sp)
-   sw t0, 20(sp)
-   sw t1, 24(sp)
-   sw t2, 28(sp)
-   sw t3, 112(sp)
-   sw t6, 124(sp)
-   li a2, 1
-   li a3, 2
-   li a1, 2
-   li a0, 4
-   call __array.alloca
-   lw ra, 128(sp)
-   mv x3, a0
-   lw a0, 40(sp)
-   lw a1, 44(sp)
-   lw a2, 48(sp)
-   lw a3, 52(sp)
-   lw t0, 20(sp)
-   lw t1, 24(sp)
-   lw t2, 28(sp)
-   lw t3, 112(sp)
-   lw t6, 124(sp)
-   # store ptr %var2, ptr @d
+   # phi start 
+   # phi end 
+   j Queue_int..doubleStorage_while.cond.0
 
-   la t1, @d
-   sw x3, 0(t1)
+   .section .text
+   .globl Queue_int..doubleStorage_while.back.0
+Queue_int..doubleStorage_while.back.0:
    # ret void
 
    addi sp, sp, 144
@@ -891,160 +1027,59 @@ __init_entry:
    .section .text
    .globl main
 main:
-   addi sp, sp, -152
-   sw t0, 140(sp)
-   sw t1, 144(sp)
+   addi sp, sp, -176
+   sw t0, 164(sp)
+   sw t1, 168(sp)
    # phi start 
    # phi end 
-   sw t2, 148(sp)
+   sw t2, 172(sp)
 
    .section .text
    .globl main_entry
 main_entry:
    # call void @__init()
 
-   sw ra, 136(sp)
+   sw ra, 160(sp)
    sw t0, 20(sp)
    sw t1, 24(sp)
    sw t2, 28(sp)
    sw t3, 112(sp)
    sw t6, 124(sp)
+   sw x3, 12(sp)
    call __init
-   lw ra, 136(sp)
+   lw ra, 160(sp)
    sw a0, 128(sp)
    lw t0, 20(sp)
    lw t1, 24(sp)
    lw t2, 28(sp)
    lw t3, 112(sp)
    lw t6, 124(sp)
-   # br label %for.cond.3
+   lw x3, 12(sp)
+   # %var137 = call ptr @_malloc(i32 12)
 
-   # phi start 
-   li x3, 0
-   # phi end 
-   j main_for.cond.3
-
-   .section .text
-   .globl main_for.cond.3
-main_for.cond.3:
-   # %var122 = icmp slt i32 %i.2_for.cond.3, 8
-
-   li t1, 8
-   sub t2, x3, t1
-   sltz    x4, t2
-   # br i1 %var122, label %for.body.3, label %for.back.3
-
-   bne      x4, x0, .+8
-   j main_for.back.3
-   # phi start 
-   # phi end 
-   j main_for.body.3
-
-   .section .text
-   .globl main_for.body.3
-main_for.body.3:
-   # %var123 = load ptr, ptr @row
-
-   la t0, @row
-   lw x4, 0(t0)
-   # %var125 = getelementptr i32, ptr %var123, i32 %i.2_for.cond.3
-
-   li t2, 4
-   mul x3, x3, t2
-   add x4, x3, x4
-   mv x4, x4
-   # store i32 0, ptr %var125
-
-   li t0, 0
-   sw t0, 0(x4)
-   # %var127 = load ptr, ptr @col
-
-   la t0, @col
-   lw x4, 0(t0)
-   # %var129 = getelementptr i32, ptr %var127, i32 %i.2_for.cond.3
-
-   li t2, 4
-   mul x3, x3, t2
-   add x4, x3, x4
-   mv x4, x4
-   # store i32 0, ptr %var129
-
-   li t0, 0
-   sw t0, 0(x4)
-   # br label %for.step.3
-
-   # phi start 
-   # phi end 
-   j main_for.step.3
-
-   .section .text
-   .globl main_for.step.3
-main_for.step.3:
-   # %var132 = add i32 %i.2_for.cond.3, 1
-
-   li t1, 1
-   add x3, x3, t1
-   # br label %for.cond.3
-
-   # phi start 
-   # phi end 
-   j main_for.cond.3
-
-   .section .text
-   .globl main_for.back.3
-main_for.back.3:
-   # br label %for.cond.4
-
-   # phi start 
-   li x3, 0
-   # phi end 
-   j main_for.cond.4
-
-   .section .text
-   .globl main_for.cond.4
-main_for.cond.4:
-   # %var135 = icmp slt i32 %i.2_for.cond.4, 2
-
-   li t1, 2
-   sub t2, x3, t1
-   sltz    x4, t2
-   # br i1 %var135, label %for.body.4, label %for.back.4
-
-   bne      x4, x0, .+8
-   j main_for.back.4
-   # phi start 
-   # phi end 
-   j main_for.body.4
-
-   .section .text
-   .globl main_for.body.4
-main_for.body.4:
-   # %var136 = load ptr, ptr @d
-
-   la t0, @d
-   lw x4, 0(t0)
-   # %var138 = getelementptr ptr, ptr %var136, i32 %i.2_for.cond.4
-
-   li t2, 4
-   mul x3, x3, t2
-   add x4, x3, x4
-   mv x4, x4
-   # %var141 = add i32 8, 8
-
-   li t0, 8
-   li t1, 8
-   add x8, t0, t1
-   # %var142 = sub i32 %var141, 1
-
-   li t1, 1
-   sub x8, x8, t1
-   # %var140 = call ptr @__array.alloca(i32 4, i32 1, i32 1, i32 %var142)
-
-   sw ra, 136(sp)
+   sw ra, 160(sp)
    sw a0, 40(sp)
-   sw a1, 44(sp)
-   sw a2, 48(sp)
-   sw a3, 52(sp)
+   sw t0, 20(sp)
+   sw t1, 24(sp)
+   sw t2, 28(sp)
+   sw t3, 112(sp)
+   sw t6, 124(sp)
+   sw x3, 12(sp)
+   li a0, 12
+   call _malloc
+   lw ra, 160(sp)
+   mv x4, a0
+   lw a0, 40(sp)
+   lw t0, 20(sp)
+   lw t1, 24(sp)
+   lw t2, 28(sp)
+   lw t3, 112(sp)
+   lw t6, 124(sp)
+   lw x3, 12(sp)
+   # call void @Queue_int..Queue_int(ptr %var137)
+
+   sw ra, 160(sp)
+   sw a0, 40(sp)
    sw t0, 20(sp)
    sw t1, 24(sp)
    sw t2, 28(sp)
@@ -1052,17 +1087,11 @@ main_for.body.4:
    sw t6, 124(sp)
    sw x3, 12(sp)
    sw x4, 16(sp)
-   mv a3, x8
-   li a1, 1
-   li a0, 4
-   li a2, 1
-   call __array.alloca
-   lw ra, 136(sp)
-   mv x8, a0
+   mv a0, x4
+   call Queue_int..Queue_int
+   lw ra, 160(sp)
+   sw a0, 132(sp)
    lw a0, 40(sp)
-   lw a1, 44(sp)
-   lw a2, 48(sp)
-   lw a3, 52(sp)
    lw t0, 20(sp)
    lw t1, 24(sp)
    lw t2, 28(sp)
@@ -1070,124 +1099,478 @@ main_for.body.4:
    lw t6, 124(sp)
    lw x3, 12(sp)
    lw x4, 16(sp)
-   # store ptr %var140, ptr %var138
-
-   sw x8, 0(x4)
-   # br label %for.cond.5
+   # br label %for.cond.0
 
    # phi start 
-   li x4, 0
+   li x8, 0
    # phi end 
-   j main_for.cond.5
+   j main_for.cond.0
 
    .section .text
-   .globl main_for.cond.5
-main_for.cond.5:
-   # %var145 = add i32 8, 8
+   .globl main_for.cond.0
+main_for.cond.0:
+   # %var142 = icmp slt i32 %i.2_for.cond.0, 100
 
-   li t0, 8
-   li t1, 8
-   add x8, t0, t1
-   # %var146 = sub i32 %var145, 1
+   li t1, 100
+   sub t2, x8, t1
+   sltz    x9, t2
+   # br i1 %var142, label %for.body.0, label %for.back.0
+
+   bne      x9, x0, .+8
+   j main_for.back.0
+   # phi start 
+   # phi end 
+   j main_for.body.0
+
+   .section .text
+   .globl main_for.body.0
+main_for.body.0:
+   # call void @Queue_int..push(ptr %var137, i32 %i.2_for.cond.0)
+
+   sw ra, 160(sp)
+   sw a0, 40(sp)
+   sw a1, 44(sp)
+   sw t0, 20(sp)
+   sw t1, 24(sp)
+   sw t2, 28(sp)
+   sw t3, 112(sp)
+   sw t6, 124(sp)
+   sw x8, 32(sp)
+   sw x3, 12(sp)
+   sw x4, 16(sp)
+   mv a1, x8
+   mv a0, x4
+   call Queue_int..push
+   lw ra, 160(sp)
+   sw a0, 136(sp)
+   lw a0, 40(sp)
+   lw a1, 44(sp)
+   lw t0, 20(sp)
+   lw t1, 24(sp)
+   lw t2, 28(sp)
+   lw t3, 112(sp)
+   lw t6, 124(sp)
+   lw x8, 32(sp)
+   lw x3, 12(sp)
+   lw x4, 16(sp)
+   # br label %for.step.0
+
+   # phi start 
+   # phi end 
+   j main_for.step.0
+
+   .section .text
+   .globl main_for.step.0
+main_for.step.0:
+   # %var146 = add i32 %i.2_for.cond.0, 1
 
    li t1, 1
-   sub x8, x8, t1
-   # %var147 = icmp slt i32 %j.2_for.cond.5, %var146
-
-   sub t2, x4, x8
-   sltz    x8, t2
-   # br i1 %var147, label %for.body.5, label %for.back.5
-
-   bne      x8, x0, .+8
-   j main_for.back.5
-   # phi start 
-   # phi end 
-   j main_for.body.5
-
-   .section .text
-   .globl main_for.body.5
-main_for.body.5:
-   # %var148 = load ptr, ptr @d
-
-   la t0, @d
-   lw x8, 0(t0)
-   # %var150 = getelementptr ptr, ptr %var148, i32 %i.2_for.cond.4
-
-   li t2, 4
-   mul x3, x3, t2
-   add x8, x3, x8
-   mv x8, x8
-   # %var151 = load ptr, ptr %var150
-
-   mv t0, x8
-   lw x8, 0(t0)
-   # %var153 = getelementptr i32, ptr %var151, i32 %j.2_for.cond.5
-
-   li t2, 4
-   mul x4, x4, t2
-   add x8, x4, x8
-   mv x8, x8
-   # store i32 0, ptr %var153
-
-   li t0, 0
-   sw t0, 0(x8)
-   # br label %for.step.5
+   add x8, x8, t1
+   # br label %for.cond.0
 
    # phi start 
    # phi end 
-   j main_for.step.5
+   j main_for.cond.0
 
    .section .text
-   .globl main_for.step.5
-main_for.step.5:
-   # %var156 = add i32 %j.2_for.cond.5, 1
+   .globl main_for.back.0
+main_for.back.0:
+   # %var148 = call i32 @Queue_int..size(ptr %var137)
 
-   li t1, 1
-   add x4, x4, t1
-   # br label %for.cond.5
-
-   # phi start 
-   # phi end 
-   j main_for.cond.5
-
-   .section .text
-   .globl main_for.back.5
-main_for.back.5:
-   # br label %for.step.4
-
-   # phi start 
-   # phi end 
-   j main_for.step.4
-
-   .section .text
-   .globl main_for.step.4
-main_for.step.4:
-   # %var158 = add i32 %i.2_for.cond.4, 1
-
-   li t1, 1
-   add x3, x3, t1
-   # br label %for.cond.4
-
-   # phi start 
-   # phi end 
-   j main_for.cond.4
-
-   .section .text
-   .globl main_for.back.4
-main_for.back.4:
-   # call void @search(i32 0)
-
-   sw ra, 136(sp)
+   sw ra, 160(sp)
    sw a0, 40(sp)
    sw t0, 20(sp)
    sw t1, 24(sp)
    sw t2, 28(sp)
    sw t3, 112(sp)
    sw t6, 124(sp)
-   li a0, 0
-   call search
-   lw ra, 136(sp)
-   sw a0, 132(sp)
+   sw x3, 12(sp)
+   sw x4, 16(sp)
+   mv a0, x4
+   call Queue_int..size
+   lw ra, 160(sp)
+   mv x8, a0
+   lw a0, 40(sp)
+   lw t0, 20(sp)
+   lw t1, 24(sp)
+   lw t2, 28(sp)
+   lw t3, 112(sp)
+   lw t6, 124(sp)
+   lw x3, 12(sp)
+   lw x4, 16(sp)
+   # %var150 = icmp ne i32 %var148, 100
+
+   li t1, 100
+   sub t2, x8, t1
+   snez    x8, t2
+   # br i1 %var150, label %if.then.2, label %if.else.2
+
+   bne      x8, x0, .+8
+   j main_if.else.2
+   # phi start 
+   # phi end 
+   j main_if.then.2
+
+   .section .text
+   .globl main_if.then.2
+main_if.then.2:
+   # call void @println(ptr @.str..1)
+
+   sw ra, 160(sp)
+   sw a0, 40(sp)
+   sw t0, 20(sp)
+   sw t1, 24(sp)
+   sw t2, 28(sp)
+   sw t3, 112(sp)
+   sw t6, 124(sp)
+   la a0, @.str..1
+   call println
+   lw ra, 160(sp)
+   sw a0, 140(sp)
+   lw a0, 40(sp)
+   lw t0, 20(sp)
+   lw t1, 24(sp)
+   lw t2, 28(sp)
+   lw t3, 112(sp)
+   lw t6, 124(sp)
+   # ret i32 1
+
+   li a0, 1
+   addi sp, sp, 176
+   lw t0, -12(sp)
+   lw t1, -8(sp)
+   lw t2, -4(sp)
+   # phi start 
+   # phi end 
+   ret
+
+   .section .text
+   .globl main_if.else.2
+main_if.else.2:
+   # br label %if.back.2
+
+   # phi start 
+   # phi end 
+   j main_if.back.2
+
+   .section .text
+   .globl main_if.back.2
+main_if.back.2:
+   # br label %for.cond.1
+
+   # phi start 
+   li x8, 0
+   # phi end 
+   j main_for.cond.1
+
+   .section .text
+   .globl main_for.cond.1
+main_for.cond.1:
+   # %var155 = icmp slt i32 %i.2_for.cond.1, 100
+
+   li t1, 100
+   sub t2, x8, t1
+   sltz    x9, t2
+   # br i1 %var155, label %for.body.1, label %for.back.1
+
+   bne      x9, x0, .+8
+   j main_for.back.1
+   # phi start 
+   # phi end 
+   j main_for.body.1
+
+   .section .text
+   .globl main_for.body.1
+main_for.body.1:
+   # %var157 = call i32 @Queue_int..top(ptr %var137)
+
+   sw ra, 160(sp)
+   sw a0, 40(sp)
+   sw t0, 20(sp)
+   sw t1, 24(sp)
+   sw t2, 28(sp)
+   sw t3, 112(sp)
+   sw t6, 124(sp)
+   sw x8, 32(sp)
+   sw x3, 12(sp)
+   sw x4, 16(sp)
+   mv a0, x4
+   call Queue_int..top
+   lw ra, 160(sp)
+   mv x9, a0
+   lw a0, 40(sp)
+   lw t0, 20(sp)
+   lw t1, 24(sp)
+   lw t2, 28(sp)
+   lw t3, 112(sp)
+   lw t6, 124(sp)
+   lw x8, 32(sp)
+   lw x3, 12(sp)
+   lw x4, 16(sp)
+   # %var160 = icmp ne i32 %var157, %i.2_for.cond.1
+
+   sub t2, x9, x8
+   snez    x9, t2
+   # br i1 %var160, label %if.then.3, label %if.else.3
+
+   bne      x9, x0, .+8
+   j main_if.else.3
+   # phi start 
+   # phi end 
+   j main_if.then.3
+
+   .section .text
+   .globl main_if.then.3
+main_if.then.3:
+   # call void @println(ptr @.str..2)
+
+   sw ra, 160(sp)
+   sw a0, 40(sp)
+   sw t0, 20(sp)
+   sw t1, 24(sp)
+   sw t2, 28(sp)
+   sw t3, 112(sp)
+   sw t6, 124(sp)
+   la a0, @.str..2
+   call println
+   lw ra, 160(sp)
+   sw a0, 144(sp)
+   lw a0, 40(sp)
+   lw t0, 20(sp)
+   lw t1, 24(sp)
+   lw t2, 28(sp)
+   lw t3, 112(sp)
+   lw t6, 124(sp)
+   # ret i32 1
+
+   li a0, 1
+   addi sp, sp, 176
+   lw t0, -12(sp)
+   lw t1, -8(sp)
+   lw t2, -4(sp)
+   # phi start 
+   # phi end 
+   ret
+
+   .section .text
+   .globl main_if.else.3
+main_if.else.3:
+   # br label %if.back.3
+
+   # phi start 
+   # phi end 
+   j main_if.back.3
+
+   .section .text
+   .globl main_if.back.3
+main_if.back.3:
+   # %var163 = call i32 @Queue_int..pop(ptr %var137)
+
+   sw ra, 160(sp)
+   sw a0, 40(sp)
+   sw t0, 20(sp)
+   sw t1, 24(sp)
+   sw t2, 28(sp)
+   sw t3, 112(sp)
+   sw t6, 124(sp)
+   sw x8, 32(sp)
+   sw x3, 12(sp)
+   sw x4, 16(sp)
+   mv a0, x4
+   call Queue_int..pop
+   lw ra, 160(sp)
+   mv x9, a0
+   lw a0, 40(sp)
+   lw t0, 20(sp)
+   lw t1, 24(sp)
+   lw t2, 28(sp)
+   lw t3, 112(sp)
+   lw t6, 124(sp)
+   lw x8, 32(sp)
+   lw x3, 12(sp)
+   lw x4, 16(sp)
+   # %var165 = icmp ne i32 %var163, %i.2_for.cond.1
+
+   sub t2, x9, x8
+   snez    x9, t2
+   # br i1 %var165, label %if.then.4, label %if.else.4
+
+   bne      x9, x0, .+8
+   j main_if.else.4
+   # phi start 
+   # phi end 
+   j main_if.then.4
+
+   .section .text
+   .globl main_if.then.4
+main_if.then.4:
+   # call void @println(ptr @.str..3)
+
+   sw ra, 160(sp)
+   sw a0, 40(sp)
+   sw t0, 20(sp)
+   sw t1, 24(sp)
+   sw t2, 28(sp)
+   sw t3, 112(sp)
+   sw t6, 124(sp)
+   la a0, @.str..3
+   call println
+   lw ra, 160(sp)
+   sw a0, 148(sp)
+   lw a0, 40(sp)
+   lw t0, 20(sp)
+   lw t1, 24(sp)
+   lw t2, 28(sp)
+   lw t3, 112(sp)
+   lw t6, 124(sp)
+   # ret i32 1
+
+   li a0, 1
+   addi sp, sp, 176
+   lw t0, -12(sp)
+   lw t1, -8(sp)
+   lw t2, -4(sp)
+   # phi start 
+   # phi end 
+   ret
+
+   .section .text
+   .globl main_if.else.4
+main_if.else.4:
+   # br label %if.back.4
+
+   # phi start 
+   # phi end 
+   j main_if.back.4
+
+   .section .text
+   .globl main_if.back.4
+main_if.back.4:
+   # %var168 = call i32 @Queue_int..size(ptr %var137)
+
+   sw ra, 160(sp)
+   sw a0, 40(sp)
+   sw t0, 20(sp)
+   sw t1, 24(sp)
+   sw t2, 28(sp)
+   sw t3, 112(sp)
+   sw t6, 124(sp)
+   sw x8, 32(sp)
+   sw x3, 12(sp)
+   sw x4, 16(sp)
+   mv a0, x4
+   call Queue_int..size
+   lw ra, 160(sp)
+   mv x9, a0
+   lw a0, 40(sp)
+   lw t0, 20(sp)
+   lw t1, 24(sp)
+   lw t2, 28(sp)
+   lw t3, 112(sp)
+   lw t6, 124(sp)
+   lw x8, 32(sp)
+   lw x3, 12(sp)
+   lw x4, 16(sp)
+   # %var171 = sub i32 100, %i.2_for.cond.1
+
+   li t0, 100
+   sub a0, t0, x8
+   # %var172 = sub i32 %var171, 1
+
+   li t1, 1
+   sub a0, a0, t1
+   # %var173 = icmp ne i32 %var168, %var172
+
+   sub t2, x9, a0
+   snez    x9, t2
+   # br i1 %var173, label %if.then.5, label %if.else.5
+
+   bne      x9, x0, .+8
+   j main_if.else.5
+   # phi start 
+   # phi end 
+   j main_if.then.5
+
+   .section .text
+   .globl main_if.then.5
+main_if.then.5:
+   # call void @println(ptr @.str..4)
+
+   sw ra, 160(sp)
+   sw a0, 40(sp)
+   sw t0, 20(sp)
+   sw t1, 24(sp)
+   sw t2, 28(sp)
+   sw t3, 112(sp)
+   sw t6, 124(sp)
+   la a0, @.str..4
+   call println
+   lw ra, 160(sp)
+   sw a0, 152(sp)
+   lw a0, 40(sp)
+   lw t0, 20(sp)
+   lw t1, 24(sp)
+   lw t2, 28(sp)
+   lw t3, 112(sp)
+   lw t6, 124(sp)
+   # ret i32 1
+
+   li a0, 1
+   addi sp, sp, 176
+   lw t0, -12(sp)
+   lw t1, -8(sp)
+   lw t2, -4(sp)
+   # phi start 
+   # phi end 
+   ret
+
+   .section .text
+   .globl main_if.else.5
+main_if.else.5:
+   # br label %if.back.5
+
+   # phi start 
+   # phi end 
+   j main_if.back.5
+
+   .section .text
+   .globl main_if.back.5
+main_if.back.5:
+   # br label %for.step.1
+
+   # phi start 
+   # phi end 
+   j main_for.step.1
+
+   .section .text
+   .globl main_for.step.1
+main_for.step.1:
+   # %var176 = add i32 %i.2_for.cond.1, 1
+
+   li t1, 1
+   add x8, x8, t1
+   # br label %for.cond.1
+
+   # phi start 
+   # phi end 
+   j main_for.cond.1
+
+   .section .text
+   .globl main_for.back.1
+main_for.back.1:
+   # call void @println(ptr @.str..5)
+
+   sw ra, 160(sp)
+   sw a0, 40(sp)
+   sw t0, 20(sp)
+   sw t1, 24(sp)
+   sw t2, 28(sp)
+   sw t3, 112(sp)
+   sw t6, 124(sp)
+   la a0, @.str..5
+   call println
+   lw ra, 160(sp)
+   sw a0, 156(sp)
    lw a0, 40(sp)
    lw t0, 20(sp)
    lw t1, 24(sp)
@@ -1197,7 +1580,7 @@ main_for.back.4:
    # ret i32 0
 
    li a0, 0
-   addi sp, sp, 152
+   addi sp, sp, 176
    lw t0, -12(sp)
    lw t1, -8(sp)
    lw t2, -4(sp)
@@ -1205,39 +1588,27 @@ main_for.back.4:
    # phi end 
    ret
 
-   .section .data
-   .globl @col
-@col:
-   .word 0
-
-   .section .data
-   .globl @d
-@d:
-   .word 0
-
-   .section .data
-   .globl @row
-@row:
-   .word 0
-
-   .section .data
-   .globl @N
-@N:
-   .word 8
-
    .section .rodata
 @.str..1:
-   .asciz " ."
+   .asciz "q.size() != N after pushes"
 
    .section .rodata
 @.str..2:
-   .asciz ""
+   .asciz "Head != i"
 
    .section .rodata
 @.str..0:
-   .asciz " O"
+   .asciz "Warning: Queue_int::pop: empty queue"
+
+   .section .rodata
+@.str..5:
+   .asciz "Passed tests."
 
    .section .rodata
 @.str..3:
-   .asciz ""
+   .asciz "Failed: q.pop() != i"
+
+   .section .rodata
+@.str..4:
+   .asciz "q.size() != N - i - 1"
 

@@ -29,9 +29,11 @@ public class ASMText extends ASMSection {
             ASMInstr instr = instrList.get(i);
             sb.append("   ").append(instr.toString()).append("\n");
         }
+        sb.append("   ").append("# phi start \n");
         for(ASMInstr instr : instrListBeforeEnd){
             sb.append("   ").append(instr.toString()).append("\n");
         }
+        sb.append("   ").append("# phi end \n");
         sb.append("   ").append(instrList.getLast().toString()).append("\n");
 //        for (ASMInstr instr : instrList) {
 //            sb.append("   ").append(instr.toString()).append("\n");

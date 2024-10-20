@@ -748,7 +748,10 @@ public class ASMBuilderPlus implements IRVisitor {
     // 将entity存到 rd中
     // 这个有两个目的：一个就是为了存入变量，还有一个是为了将变量读到寄存器里面
     private String loadIREntity(IREntity entity, String rd, IRFuncDef irFuncDef) {
-        if(entity instanceof IRIntLiteral){
+        if(isInt(entity)){
+            currentText.instrList.add(new ASMLiInstr(currentText, rd, getInt(entity)));
+            return rd;
+        } else if(entity instanceof IRIntLiteral){
             currentText.instrList.add(new ASMLiInstr(currentText, rd, ((IRIntLiteral) entity).value));
         } else if(entity instanceof IRBoolLiteral){
             currentText.instrList.add(new ASMLiInstr(currentText, rd, ((IRBoolLiteral) entity).value ? 1 : 0));
@@ -775,13 +778,15 @@ public class ASMBuilderPlus implements IRVisitor {
 
     public void actual_load_entity(IREntity entity, String rd, IRFuncDef irFuncDef){
         if(entity instanceof IRVariable){
-            if(isReg(entity)){
+            if(isInt(entity)){
+                currentText.instrList.add(new ASMLiInstr(currentText, rd, getInt(entity)));
+            } else if(nameIsReg(entity)){
+                currentText.instrList.add(new ASMMvInstr(currentText, rd, entity.toString()));
+            } else if(isReg(entity)){
                 currentText.instrList.add(new ASMMvInstr(currentText, rd, getVarReg(entity.toString())));
             } else if(inStack(entity)){
                 int place = irFuncDef.getPlace(entity.toString());
                 currentText.instrList.add(new ASMLwInstr(currentText, rd, "sp", place));
-            } else if(nameIsReg(entity)){
-                currentText.instrList.add(new ASMMvInstr(currentText, rd, entity.toString()));
             } else if(isGlobal(entity)){
                 currentText.instrList.add(new ASMLaInstr(currentText, rd, entity.toString()));
             } else {

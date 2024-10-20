@@ -370,7 +370,7 @@ public class ASMBuilderPlus implements IRVisitor {
         String r2 = getVarReg(binaryInstr.result.toString());
         if(r2 == null){
             int resultPlace = binaryInstr.parent.parent.getPlace(binaryInstr.result.toString());
-            currentText.instrList.add(new ASMArithInstr(currentText, "t0", "t1", "t2", binaryInstr.op));
+            currentText.instrList.add(new ASMArithInstr(currentText, r0, r1, "t2", binaryInstr.op));
             currentText.instrList.add(new ASMSwInstr(currentText,"t2", "sp", resultPlace));
         } else {
             currentText.instrList.add(new ASMArithInstr(currentText, r0, r1, r2, binaryInstr.op));

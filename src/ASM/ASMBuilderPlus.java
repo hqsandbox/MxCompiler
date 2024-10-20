@@ -16,6 +16,7 @@ import IR.definition.IRGlobalVariDef;
 import IR.definition.IRStatement;
 import IR.entity.*;
 import IR.instruction.*;
+import IROptimize.RegAlloca.Utils.Node;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,8 +32,8 @@ public class ASMBuilderPlus implements IRVisitor {
     public ASMText currentText = null;
 
     public IRFuncDef currentFunc;
-    public HashMap<IRBlock, HashMap<IREntity, ArrayList<IREntity>>> graphs = new HashMap<>();
-    private final HashSet<ArrayList<IREntity>> allCycles = new HashSet<>();
+    public HashMap<IRBlock, HashMap<Node, ArrayList<Node>>> graphs = new HashMap<>();
+    private final HashSet<ArrayList<Node>> allCycles = new HashSet<>();
 
     public ASMBuilderPlus(IRProgram irProgram) {
         this.irProgram = irProgram;
@@ -44,28 +45,70 @@ public class ASMBuilderPlus implements IRVisitor {
         for(var entry : graphs.entrySet()){
             allCycles.clear();
             findCycles(entry.getKey(), entry.getValue());
-            cycle_phi_elimination(entry.getKey());
+            cycle_transfer_node(entry.getKey());
+        }
+    }
+
+    public Node getNode(IREntity entity){
+        Node node = new Node();
+        if(isInt(entity)){
+            node.setNum(getInt(entity));
+        } else if(isReg(entity)){
+            node.setReg(getVarReg(entity.toString()));
+        } else if(inStack(entity)){
+            int place = currentFunc.getPlace(entity.toString());
+            node.setSp(place);
+        } else if(isGlobal(entity)){
+            node.setGlobal(entity.toString());
+        } else {
+            throw new RuntimeException("getNode: entity is not reg or stack");
+        }
+        return node;
+    }
+
+    public boolean graphContainsKey(HashMap<Node, ArrayList<Node>> graph, Node node){
+        for(Node key : graph.keySet()){
+            if(key.judgeEqual(node)) return true;
+        }
+        return false;
+    }
+
+    public boolean graphContainsValue(HashMap<Node, ArrayList<Node>> graph, Node key, Node value){
+        for(Node tmp : graph.get(key)){
+            if(tmp.judgeEqual(value)) return true;
+        }
+        return false;
+    }
+
+    public void graphValueRemove(HashMap<Node, ArrayList<Node>> graph, Node key, Node value){
+        // 入边肯定只有一条，所以删掉直接 return
+        ArrayList<Node> list = graph.get(key);
+        for(Node tmp : list){
+            if(tmp.judgeEqual(value)){
+                list.remove(tmp);
+                return;
+            }
         }
     }
 
     public void buildGraph(HashMap<String, PhiInstr> phiInsts){
         for (String tmp : phiInsts.keySet()) {
             PhiInstr phiInstr = phiInsts.get(tmp);
-            IREntity key = phiInstr.result;
+            Node key = getNode(phiInstr.result);
             for(int i = 0; i < phiInstr.blocks.size(); ++i){
                 IRBlock block = phiInstr.blocks.get(i);
-                IREntity value = phiInstr.values.get(i);
+                Node value = getNode(phiInstr.values.get(i));
                 if(!graphs.containsKey(block)){
                     graphs.put(block, new HashMap<>());
                 }
-                HashMap<IREntity, ArrayList<IREntity>> graph = graphs.get(block);
-                if(!graph.containsKey(key)){
+                HashMap<Node, ArrayList<Node>> graph = graphs.get(block);
+                if(!graphContainsKey(graph, key)){
                     graph.put(key, new ArrayList<>());
                 }
-                if(value.toString().equals("null")){
+//                if(value.toString().equals("null")){
 //                    System.out.println("debug");
-                }
-                if(!graph.containsKey(value)){
+//                }
+                if(!graphContainsKey(graph, value)){
                     graph.put(value, new ArrayList<>());
                 }
                 graph.get(value).add(key);
@@ -73,33 +116,33 @@ public class ASMBuilderPlus implements IRVisitor {
         }
     }
 
-    public void findCycles(IRBlock targetBlock, HashMap<IREntity, ArrayList<IREntity>> graph){
+    public void findCycles(IRBlock targetBlock, HashMap<Node, ArrayList<Node>> graph){
         // 先对出度为0的点消除，然后剩下的图就全是环了
         while(true){
-            ArrayList<IREntity> removeList = findEmpty(graph);
+            ArrayList<Node> removeList = findEmpty(graph);
             if(removeList.isEmpty()) break;
             // 在删掉这个节点以及边之前，先对该指令进行asm的翻译
             // 然后将指向key的边删掉（指向指的是result为key）
-            for(IREntity key : removeList){
-                for(IREntity src : graph.keySet()){
-                    if(graph.get(src).contains(key)){
-                        naive_phi_elimination(targetBlock, src, key);
-                        graph.get(src).remove(key);
+            for(Node key : removeList){
+                for(Node src : graph.keySet()){
+                    if(graphContainsValue(graph, src, key)){
+                        transferNode(targetBlock, src, key);
+                        graphValueRemove(graph, src, key);
                     }
                 }
             }
             // 将key这个节点删掉，这个节点出度为0
-            for(IREntity key : removeList){
+            for(Node key : removeList){
                 graph.remove(key);
             }
         }
         // 现在整个graph里面全是环
-        allCycles.clear();// TODO
+        allCycles.clear();
         while(!graph.isEmpty()){
-            Map.Entry<IREntity, ArrayList<IREntity>> firstEntry = graph.entrySet().iterator().next();
-            ArrayList<IREntity> path = new ArrayList<>();
-            IREntity currentNode = firstEntry.getKey();
-            IREntity nextNode;
+            Map.Entry<Node, ArrayList<Node>> firstEntry = graph.entrySet().iterator().next();
+            ArrayList<Node> path = new ArrayList<>();
+            Node currentNode = firstEntry.getKey();
+            Node nextNode;
             path.add(firstEntry.getKey());
             while(true){
                 nextNode = graph.get(currentNode).getFirst();
@@ -107,109 +150,89 @@ public class ASMBuilderPlus implements IRVisitor {
                 path.add(nextNode);
                 currentNode = nextNode;
             }
-            for(IREntity key : path) graph.remove(key);
+            for(Node key : path) graph.remove(key);
             allCycles.add(path);
         }
     }
 
-    public void cycle_phi_elimination(IRBlock targetBlock){
+    public void transferNode(IRBlock targetBlock, Node src, Node dest){
         // src: reg sp num global
-        // key: reg
+        // dest: reg sp
         ASMText asmText = irProgram.blockTextMap.get(targetBlock);
-        for(ArrayList<IREntity> cycle : allCycles){
-            IREntity headEntity = cycle.getFirst();
-            IREntity lastEntity = cycle.getLast();
-            IREntity secondEntity = cycle.get(1);
-            // head -> t6
-            // last -> head
-            if(headEntity instanceof IRIntLiteral){
-                asmText.addBeforeEnd(new ASMLiInstr(asmText, "t6", ((IRIntLiteral) headEntity).value));
-            } else if(headEntity instanceof IRBoolLiteral){
-                asmText.addBeforeEnd(new ASMLiInstr(asmText, "t6", ((IRBoolLiteral) headEntity).value ? 1 : 0));
-            } else if(isReg(headEntity)){
-                asmText.addBeforeEnd(new ASMMvInstr(asmText, "t6", getVarReg(headEntity.toString())));
-            } else if(inStack(headEntity)){
-                int headPlace = currentFunc.getPlace(headEntity.toString());
-                asmText.addBeforeEnd(new ASMLwInstr(asmText, "t6", "sp", headPlace));
+        if(src.isNumNode()){
+            int value = src.getNodeNum();
+            if(dest.isRegNode()){
+                asmText.addBeforeEnd(new ASMLiInstr(asmText, dest.getNodeReg(), value));
+            } else if (dest.isSpNode()){
+                asmText.addBeforeEnd(new ASMLiInstr(asmText, "t2", value));
+                asmText.addBeforeEnd(new ASMSwInstr(currentText,"t2", "sp", dest.getNodeSp()));
             } else {
-                throw new RuntimeException("cycle_phi_elimination: headEntity is not reg or stack");
+                throw new RuntimeException("transferNode: dest is not reg or stack");
             }
-            naive_phi_elimination(targetBlock, lastEntity, headEntity);
-            for(int i = cycle.size() - 1; i >= 2; --i){
-                naive_phi_elimination(targetBlock, cycle.get(i - 1), cycle.get(i));
-            }
-            // t6 -> second
-            if(isReg(secondEntity)){
-                asmText.addBeforeEnd(new ASMMvInstr(asmText, getVarReg(secondEntity.toString()), "t6"));
-            } else if(inStack(secondEntity)){
-                int lastPlace = currentFunc.getPlace(secondEntity.toString());
-                asmText.addBeforeEnd(new ASMSwInstr(currentText,"t6", "sp", lastPlace));
+        } else if(src.isRegNode()){
+            String srcReg = src.getNodeReg();
+            if(dest.isRegNode()){
+                asmText.addBeforeEnd(new ASMMvInstr(asmText, dest.getNodeReg(), srcReg));
+            } else if (dest.isSpNode()){
+                asmText.addBeforeEnd(new ASMMvInstr(asmText, "t2", srcReg));
+                asmText.addBeforeEnd(new ASMSwInstr(currentText,"t2", "sp", dest.getNodeSp()));
             } else {
-                throw new RuntimeException("cycle_phi_elimination: secondEntity is not reg or stack");
+                throw new RuntimeException("transferNode: dest is not reg or stack");
             }
+        } else if(src.isSpNode()){
+            int srcPlace = src.getNodeSp();
+            asmText.addBeforeEnd(new ASMLwInstr(asmText, "t0", "sp", srcPlace));
+            if(dest.isRegNode()){
+                asmText.addBeforeEnd(new ASMMvInstr(asmText, dest.getNodeReg(), "t0"));
+            } else if (dest.isSpNode()){
+                asmText.addBeforeEnd(new ASMSwInstr(currentText,"t0", "sp", dest.getNodeSp()));
+            } else {
+                throw new RuntimeException("transferNode: dest is not reg or stack");
+            }
+        } else if(src.isGlobalNode()){
+            if(dest.isRegNode()){
+                asmText.addBeforeEnd(new ASMLaInstr(asmText, dest.getNodeReg(), src.getNodeGlobal()));
+            } else if (dest.isSpNode()){
+                int resultPlace = currentFunc.getPlace(dest.getNodeGlobal());
+                asmText.addBeforeEnd(new ASMLaInstr(asmText, "t0", src.getNodeGlobal()));
+                asmText.addBeforeEnd(new ASMSwInstr(currentText,"t0", "sp", resultPlace));
+            } else {
+                throw new RuntimeException("transferNode: dest is not reg or stack");
+            }
+        } else {
+            throw new RuntimeException("transferNode: src is not reg or stack");
         }
     }
 
-    public ArrayList<IREntity> findEmpty(HashMap<IREntity, ArrayList<IREntity>> graph){
-        ArrayList<IREntity> res = new ArrayList<>();
-        for(IREntity key : graph.keySet()){
+    public void cycle_transfer_node(IRBlock targetBlock){
+        // src: reg sp num global
+        // key: reg
+        ASMText asmText = irProgram.blockTextMap.get(targetBlock);
+        for(ArrayList<Node> cycle : allCycles){
+            Node headNode = cycle.getFirst();
+            Node lastNode = cycle.getLast();
+            Node secondNode = cycle.get(1);
+            // head -> t6
+            // last -> head
+            Node t6Node = new Node().setReg("t6");
+            transferNode(targetBlock, headNode, t6Node);
+            transferNode(targetBlock, lastNode, headNode);
+            for(int i = cycle.size() - 1; i >= 2; --i){
+                transferNode(targetBlock, cycle.get(i - 1), cycle.get(i));
+            }
+            // t6 -> second
+            transferNode(targetBlock, t6Node, secondNode);
+        }
+    }
+
+    public ArrayList<Node> findEmpty(HashMap<Node, ArrayList<Node>> graph){
+        ArrayList<Node> res = new ArrayList<>();
+        for(Node key : graph.keySet()){
             if(graph.get(key).isEmpty()){
                 res.add(key);
             }
         }
         return res;
-    }
-
-    public void naive_phi_elimination(IRBlock targetBlock, IREntity src, IREntity key){
-        // src: reg sp num global
-        // key: reg sp
-        ASMText asmText = irProgram.blockTextMap.get(targetBlock);
-        if(isInt(src)){
-            int value = getInt(src);
-            if(isReg(key)){
-                asmText.addBeforeEnd(new ASMLiInstr(asmText, getVarReg(key.toString()), value));
-            } else if (inStack(key)){
-                int resultPlace = currentFunc.getPlace(key.toString());
-                asmText.addBeforeEnd(new ASMLiInstr(asmText, "t2", value));
-                asmText.addBeforeEnd(new ASMSwInstr(currentText,"t2", "sp", resultPlace));
-            } else {
-                throw new RuntimeException("naive_phi_elimination: key is not reg or stack");
-            }
-        } else if(isReg(src)){
-            String srcReg = getVarReg(src.toString());
-            if(isReg(key)){
-                asmText.addBeforeEnd(new ASMMvInstr(asmText, getVarReg(key.toString()), srcReg));
-            } else if (inStack(key)){
-                int resultPlace = currentFunc.getPlace(key.toString());
-                asmText.addBeforeEnd(new ASMMvInstr(asmText, "t2", srcReg));
-                asmText.addBeforeEnd(new ASMSwInstr(currentText,"t2", "sp", resultPlace));
-            } else {
-                throw new RuntimeException("naive_phi_elimination: key is not reg or stack");
-            }
-        } else if(inStack(src)){
-            int srcPlace = currentFunc.getPlace(src.toString());
-            asmText.addBeforeEnd(new ASMLwInstr(asmText, "t0", "sp", srcPlace));
-            if(isReg(key)){
-                asmText.addBeforeEnd(new ASMMvInstr(asmText, getVarReg(key.toString()), "t0"));
-            } else if (inStack(key)){
-                int resultPlace = currentFunc.getPlace(key.toString());
-                asmText.addBeforeEnd(new ASMSwInstr(currentText,"t0", "sp", resultPlace));
-            } else {
-                throw new RuntimeException("naive_phi_elimination: key is not reg or stack");
-            }
-        } else if(isGlobal(src)){
-            if(isReg(key)){
-                currentText.instrList.add(new ASMLaInstr(currentText, getVarReg(key.toString()), src.toString()));
-            } else if (inStack(key)){
-                int resultPlace = currentFunc.getPlace(key.toString());
-                currentText.instrList.add(new ASMLaInstr(currentText, "t0", src.toString()));
-                currentText.instrList.add(new ASMSwInstr(currentText,"t0", "sp", resultPlace));
-            } else {
-                throw new RuntimeException("naive_phi_elimination: key is not reg or stack");
-            }
-        } else {
-            throw new RuntimeException("naive_phi_elimination: src is not reg or stack");
-        }
     }
 
     @Override public void visit(IRProgram irProgram){
@@ -382,53 +405,40 @@ public class ASMBuilderPlus implements IRVisitor {
     }
 
     public void callRegAlloc(CallInstr callInstr){
-        HashMap<IREntity, ArrayList<IREntity>> graph = buildCallGraph(callInstr);
+        HashMap<Node, ArrayList<Node>> graph = buildCallGraph(callInstr);
         allCycles.clear();
         findCallCycles(callInstr, graph);
         cycle_elimination();
     }
 
-    public HashMap<IREntity, ArrayList<IREntity>> buildCallGraph(CallInstr callInstr){
+    public HashMap<Node, ArrayList<Node>> buildCallGraph(CallInstr callInstr){
 
-        if(callInstr.funcName.equals("print") && callInstr.args.getFirst().toString().equals("@.str..0")){
+//        if(callInstr.funcName.equals("print") && callInstr.args.getFirst().toString().equals("@.str..0")){
 //            System.out.println("debug");
-        }
+//        }
 
-        HashMap<IREntity, ArrayList<IREntity>> graph = new HashMap<>();
+        HashMap<Node, ArrayList<Node>> graph = new HashMap<>();
         int num = callInstr.args.size();
         if(num > 8) num = 8;
         // arg: reg sp num global
+        // dest: a0-a7
+        // arg -> register
         for(int i = 0; i < num; ++i){
-            IREntity arg = callInstr.args.get(i);
-            IRRegister register = new IRRegister("a" + i);
-            if(!containRegMap(graph, register)){
+            Node arg = getNode(callInstr.args.get(i));
+            Node register = new Node().setReg("a" + i);
+            if(!graphContainsKey(graph, register)){
                 graph.put(register, new ArrayList<>());
             }
-            if(isReg(arg)){
-                arg = new IRRegister(getVarReg(arg.toString()));
-            }
-            if(!graph.containsKey(arg)){
+            if(!graphContainsKey(graph, arg)){
                 graph.put(arg, new ArrayList<>());
             }
-            graph.get(arg).add(new IRRegister("a" + i));
+            graph.get(arg).add(register);
         }
         return graph;
     }
 
     // 已知register是一个寄存器，判断graph、List里面有没有
     // 错误：不能用contain来判断是否在里面，因为只有同一个对象才能判定相等，而这里只是名字相同而已
-    public boolean containRegMap(HashMap<IREntity, ArrayList<IREntity>> graph, IREntity register){
-        for(IREntity key : graph.keySet()){
-            if (key.toString().equals(register.toString())) return true;
-        }
-        return false;
-    }
-    public boolean containRegList(ArrayList<IREntity> regList, IREntity register){
-        for(IREntity var : regList){
-            if(var.toString().equals(register.toString())) return true;
-        }
-        return false;
-    }
     public void removeRegList(ArrayList<IREntity> regList, IREntity register){
         ArrayList<IREntity> removeList = new ArrayList<>();
         for(IREntity var : regList){
@@ -441,36 +451,36 @@ public class ASMBuilderPlus implements IRVisitor {
         }
     }
 
-    public void findCallCycles(CallInstr callInstr, HashMap<IREntity, ArrayList<IREntity>> graph){
+    public void findCallCycles(CallInstr callInstr, HashMap<Node, ArrayList<Node>> graph){
         // 先对出度为0的点消除，然后剩下的图就全是环了
         if(callInstr.funcName.equals("print") && callInstr.args.getFirst().toString().equals("@.str..0")){
 //            System.out.println("debug");
         }
         while(true){
-            ArrayList<IREntity> removeList = findEmpty(graph);
+            ArrayList<Node> removeList = findEmpty(graph);
             if(removeList.isEmpty()) break;
             // 在删掉这个节点以及边之前，先对该指令进行asm的翻译
             // 然后将指向key的边删掉（指向指的是result为key）
-            for(IREntity key : removeList){
-                for(IREntity src : graph.keySet()){
-                    if(containRegList(graph.get(src), key)){
+            for(Node key : removeList){
+                for(Node src : graph.keySet()){
+                    if(graphContainsValue(graph, src, key)){
                         naive_elimination(src, key);
-                        removeRegList(graph.get(src), key);
+                        graphValueRemove(graph, src, key);
                     }
                 }
             }
             // 将key这个节点删掉，这个节点出度为0
-            for(IREntity key : removeList){
+            for(Node key : removeList){
                 graph.remove(key);
             }
         }
         // 现在整个graph里面全是环
         allCycles.clear();
         while(!graph.isEmpty()){
-            Map.Entry<IREntity, ArrayList<IREntity>> firstEntry = graph.entrySet().iterator().next();
-            ArrayList<IREntity> path = new ArrayList<>();
-            IREntity currentNode = firstEntry.getKey();
-            IREntity nextNode;
+            Map.Entry<Node, ArrayList<Node>> firstEntry = graph.entrySet().iterator().next();
+            ArrayList<Node> path = new ArrayList<>();
+            Node currentNode = firstEntry.getKey();
+            Node nextNode;
             path.add(firstEntry.getKey());
             while(true){
                 nextNode = graph.get(currentNode).getFirst();
@@ -478,107 +488,76 @@ public class ASMBuilderPlus implements IRVisitor {
                 path.add(nextNode);
                 currentNode = nextNode;
             }
-            for(IREntity key : path) graph.remove(key);
+            for(Node key : path) graph.remove(key);
             allCycles.add(path);
         }
     }
 
-    public void naive_elimination(IREntity src, IREntity key){
+    public void naive_elimination(Node src, Node dest){
         // src: reg sp num global
-        // key: reg sp
-        if(isInt(src)){
-            int value = getInt(src);
-            if(isReg(key)){
-                currentText.instrList.add(new ASMLiInstr(currentText, getVarReg(key.toString()), value));
-            } else if (inStack(key)){
-                int resultPlace = currentFunc.getPlace(key.toString());
+        // dest: reg sp
+        if(src.isNumNode()){
+            int value = src.getNodeNum();
+            if(dest.isRegNode()){
+                currentText.instrList.add(new ASMLiInstr(currentText, dest.getNodeReg(), value));
+            } else if (dest.isSpNode()){
                 currentText.instrList.add(new ASMLiInstr(currentText, "t2", value));
-                currentText.instrList.add(new ASMSwInstr(currentText,"t2", "sp", resultPlace));
-            } else if(key instanceof IRRegister){
-                currentText.instrList.add(new ASMLiInstr(currentText, key.toString(), value));
+                currentText.instrList.add(new ASMSwInstr(currentText,"t2", "sp", dest.getNodeSp()));
             } else {
-                throw new RuntimeException("naive_phi_elimination: key is not reg or stack");
+                throw new RuntimeException("transferNode: dest is not reg or stack");
             }
-        } else if(isReg(src) || src instanceof IRRegister){
-            String srcReg = getVarReg(src.toString());
-            if(src instanceof IRRegister register){
-                srcReg = register.toString();
-            }
-            if(isReg(key)){
-                currentText.instrList.add(new ASMMvInstr(currentText, getVarReg(key.toString()), srcReg));
-            } else if (inStack(key)){
-                int resultPlace = currentFunc.getPlace(key.toString());
+        } else if(src.isRegNode()){
+            String srcReg = src.getNodeReg();
+            if(dest.isRegNode()){
+                currentText.instrList.add(new ASMMvInstr(currentText, dest.getNodeReg(), srcReg));
+            } else if (dest.isSpNode()){
                 currentText.instrList.add(new ASMMvInstr(currentText, "t2", srcReg));
-                currentText.instrList.add(new ASMSwInstr(currentText,"t2", "sp", resultPlace));
-            } else if(key instanceof IRRegister){
-                currentText.instrList.add(new ASMMvInstr(currentText, key.toString(), srcReg));
+                currentText.instrList.add(new ASMSwInstr(currentText,"t2", "sp", dest.getNodeSp()));
             } else {
-                throw new RuntimeException("naive_phi_elimination: key is not reg or stack");
+                throw new RuntimeException("transferNode: dest is not reg or stack");
             }
-        } else if(inStack(src)){
-            int srcPlace = currentFunc.getPlace(src.toString());
+        } else if(src.isSpNode()){
+            int srcPlace = src.getNodeSp();
             currentText.instrList.add(new ASMLwInstr(currentText, "t0", "sp", srcPlace));
-            if(isReg(key)){
-                currentText.instrList.add(new ASMMvInstr(currentText, getVarReg(key.toString()), "t0"));
-            } else if (inStack(key)){
-                int resultPlace = currentFunc.getPlace(key.toString());
-                currentText.instrList.add(new ASMSwInstr(currentText,"t0", "sp", resultPlace));
-            } else if(key instanceof IRRegister){
-                currentText.instrList.add(new ASMMvInstr(currentText, key.toString(), "t0"));
+            if(dest.isRegNode()){
+                currentText.instrList.add(new ASMMvInstr(currentText, dest.getNodeReg(), "t0"));
+            } else if (dest.isSpNode()){
+                currentText.instrList.add(new ASMSwInstr(currentText,"t0", "sp", dest.getNodeSp()));
             } else {
-                throw new RuntimeException("naive_phi_elimination: key is not reg or stack");
+                throw new RuntimeException("transferNode: dest is not reg or stack");
             }
-        } else if(isGlobal(src)){
-            if(isReg(key)){
-                currentText.instrList.add(new ASMLaInstr(currentText, getVarReg(key.toString()), src.toString()));
-            } else if (inStack(key)){
-                int resultPlace = currentFunc.getPlace(key.toString());
-                currentText.instrList.add(new ASMLaInstr(currentText, "t0", src.toString()));
+        } else if(src.isGlobalNode()){
+            if(dest.isRegNode()){
+                currentText.instrList.add(new ASMLaInstr(currentText, dest.getNodeReg(), src.getNodeGlobal()));
+            } else if (dest.isSpNode()){
+                int resultPlace = currentFunc.getPlace(dest.getNodeGlobal());
+                currentText.instrList.add(new ASMLaInstr(currentText, "t0", src.getNodeGlobal()));
                 currentText.instrList.add(new ASMSwInstr(currentText,"t0", "sp", resultPlace));
-            } else if(key instanceof IRRegister){
-                currentText.instrList.add(new ASMLaInstr(currentText, key.toString(), src.toString()));
             } else {
-                throw new RuntimeException("naive_phi_elimination: key is not reg or stack");
+                throw new RuntimeException("transferNode: dest is not reg or stack");
             }
         } else {
-            throw new RuntimeException("naive_phi_elimination: src is not reg or stack");
+            throw new RuntimeException("transferNode: src is not reg or stack");
         }
     }
 
     public void cycle_elimination(){
         // src: reg sp num global
         // key: reg
-        for(ArrayList<IREntity> cycle : allCycles){
-            IREntity headEntity = cycle.getFirst();
-            IREntity lastEntity = cycle.getLast();
-            IREntity secondEntity = cycle.get(1);
+        for(ArrayList<Node> cycle : allCycles){
+            Node headNode = cycle.getFirst();
+            Node lastNode = cycle.getLast();
+            Node secondNode = cycle.get(1);
             // head -> t6
             // last -> head
-            if(headEntity instanceof IRIntLiteral){
-                currentText.instrList.add(new ASMLiInstr(currentText, "t6", ((IRIntLiteral) headEntity).value));
-            } else if(headEntity instanceof IRBoolLiteral){
-                currentText.instrList.add(new ASMLiInstr(currentText, "t6", ((IRBoolLiteral) headEntity).value ? 1 : 0));
-            } else if(isReg(headEntity)){
-                currentText.instrList.add(new ASMMvInstr(currentText, "t6", getVarReg(headEntity.toString())));
-            } else if(inStack(headEntity)){
-                int headPlace = currentFunc.getPlace(headEntity.toString());
-                currentText.instrList.add(new ASMLwInstr(currentText, "t6", "sp", headPlace));
-            } else {
-                throw new RuntimeException("cycle_phi_elimination: headEntity is not reg or stack");
-            }
-            naive_elimination(lastEntity, headEntity);
+            Node t6Node = new Node().setReg("t6");
+            naive_elimination(headNode, t6Node);
+            naive_elimination(lastNode, headNode);
             for(int i = cycle.size() - 1; i >= 2; --i){
                 naive_elimination(cycle.get(i - 1), cycle.get(i));
             }
             // t6 -> second
-            if(isReg(secondEntity)){
-                currentText.instrList.add(new ASMMvInstr(currentText, getVarReg(secondEntity.toString()), "t6"));
-            } else if(inStack(secondEntity)){
-                int lastPlace = currentFunc.getPlace(secondEntity.toString());
-                currentText.instrList.add(new ASMSwInstr(currentText,"t6", "sp", lastPlace));
-            } else {
-                throw new RuntimeException("cycle_phi_elimination: secondEntity is not reg or stack");
-            }
+            naive_elimination(t6Node, secondNode);
         }
     }
 
@@ -731,16 +710,6 @@ public class ASMBuilderPlus implements IRVisitor {
             System.exit(0);
         }
         String r0 = loadIREntity(storeInstr.value, "t0", storeInstr.parent.parent);
-//        int paraPlace = isParaVar(storeInstr.value.toString(), storeInstr.parent.parent);
-//        if(paraPlace == -1){
-//            // doNothing
-//        } else {
-//            if(paraPlace < 8){
-//                currentText.instrList.add(new ASMMvInstr(currentText, r0, "a" + paraPlace));
-//            } else {
-//                currentText.instrList.add(new ASMSwInstr(currentText, r0, "sp", storeInstr.parent.parent.offsetMap.get(storeInstr.value.toString())));
-//            }
-//        }
         String r1 = loadIREntity(storeInstr.ptr, "t1", storeInstr.parent.parent);
         currentText.instrList.add(new ASMSwInstr(currentText, r0, r1, 0));
     }
@@ -839,8 +808,6 @@ public class ASMBuilderPlus implements IRVisitor {
                 Instruction instruction = irFuncDef.blockList.get(i).instructions.get(j);
                 if(instruction instanceof AllocInstr allocInstr){
                     // 错误：这里是allocInstr.irVariable.name，而不是allocInstr.varName
-//                    irFuncDef.nameMap.put(allocInstr.irVariable.name, stackSize);
-//                    stackSize += 8;
                     throw new RuntimeException("AllocInstr should not appear in IRFuncDef");
                 } else if(instruction instanceof BinaryInstr binaryInstr){
                     if(!isReg(binaryInstr.result) && !irFuncDef.nameMap.containsKey(binaryInstr.result.toString())){
@@ -927,7 +894,6 @@ public class ASMBuilderPlus implements IRVisitor {
     }
 
     public boolean isInt(IREntity entity){
-        if(entity instanceof IRRegister) return false;
         if(entity instanceof IRIntLiteral) return true;
         if(entity instanceof IRBoolLiteral) return true;
         if(entity instanceof IRVariable){

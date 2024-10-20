@@ -88,11 +88,11 @@ public class Color {
                 inUse.remove(tmp);
             }
         }
-        if(defVar != null){
-            if(defVar.equals("%var6")){
-                System.out.println("debug");
-            }
-        }
+//        if(defVar != null){
+//            if(defVar.equals("%var6")){
+//                System.out.println("debug");
+//            }
+//        }
 
         // 错误：这里判断要加上元素属于liveOut_
         if(defVar != null && instruction.liveOut_.contains(defVar)) {

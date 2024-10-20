@@ -73,6 +73,13 @@ public class ASMBuilderPlus implements IRVisitor {
         return false;
     }
 
+    public ArrayList<Node> takeOut(HashMap<Node, ArrayList<Node>> graph, Node node){
+        for(Node key : graph.keySet()){
+            if(key.judgeEqual(node)) return graph.get(key);
+        }
+        return null;
+    }
+
     public boolean graphContainsValue(HashMap<Node, ArrayList<Node>> graph, Node key, Node value){
         for(Node tmp : graph.get(key)){
             if(tmp.judgeEqual(value)) return true;
@@ -82,7 +89,7 @@ public class ASMBuilderPlus implements IRVisitor {
 
     public void graphValueRemove(HashMap<Node, ArrayList<Node>> graph, Node key, Node value){
         // 入边肯定只有一条，所以删掉直接 return
-        ArrayList<Node> list = graph.get(key);
+        ArrayList<Node> list = takeOut(graph, key);
         for(Node tmp : list){
             if(tmp.judgeEqual(value)){
                 list.remove(tmp);
@@ -111,7 +118,9 @@ public class ASMBuilderPlus implements IRVisitor {
                 if(!graphContainsKey(graph, value)){
                     graph.put(value, new ArrayList<>());
                 }
-                graph.get(value).add(key);
+                if(!key.judgeEqual(value)){
+                    takeOut(graph, value).add(key);
+                }
             }
         }
     }
@@ -307,6 +316,9 @@ public class ASMBuilderPlus implements IRVisitor {
     @Override public void visit(IRBlock irBlock) {
         currentText = irProgram.blockTextMap.get(irBlock);
 
+//        if(irBlock.name.equals("land.end..0")){
+//            System.out.println("debug");
+//        }
         phi_eliminator(irBlock);
 
         irBlock.instructions.forEach(instruction -> instruction.accept(this));
@@ -432,7 +444,9 @@ public class ASMBuilderPlus implements IRVisitor {
             if(!graphContainsKey(graph, arg)){
                 graph.put(arg, new ArrayList<>());
             }
-            graph.get(arg).add(register);
+            if(!arg.judgeEqual(register)){
+                takeOut(graph, arg).add(register);
+            }
         }
         return graph;
     }

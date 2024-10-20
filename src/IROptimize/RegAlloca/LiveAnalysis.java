@@ -76,9 +76,9 @@ public class LiveAnalysis {
 //                System.out.println();
 //            }
             scanned_block.clear();
-            if(var.equals("%var6")){
-                System.out.println("debug");
-            }
+//            if(var.equals("%var6")){
+//                System.out.println("debug");
+//            }
             ArrayList<Instruction> useList = varUse.get(var);
             for (Instruction instruction : useList) {
                 if (instruction instanceof PhiInstr phiInstr) {

@@ -759,7 +759,7 @@ public class ASMBuilderPlus implements IRVisitor {
             if(entity.toString().equals("null")){
                 currentText.instrList.add(new ASMLiInstr(currentText, rd, 0));
             } else {
-//                System.exit(0);
+                System.exit(0);
             }
         } else if(entity instanceof IRVariable){
             if(irFuncDef.regMap.containsKey(entity.toString())){

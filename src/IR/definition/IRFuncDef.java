@@ -61,7 +61,7 @@ public class IRFuncDef extends IRStatement {
     public int getPlace(String name) {
         if (nameMap.containsKey(name)) return nameMap.get(name);
         else {
-//            System.exit(0);
+            System.exit(0);
             throw new RuntimeException("getPlace error");
         }
     }

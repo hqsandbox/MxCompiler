@@ -303,6 +303,9 @@ public class ASMBuilderPlus implements IRVisitor {
         startText.instrList.add(new ASMSwInstr(currentText, "t1", "sp", stackSize + 4));
         startText.instrList.add(new ASMSwInstr(currentText, "t2", "sp", stackSize + 8));
 
+//        if(irFuncDef.functionName.equals("vector..init")){
+//                System.out.println("debug");
+//        }
         // 函数参数的载入
         // a0-a7 -> var(reg、stack)
         // 假设var全是局部变量（猜测）
@@ -598,6 +601,7 @@ public class ASMBuilderPlus implements IRVisitor {
             }
         }
 
+        // 错误：不能存储 a0-a7！
         // 存储 t0-t3, t6, 以及用到的变量
         callRegStore(callInstr, callInstr.args.size(), regList);
 
@@ -633,6 +637,10 @@ public class ASMBuilderPlus implements IRVisitor {
 
     @Override public void visit(GeteleptrInstr geteleptrInstr){
         currentText.instrList.add(new ASMComment(currentText, geteleptrInstr));
+
+        if(geteleptrInstr.ptrValue.toString().equals("%_this")){
+//            System.out.println("debug");
+        }
 
         // 错误：这里是actual_load_entity，而不是loadIREntity
         actual_load_entity(geteleptrInstr.ptrValue, "t0", geteleptrInstr.parent.parent);

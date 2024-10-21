@@ -21,7 +21,7 @@ public class Color {
 
     public void work() {
         for(IRFuncDef func : program.funcDefMap.values()) {
-//            if(func.functionName.equals("jud")){
+//            if(func.functionName.equals("vector..init")){
 //                System.out.println("debug");
 //            }
             // 错误：这里要加上这个，因为考虑到函数参数
@@ -34,6 +34,9 @@ public class Color {
     }
 
     public void preOrder(IRBlock block) {
+//        if(tempMap.get("%_this") != 0){
+//            System.out.println("debug");
+//        }
         // inuse = phiLiveOut - phiDef
         inUse.clear();
         HashSet<String> Block_liveIn = new HashSet<>();
@@ -66,9 +69,6 @@ public class Color {
             if(!block.phiLiveOut_.contains(var)){
                 continue;
             }
-//            if(var.equals("%d.1_for.cond.0")){
-//                System.out.println("debug");
-//            }
             tempMap.put(var, getNewReg());
         }
         for(Instruction instruction : block.instructions) {
@@ -77,9 +77,15 @@ public class Color {
         for(IRBlock succ : block.domChildren) {
             preOrder(succ);
         }
+//        if(tempMap.get("%_this") != 0){
+//            System.out.println("debug");
+//        }
     }
 
     public void allocate(Instruction instruction) {
+//        if(tempMap.get("%_this") != 0){
+//            System.out.println("debug");
+//        }
         ArrayList<String> useList = instruction.getUse();
         String defVar = instruction.getDef();
         for(String var : useList) {
@@ -98,6 +104,9 @@ public class Color {
         if(defVar != null && instruction.liveOut_.contains(defVar)) {
             tempMap.put(defVar, getNewReg());
         }
+//        if(tempMap.get("%_this") != 0){
+//            System.out.println("debug");
+//        }
     }
 
     public Integer getNewReg(){

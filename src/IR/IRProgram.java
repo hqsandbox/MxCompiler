@@ -17,7 +17,7 @@ public class IRProgram {
     public HashMap<String, IRFuncDef> funcDefMap = new HashMap<>();
     public HashMap<String, IRClassDef> classDefMap = new HashMap<>();
     public HashMap<String, IRGlobalVariDef> globalVarDefMap = new HashMap<>();
-    public HashMap<String, Integer> regMap = null; // 寄存器分配，用于记录变量的寄存器编号
+//    public HashMap<String, Integer> regMap = null; // 寄存器分配，用于记录变量的寄存器编号
     public List<Pair<IRBlock, IRBlock>> criticalEdge = new ArrayList<>();
     public HashMap<IRBlock, ASMText> blockTextMap = new HashMap<>();
     public HashSet<String> spilledVars = new HashSet<>();// for colorChecker

@@ -15,6 +15,7 @@ public class IRFuncDef extends IRStatement {
     public ArrayList<IRType> parameterTypeList = new ArrayList<>();
     public ArrayList<String> parameterNameList = new ArrayList<>();
     public ArrayList<IRBlock> blockList = new ArrayList<>();
+    public HashMap<String, Integer> regMap = new HashMap<>();
 
     // useless
     public HashMap<String, String> paraMap = new HashMap<>(); // a0-a7

@@ -313,7 +313,7 @@ public class ASMBuilderPlus implements IRVisitor {
         for(int i = 0; i < paraSize; ++i){
             String var = irFuncDef.parameterNameList.get(i);
             String register = "a" + i;
-            if(irProgram.regMap.containsKey(var)){
+            if(irFuncDef.regMap.containsKey(var)){
                 startText.instrList.add(new ASMMvInstr(currentText, getVarReg(var), register));
             } else if(irFuncDef.nameMap.containsKey(var)){
                 int place = irFuncDef.getPlace(var);
@@ -762,8 +762,8 @@ public class ASMBuilderPlus implements IRVisitor {
 //                System.exit(0);
             }
         } else if(entity instanceof IRVariable){
-            if(irProgram.regMap.containsKey(entity.toString())){
-                return getReg(irProgram.regMap.get(entity.toString()));
+            if(irFuncDef.regMap.containsKey(entity.toString())){
+                return getReg(irFuncDef.regMap.get(entity.toString()));
             }
             int place = irFuncDef.getPlace(entity.toString());
             currentText.instrList.add(new ASMLwInstr(currentText, rd, "sp", place));
@@ -897,7 +897,7 @@ public class ASMBuilderPlus implements IRVisitor {
     }
 
     public boolean isReg(IREntity entity) {
-        return entity instanceof IRVariable && irProgram.regMap.containsKey(entity.toString());
+        return entity instanceof IRVariable && currentFunc.regMap.containsKey(entity.toString());
     }
 
     public boolean nameIsReg(IREntity entity) {
@@ -909,7 +909,7 @@ public class ASMBuilderPlus implements IRVisitor {
     }
 
     public String getVarReg(String var) {
-        if(irProgram.regMap.containsKey(var)) return getReg(irProgram.regMap.get(var));
+        if(currentFunc.regMap.containsKey(var)) return getReg(currentFunc.regMap.get(var));
         return null;
     }
 

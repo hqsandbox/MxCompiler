@@ -12,7 +12,7 @@ public class Color {
 
     public IRProgram program;
     public HashSet<Integer> inUse = new HashSet<>();
-    public HashMap<String, Integer> tempMap = new HashMap<>();
+    public HashMap<String, Integer> tempMap;
     public int regNum = 20;
 
     public Color(IRProgram program) {
@@ -25,12 +25,13 @@ public class Color {
 //                System.out.println("debug");
 //            }
             // 错误：这里要加上这个，因为考虑到函数参数
+            tempMap = new HashMap<>();
             for(String var : func.blockList.getFirst().phiLiveOut_) {
                 tempMap.put(var, getNewReg());
             }
             preOrder(func.blockList.getFirst());
+            func.regMap = tempMap;
         }
-        program.regMap = tempMap;
     }
 
     public void preOrder(IRBlock block) {

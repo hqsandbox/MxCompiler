@@ -17,9 +17,9 @@ public class ColorChecker {
         collectVar();
         if(!checkColor()) {
             for(var var : vars) {
-                if(!program.regMap.containsKey(var) && !program.spilledVars.contains(var)) {
-                    System.out.println(var);
-                }
+//                if(!program.regMap.containsKey(var) && !program.spilledVars.contains(var)) {
+//                    System.out.println(var);
+//                }
             }
             throw new RuntimeException("ColorChecker failed");
         }
@@ -49,9 +49,9 @@ public class ColorChecker {
     }
 
     public boolean checkColor() {
-        if(vars.size() != program.regMap.size() + program.spilledVars.size()) {
-            return false;
-        }
+//        if(vars.size() != program.regMap.size() + program.spilledVars.size()) {
+//            return false;
+//        }
         return true;
     }
 

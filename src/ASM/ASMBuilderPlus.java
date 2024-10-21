@@ -394,10 +394,10 @@ public class ASMBuilderPlus implements IRVisitor {
     public void callRegStore(CallInstr callInstr, int num, HashSet<String> regList){
         if(num > 8) num = 8;
         IRBlock block = callInstr.parent;
-        for(int i = 0; i < num; ++i){
-            int place = block.parent.getPlace("a" + i);
-            currentText.instrList.add(new ASMSwInstr(currentText, "a" + i, "sp", place));
-        }
+//        for(int i = 0; i < num; ++i){
+//            int place = block.parent.getPlace("a" + i);
+//            currentText.instrList.add(new ASMSwInstr(currentText, "a" + i, "sp", place));
+//        }
         currentText.instrList.add(new ASMSwInstr(currentText, "t0", "sp", block.parent.getPlace("t0")));
         currentText.instrList.add(new ASMSwInstr(currentText, "t1", "sp", block.parent.getPlace("t1")));
         currentText.instrList.add(new ASMSwInstr(currentText, "t2", "sp", block.parent.getPlace("t2")));
@@ -411,10 +411,10 @@ public class ASMBuilderPlus implements IRVisitor {
     public void callRegLoad(CallInstr callInstr, int num, HashSet<String> regList){
         if(num > 8) num = 8;
         IRBlock block = callInstr.parent;
-        for(int i = 0; i < num; ++i){
-            int place = block.parent.getPlace("a" + i);
-            currentText.instrList.add(new ASMLwInstr(currentText, "a" + i, "sp", place));
-        }
+//        for(int i = 0; i < num; ++i){
+//            int place = block.parent.getPlace("a" + i);
+//            currentText.instrList.add(new ASMLwInstr(currentText, "a" + i, "sp", place));
+//        }
         currentText.instrList.add(new ASMLwInstr(currentText, "t0", "sp", block.parent.getPlace("t0")));
         currentText.instrList.add(new ASMLwInstr(currentText, "t1", "sp", block.parent.getPlace("t1")));
         currentText.instrList.add(new ASMLwInstr(currentText, "t2", "sp", block.parent.getPlace("t2")));
@@ -581,9 +581,16 @@ public class ASMBuilderPlus implements IRVisitor {
         // 将function的 liveOut-def中用到的寄存器存下来
         HashSet<String> varList = callInstr.liveOut_;
         HashSet<String> regList = new HashSet<>();
+        HashSet<String> removeList = new HashSet<>();
         if(callInstr.getDef() != null){
-            varList.remove(callInstr.getDef());
+            String def = callInstr.getDef().toString();
+            for(String var : varList){
+                if(var.equals(def)){
+                    removeList.add(var);
+                }
+            }
         }
+        varList.removeAll(removeList);
         for(String var : varList){
             String reg = getVarReg(var);
             if(reg != null){
@@ -591,7 +598,7 @@ public class ASMBuilderPlus implements IRVisitor {
             }
         }
 
-        // 存储 a0-a7, t0-t3, t6, 以及用到的变量
+        // 存储 t0-t3, t6, 以及用到的变量
         callRegStore(callInstr, callInstr.args.size(), regList);
 
         // 寄存器重分配
@@ -613,7 +620,7 @@ public class ASMBuilderPlus implements IRVisitor {
         }
 
         currentText.instrList.add(new ASMLwInstr(currentText, "ra", "sp", callInstr.parent.parent.stackSize - 4));
-        // result -> a0
+        // a0 -> result
         if(isReg(callInstr.result)){
             currentText.instrList.add(new ASMMvInstr(currentText, getVarReg(callInstr.result.toString()), "a0"));
         } else {

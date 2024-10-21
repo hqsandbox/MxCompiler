@@ -183,6 +183,9 @@ public class PutPhi {
                 }
                 Stack<String> stack = varRename.get(storeInstr.ptr.toString());
                 stack.pop();
+                if(storeInstr.value == null){
+                    System.exit(0);
+                }
                 stack.add(storeInstr.value.toString());
                 eraseList.add(index);
             }

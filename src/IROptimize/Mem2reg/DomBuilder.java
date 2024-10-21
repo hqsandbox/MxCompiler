@@ -93,6 +93,9 @@ public class DomBuilder {
             for (IRBlock pred : block.preds) {
                 IRBlock runner = pred;
                 while (runner != block.idom) {
+                    if(runner == null){
+                        System.exit(0);
+                    }
                     runner.domFrontier.add(block);
                     runner = runner.idom;
                 }

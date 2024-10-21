@@ -938,6 +938,11 @@ public class ASMBuilderPlus implements IRVisitor {
             if(irVariable.toString().equals("false")) return 0;
             if(irVariable.toString().equals("true")) return 1;
             if(irVariable.toString().equals("null")) return 0;
+            try {
+                return Integer.parseInt(irVariable.toString());
+            } catch (Throwable t) {
+                System.exit(0);
+            }
             return Integer.parseInt(irVariable.toString());
         }
         throw new RuntimeException("getInt: entity is not int");

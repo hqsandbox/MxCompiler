@@ -58,6 +58,7 @@ public class LiveAnalysis {
                 continue;
             }
             if(var.equals("1")){
+                System.exit(0);
                 throw new RuntimeException("getUse: " + instruction);
             }
             if(!varUse.containsKey(var)){

@@ -25,7 +25,8 @@ import java.util.Map;
 
 public class ASMBuilderPlus implements IRVisitor {
 
-    // 参考了 indigolxy
+    // 优化1：去掉 mv a a
+    // 优化2：call之前不存储临时寄存器
 
     public IRProgram irProgram = null;
     public ASMProgram asmProgram = new ASMProgram();
@@ -60,6 +61,9 @@ public class ASMBuilderPlus implements IRVisitor {
             node.setSp(place);
         } else if(isGlobal(entity)){
             node.setGlobal(entity.toString());
+        } else if(entity.toString().equals("null")){
+            node.setNum(0);
+//            throw new RuntimeException("getNode: entity is not reg or stack");
         } else {
             throw new RuntimeException("getNode: entity is not reg or stack");
         }
@@ -401,11 +405,11 @@ public class ASMBuilderPlus implements IRVisitor {
 //            int place = block.parent.getPlace("a" + i);
 //            currentText.instrList.add(new ASMSwInstr(currentText, "a" + i, "sp", place));
 //        }
-        currentText.instrList.add(new ASMSwInstr(currentText, "t0", "sp", block.parent.getPlace("t0")));
-        currentText.instrList.add(new ASMSwInstr(currentText, "t1", "sp", block.parent.getPlace("t1")));
-        currentText.instrList.add(new ASMSwInstr(currentText, "t2", "sp", block.parent.getPlace("t2")));
-        currentText.instrList.add(new ASMSwInstr(currentText, "t3", "sp", block.parent.getPlace("t3")));
-        currentText.instrList.add(new ASMSwInstr(currentText, "t6", "sp", block.parent.getPlace("t6")));
+//        currentText.instrList.add(new ASMSwInstr(currentText, "t0", "sp", block.parent.getPlace("t0")));
+//        currentText.instrList.add(new ASMSwInstr(currentText, "t1", "sp", block.parent.getPlace("t1")));
+//        currentText.instrList.add(new ASMSwInstr(currentText, "t2", "sp", block.parent.getPlace("t2")));
+//        currentText.instrList.add(new ASMSwInstr(currentText, "t3", "sp", block.parent.getPlace("t3")));
+//        currentText.instrList.add(new ASMSwInstr(currentText, "t6", "sp", block.parent.getPlace("t6")));
         for(String reg : regList){
             currentText.instrList.add(new ASMSwInstr(currentText, reg, "sp", block.parent.getPlace(reg)));
         }
@@ -418,11 +422,11 @@ public class ASMBuilderPlus implements IRVisitor {
 //            int place = block.parent.getPlace("a" + i);
 //            currentText.instrList.add(new ASMLwInstr(currentText, "a" + i, "sp", place));
 //        }
-        currentText.instrList.add(new ASMLwInstr(currentText, "t0", "sp", block.parent.getPlace("t0")));
-        currentText.instrList.add(new ASMLwInstr(currentText, "t1", "sp", block.parent.getPlace("t1")));
-        currentText.instrList.add(new ASMLwInstr(currentText, "t2", "sp", block.parent.getPlace("t2")));
-        currentText.instrList.add(new ASMLwInstr(currentText, "t3", "sp", block.parent.getPlace("t3")));
-        currentText.instrList.add(new ASMLwInstr(currentText, "t6", "sp", block.parent.getPlace("t6")));
+//        currentText.instrList.add(new ASMLwInstr(currentText, "t0", "sp", block.parent.getPlace("t0")));
+//        currentText.instrList.add(new ASMLwInstr(currentText, "t1", "sp", block.parent.getPlace("t1")));
+//        currentText.instrList.add(new ASMLwInstr(currentText, "t2", "sp", block.parent.getPlace("t2")));
+//        currentText.instrList.add(new ASMLwInstr(currentText, "t3", "sp", block.parent.getPlace("t3")));
+//        currentText.instrList.add(new ASMLwInstr(currentText, "t6", "sp", block.parent.getPlace("t6")));
         for(String reg : regList){
             currentText.instrList.add(new ASMLwInstr(currentText, reg, "sp", block.parent.getPlace(reg)));
         }
@@ -877,7 +881,6 @@ public class ASMBuilderPlus implements IRVisitor {
 
     private int regStackSize(IRFuncDef irFuncDef){
         int stackSize = 0;
-        // TODO
         for(int i = 0; i < 32; ++i){
             irFuncDef.nameMap.put(allReg(i), stackSize);
             stackSize += 4;

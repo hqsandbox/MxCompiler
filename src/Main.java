@@ -134,6 +134,7 @@ public class Main {
                 asmBuilder.visit(irProgram);
             }
 
+            {
             System.out.println("\t.text\n" +
                     "\t.attribute\t4, 16\n" +
                     "\t.attribute\t5, \"rv32i2p0\"\n" +
@@ -748,6 +749,7 @@ public class Main {
                     "\n" +
                     "\t.ident\t\"Ubuntu clang version 15.0.7\"\n" +
                     "\t.section\t\".note.GNU-stack\",\"\",@progbits\n");
+            }
 
         } catch (error er) {
             System.exit(1);

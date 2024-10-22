@@ -14,6 +14,7 @@ public class ASMMvInstr extends ASMInstr {
 
     @Override
     public String toString() {
+        if(rd.equals(rs)) return "";
         return "mv " + rd + ", " + rs;
     }
 }

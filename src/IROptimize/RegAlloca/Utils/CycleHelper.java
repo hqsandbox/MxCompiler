@@ -153,7 +153,6 @@
 //        IRBlock block = firstEntry.getValue().parent;
 //        ASMText asmText = program.blockTextMap.get(block);
 //        for(ArrayList<IREntity> cycle : allCycles){
-//            // TODO
 //            asmText.addBeforeEnd(new ASMMvInstr(asmText, "", cycle.getFirst()));
 //            for(int i = 1; i < cycle.size(); ++i){
 //                asmText.addBeforeEnd(new ASMMvInstr(asmText, cycle.get(i - 1), cycle.get(i)));

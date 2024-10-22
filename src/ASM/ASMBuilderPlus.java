@@ -373,34 +373,36 @@ public class ASMBuilderPlus implements IRVisitor {
     @Override public void visit(BinaryInstr binaryInstr){
         currentText.instrList.add(new ASMComment(currentText, binaryInstr));
         String r2 = getVarReg(binaryInstr.result.toString());
-//        boolean lhsIsInt = isInt(binaryInstr.lhs);
-//        boolean rhsIsInt = isInt(binaryInstr.rhs);
-//        if(!lhsIsInt && rhsIsInt){
-//            int imm = getInt(binaryInstr.rhs);
-//            String r0 = loadIREntity(binaryInstr.lhs, "t0", binaryInstr.parent.parent);
-//            if(r2 == null){
-//                int resultPlace = binaryInstr.parent.parent.getPlace(binaryInstr.result.toString());
-//                currentText.instrList.add(new ASMArithImmInstr(currentText, "t2", r0, binaryInstr.op, imm));
-//                currentText.instrList.add(new ASMSwInstr(currentText,"t2", "sp", resultPlace));
-//            } else {
-//                currentText.instrList.add(new ASMArithImmInstr(currentText, r2, r0, binaryInstr.op, imm));
-//            }
-//            return;
-//        } else if (lhsIsInt && !rhsIsInt){
-//            String op = binaryInstr.op;
-//            if(op.equals("+") || op.equals("*") || op.equals("&") || op.equals("|") || op.equals("^")){
-//                int imm = getInt(binaryInstr.lhs);
-//                String r1 = loadIREntity(binaryInstr.rhs, "t1", binaryInstr.parent.parent);
-//                if(r2 == null){
-//                    int resultPlace = binaryInstr.parent.parent.getPlace(binaryInstr.result.toString());
-//                    currentText.instrList.add(new ASMArithImmInstr(currentText, "t2", r1, binaryInstr.op, imm));
-//                    currentText.instrList.add(new ASMSwInstr(currentText,"t2", "sp", resultPlace));
-//                } else {
-//                    currentText.instrList.add(new ASMArithImmInstr(currentText, r2, r1, binaryInstr.op, imm));
-//                }
-//                return;
-//            }
-//        }
+        boolean lhsIsInt = isInt(binaryInstr.lhs);
+        boolean rhsIsInt = isInt(binaryInstr.rhs);
+        String op = binaryInstr.op;
+        if(!lhsIsInt && rhsIsInt){
+            if(op.equals("+") || op.equals("&") || op.equals("|") || op.equals("^") || op.equals("<<") || op.equals(">>")){
+                int imm = getInt(binaryInstr.rhs);
+                String r0 = loadIREntity(binaryInstr.lhs, "t0", binaryInstr.parent.parent);
+                if(r2 == null){
+                    int resultPlace = binaryInstr.parent.parent.getPlace(binaryInstr.result.toString());
+                    currentText.instrList.add(new ASMArithImmInstr(currentText, "t2", r0, binaryInstr.op, imm));
+                    currentText.instrList.add(new ASMSwInstr(currentText,"t2", "sp", resultPlace));
+                } else {
+                    currentText.instrList.add(new ASMArithImmInstr(currentText, r2, r0, binaryInstr.op, imm));
+                }
+                return;
+            }
+        } else if (lhsIsInt && !rhsIsInt){
+            if(op.equals("+") || op.equals("&") || op.equals("|") || op.equals("^")){
+                int imm = getInt(binaryInstr.lhs);
+                String r1 = loadIREntity(binaryInstr.rhs, "t1", binaryInstr.parent.parent);
+                if(r2 == null){
+                    int resultPlace = binaryInstr.parent.parent.getPlace(binaryInstr.result.toString());
+                    currentText.instrList.add(new ASMArithImmInstr(currentText, "t2", r1, binaryInstr.op, imm));
+                    currentText.instrList.add(new ASMSwInstr(currentText,"t2", "sp", resultPlace));
+                } else {
+                    currentText.instrList.add(new ASMArithImmInstr(currentText, r2, r1, binaryInstr.op, imm));
+                }
+                return;
+            }
+        }
         String r0 = loadIREntity(binaryInstr.lhs, "t0", binaryInstr.parent.parent);
         String r1 = loadIREntity(binaryInstr.rhs, "t1", binaryInstr.parent.parent);
         if(r2 == null) {

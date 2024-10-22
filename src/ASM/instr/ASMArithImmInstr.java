@@ -24,7 +24,9 @@ public class ASMArithImmInstr extends ASMInstr {
             case "&" -> {return "andi " + rd + ", " + rs1 + ", " + imm;}
             case "<<" -> {return "slli " + rd + ", " + rs1 + ", " + imm;}
             case ">>" -> {return "srai " + rd + ", " + rs1 + ", " + imm;}
-            default -> {return "ERROR";}
+            default -> {
+                return "ERROR";
+            }
         }
     }
 }

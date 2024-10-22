@@ -154,8 +154,7 @@ Queue_int..push_if.back.0:
    lw x8, 0(t0)
    # %var25 = add i32 %var24, 1
 
-   li t1, 1
-   add x8, x8, t1
+   addi x8, x8, 1
    # %var27 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 0
 
    mv t0, x4
@@ -292,8 +291,7 @@ Queue_int..pop_if.back.1:
    lw x9, 0(t0)
    # %var51 = add i32 %var50, 1
 
-   li t1, 1
-   add x9, x9, t1
+   addi x9, x9, 1
    # %var53 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 0
 
    mv t0, x3
@@ -804,15 +802,13 @@ Queue_int..doubleStorage_while.body.0:
    lw a1, 0(t0)
    # %var119 = add i32 %var118, 1
 
-   li t1, 1
-   add a1, a1, t1
+   addi a1, a1, 1
    # store i32 %var119, ptr %var117
 
    sw a1, 0(a0)
    # %var122 = add i32 %i.1_while.cond.0, 1
 
-   li t1, 1
-   add x8, x8, t1
+   addi x8, x8, 1
    # %var124 = call i32 @array.size(ptr %var77)
 
    sw ra, 24(sp)
@@ -942,8 +938,7 @@ main_for.body.0:
 main_for.step.0:
    # %var146 = add i32 %i.2_for.cond.0, 1
 
-   li t1, 1
-   add x8, x8, t1
+   addi x8, x8, 1
    # br label %for.cond.0
 
    # phi start 
@@ -1229,8 +1224,7 @@ main_if.back.5:
 main_for.step.1:
    # %var176 = add i32 %i.2_for.cond.1, 1
 
-   li t1, 1
-   add x8, x8, t1
+   addi x8, x8, 1
    # br label %for.cond.1
 
    # phi start 

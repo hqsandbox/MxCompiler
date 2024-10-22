@@ -1,10 +1,10 @@
    .section .text
    .globl Queue_int..push
 Queue_int..push:
-   addi sp, sp, -148
-   sw t0, 136(sp)
-   sw t1, 140(sp)
-   sw t2, 144(sp)
+   addi sp, sp, -36
+   sw t0, 24(sp)
+   sw t1, 28(sp)
+   sw t2, 32(sp)
    mv x4, a0
    # phi start 
    # phi end 
@@ -15,15 +15,15 @@ Queue_int..push:
 Queue_int..push_entry:
    # %var1 = call i32 @Queue_int..size(ptr %_this)
 
-   sw ra, 132(sp)
-   sw x3, 12(sp)
-   sw x4, 16(sp)
+   sw ra, 20(sp)
+   sw x3, 0(sp)
+   sw x4, 4(sp)
    mv a0, x4
    call Queue_int..size
-   lw ra, 132(sp)
+   lw ra, 20(sp)
    mv x8, a0
-   lw x3, 12(sp)
-   lw x4, 16(sp)
+   lw x3, 0(sp)
+   lw x4, 4(sp)
    # %var3 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 0
 
    mv t0, x4
@@ -38,17 +38,17 @@ Queue_int..push_entry:
    lw x9, 0(t0)
    # %var5 = call i32 @array.size(ptr %var4)
 
-   sw ra, 132(sp)
-   sw x8, 32(sp)
-   sw x3, 12(sp)
-   sw x4, 16(sp)
+   sw ra, 20(sp)
+   sw x8, 8(sp)
+   sw x3, 0(sp)
+   sw x4, 4(sp)
    mv a0, x9
    call array.size
-   lw ra, 132(sp)
+   lw ra, 20(sp)
    mv x9, a0
-   lw x8, 32(sp)
-   lw x3, 12(sp)
-   lw x4, 16(sp)
+   lw x8, 8(sp)
+   lw x3, 0(sp)
+   lw x4, 4(sp)
    # %var6 = sub i32 %var5, 1
 
    li t1, 1
@@ -70,15 +70,15 @@ Queue_int..push_entry:
 Queue_int..push_if.then.0:
    # call void @Queue_int..doubleStorage(ptr %_this)
 
-   sw ra, 132(sp)
-   sw x3, 12(sp)
-   sw x4, 16(sp)
+   sw ra, 20(sp)
+   sw x3, 0(sp)
+   sw x4, 4(sp)
    mv a0, x4
    call Queue_int..doubleStorage
-   lw ra, 132(sp)
-   sw a0, 128(sp)
-   lw x3, 12(sp)
-   lw x4, 16(sp)
+   lw ra, 20(sp)
+   sw a0, 16(sp)
+   lw x3, 0(sp)
+   lw x4, 4(sp)
    # br label %if.back.0
 
    # phi start 
@@ -170,15 +170,15 @@ Queue_int..push_if.back.0:
    lw x4, 0(t0)
    # %var29 = call i32 @array.size(ptr %var28)
 
-   sw ra, 132(sp)
-   sw x8, 32(sp)
-   sw x3, 12(sp)
+   sw ra, 20(sp)
+   sw x8, 8(sp)
+   sw x3, 0(sp)
    mv a0, x4
    call array.size
-   lw ra, 132(sp)
+   lw ra, 20(sp)
    mv x4, a0
-   lw x8, 32(sp)
-   lw x3, 12(sp)
+   lw x8, 8(sp)
+   lw x3, 0(sp)
    # %var30 = srem i32 %var25, %var29
 
    rem x4, x8, x4
@@ -187,7 +187,7 @@ Queue_int..push_if.back.0:
    sw x4, 0(x3)
    # ret void
 
-   addi sp, sp, 148
+   addi sp, sp, 36
    lw t0, -12(sp)
    lw t1, -8(sp)
    lw t2, -4(sp)
@@ -198,10 +198,10 @@ Queue_int..push_if.back.0:
    .section .text
    .globl Queue_int..pop
 Queue_int..pop:
-   addi sp, sp, -148
-   sw t0, 136(sp)
-   sw t1, 140(sp)
-   sw t2, 144(sp)
+   addi sp, sp, -36
+   sw t0, 24(sp)
+   sw t1, 28(sp)
+   sw t2, 32(sp)
    # phi start 
    # phi end 
    mv x3, a0
@@ -211,13 +211,13 @@ Queue_int..pop:
 Queue_int..pop_entry:
    # %var40 = call i32 @Queue_int..size(ptr %_this)
 
-   sw ra, 132(sp)
-   sw x3, 12(sp)
+   sw ra, 20(sp)
+   sw x3, 0(sp)
    mv a0, x3
    call Queue_int..size
-   lw ra, 132(sp)
+   lw ra, 20(sp)
    mv x4, a0
-   lw x3, 12(sp)
+   lw x3, 0(sp)
    # %var41 = icmp eq i32 %var40, 0
 
    li t1, 0
@@ -236,13 +236,13 @@ Queue_int..pop_entry:
 Queue_int..pop_if.then.1:
    # call void @println(ptr @.str..0)
 
-   sw ra, 132(sp)
-   sw x3, 12(sp)
+   sw ra, 20(sp)
+   sw x3, 0(sp)
    la a0, @.str..0
    call println
-   lw ra, 132(sp)
-   sw a0, 128(sp)
-   lw x3, 12(sp)
+   lw ra, 20(sp)
+   sw a0, 16(sp)
+   lw x3, 0(sp)
    # br label %if.back.1
 
    # phi start 
@@ -263,13 +263,13 @@ Queue_int..pop_if.else.1:
 Queue_int..pop_if.back.1:
    # %var44 = call i32 @Queue_int..top(ptr %_this)
 
-   sw ra, 132(sp)
-   sw x3, 12(sp)
+   sw ra, 20(sp)
+   sw x3, 0(sp)
    mv a0, x3
    call Queue_int..top
-   lw ra, 132(sp)
+   lw ra, 20(sp)
    mv x4, a0
-   lw x3, 12(sp)
+   lw x3, 0(sp)
    # %var46 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 1
 
    mv t0, x3
@@ -308,17 +308,17 @@ Queue_int..pop_if.back.1:
    lw x3, 0(t0)
    # %var55 = call i32 @array.size(ptr %var54)
 
-   sw ra, 132(sp)
-   sw x8, 32(sp)
-   sw x9, 36(sp)
-   sw x4, 16(sp)
+   sw ra, 20(sp)
+   sw x8, 8(sp)
+   sw x9, 12(sp)
+   sw x4, 4(sp)
    mv a0, x3
    call array.size
-   lw ra, 132(sp)
+   lw ra, 20(sp)
    mv x3, a0
-   lw x8, 32(sp)
-   lw x9, 36(sp)
-   lw x4, 16(sp)
+   lw x8, 8(sp)
+   lw x9, 12(sp)
+   lw x4, 4(sp)
    # %var56 = srem i32 %var51, %var55
 
    rem x3, x9, x3
@@ -328,7 +328,7 @@ Queue_int..pop_if.back.1:
    # ret i32 %var44
 
    mv a0, x4
-   addi sp, sp, 148
+   addi sp, sp, 36
    lw t0, -12(sp)
    lw t1, -8(sp)
    lw t2, -4(sp)
@@ -339,10 +339,10 @@ Queue_int..pop_if.back.1:
    .section .text
    .globl Queue_int..Queue_int
 Queue_int..Queue_int:
-   addi sp, sp, -144
-   sw t0, 132(sp)
-   sw t1, 136(sp)
-   sw t2, 140(sp)
+   addi sp, sp, -24
+   sw t0, 12(sp)
+   sw t1, 16(sp)
+   sw t2, 20(sp)
    # phi start 
    # phi end 
    mv x3, a0
@@ -384,22 +384,22 @@ Queue_int..Queue_int_entry:
    mv x3, t0
    # %var135 = call ptr @__array.alloca(i32 4, i32 1, i32 1, i32 16)
 
-   sw ra, 128(sp)
-   sw x3, 12(sp)
+   sw ra, 8(sp)
+   sw x3, 0(sp)
    li a2, 1
    li a3, 16
    li a1, 1
    li a0, 4
    call __array.alloca
-   lw ra, 128(sp)
+   lw ra, 8(sp)
    mv x4, a0
-   lw x3, 12(sp)
+   lw x3, 0(sp)
    # store ptr %var135, ptr %var133
 
    sw x4, 0(x3)
    # ret void
 
-   addi sp, sp, 144
+   addi sp, sp, 24
    lw t0, -12(sp)
    lw t1, -8(sp)
    lw t2, -4(sp)
@@ -410,10 +410,10 @@ Queue_int..Queue_int_entry:
    .section .text
    .globl Queue_int..top
 Queue_int..top:
-   addi sp, sp, -144
-   sw t0, 132(sp)
-   sw t1, 136(sp)
-   sw t2, 140(sp)
+   addi sp, sp, -24
+   sw t0, 12(sp)
+   sw t1, 16(sp)
+   sw t2, 20(sp)
    # phi start 
    # phi end 
    mv x3, a0
@@ -460,7 +460,7 @@ Queue_int..top_entry:
    # ret i32 %var38
 
    mv a0, x3
-   addi sp, sp, 144
+   addi sp, sp, 24
    lw t0, -12(sp)
    lw t1, -8(sp)
    lw t2, -4(sp)
@@ -471,19 +471,19 @@ Queue_int..top_entry:
    .section .text
    .globl __init
 __init:
-   addi sp, sp, -144
-   sw t0, 132(sp)
-   sw t1, 136(sp)
+   addi sp, sp, -16
+   sw t0, 4(sp)
+   sw t1, 8(sp)
    # phi start 
    # phi end 
-   sw t2, 140(sp)
+   sw t2, 12(sp)
 
    .section .text
    .globl __init_entry
 __init_entry:
    # ret void
 
-   addi sp, sp, 144
+   addi sp, sp, 16
    lw t0, -12(sp)
    lw t1, -8(sp)
    lw t2, -4(sp)
@@ -494,10 +494,10 @@ __init_entry:
    .section .text
    .globl Queue_int..size
 Queue_int..size:
-   addi sp, sp, -144
-   sw t0, 132(sp)
-   sw t1, 136(sp)
-   sw t2, 140(sp)
+   addi sp, sp, -28
+   sw t0, 16(sp)
+   sw t1, 20(sp)
+   sw t2, 24(sp)
    # phi start 
    # phi end 
    mv x3, a0
@@ -531,15 +531,15 @@ Queue_int..size_entry:
    lw x8, 0(t0)
    # %var64 = call i32 @array.size(ptr %var63)
 
-   sw ra, 128(sp)
-   sw x3, 12(sp)
-   sw x4, 16(sp)
+   sw ra, 12(sp)
+   sw x3, 0(sp)
+   sw x4, 4(sp)
    mv a0, x8
    call array.size
-   lw ra, 128(sp)
+   lw ra, 12(sp)
    mv x8, a0
-   lw x3, 12(sp)
-   lw x4, 16(sp)
+   lw x3, 0(sp)
+   lw x4, 4(sp)
    # %var65 = add i32 %var60, %var64
 
    add x4, x4, x8
@@ -572,20 +572,20 @@ Queue_int..size_entry:
    lw x3, 0(t0)
    # %var73 = call i32 @array.size(ptr %var72)
 
-   sw ra, 128(sp)
-   sw x4, 16(sp)
+   sw ra, 12(sp)
+   sw x4, 4(sp)
    mv a0, x3
    call array.size
-   lw ra, 128(sp)
+   lw ra, 12(sp)
    mv x3, a0
-   lw x4, 16(sp)
+   lw x4, 4(sp)
    # %var74 = srem i32 %var69, %var73
 
    rem x3, x4, x3
    # ret i32 %var74
 
    mv a0, x3
-   addi sp, sp, 144
+   addi sp, sp, 28
    lw t0, -12(sp)
    lw t1, -8(sp)
    lw t2, -4(sp)
@@ -596,10 +596,10 @@ Queue_int..size_entry:
    .section .text
    .globl Queue_int..doubleStorage
 Queue_int..doubleStorage:
-   addi sp, sp, -144
-   sw t0, 132(sp)
-   sw t1, 136(sp)
-   sw t2, 140(sp)
+   addi sp, sp, -40
+   sw t0, 28(sp)
+   sw t1, 32(sp)
+   sw t2, 36(sp)
    # phi start 
    # phi end 
    mv x3, a0
@@ -653,45 +653,45 @@ Queue_int..doubleStorage_entry:
    mv a0, t0
    # %var89 = call i32 @array.size(ptr %var77)
 
-   sw ra, 128(sp)
-   sw x8, 32(sp)
-   sw x9, 36(sp)
-   sw x3, 12(sp)
-   sw x4, 16(sp)
-   sw a0, 40(sp)
+   sw ra, 24(sp)
+   sw x8, 8(sp)
+   sw x9, 12(sp)
+   sw x3, 0(sp)
+   sw x4, 4(sp)
+   sw a0, 16(sp)
    mv a0, x4
    call array.size
-   lw ra, 128(sp)
+   lw ra, 24(sp)
    mv a1, a0
-   lw x8, 32(sp)
-   lw x9, 36(sp)
-   lw x3, 12(sp)
-   lw x4, 16(sp)
-   lw a0, 40(sp)
+   lw x8, 8(sp)
+   lw x9, 12(sp)
+   lw x3, 0(sp)
+   lw x4, 4(sp)
+   lw a0, 16(sp)
    # %var90 = mul i32 %var89, 2
 
    li t1, 2
    mul a1, a1, t1
    # %var87 = call ptr @__array.alloca(i32 4, i32 1, i32 1, i32 %var90)
 
-   sw ra, 128(sp)
-   sw x8, 32(sp)
-   sw x9, 36(sp)
-   sw x3, 12(sp)
-   sw x4, 16(sp)
-   sw a0, 40(sp)
+   sw ra, 24(sp)
+   sw x8, 8(sp)
+   sw x9, 12(sp)
+   sw x3, 0(sp)
+   sw x4, 4(sp)
+   sw a0, 16(sp)
    li a0, 4
    li a2, 1
    mv a3, a1
    li a1, 1
    call __array.alloca
-   lw ra, 128(sp)
+   lw ra, 24(sp)
    mv a1, a0
-   lw x8, 32(sp)
-   lw x9, 36(sp)
-   lw x3, 12(sp)
-   lw x4, 16(sp)
-   lw a0, 40(sp)
+   lw x8, 8(sp)
+   lw x9, 12(sp)
+   lw x3, 0(sp)
+   lw x4, 4(sp)
+   lw a0, 16(sp)
    # store ptr %var87, ptr %var85
 
    sw a1, 0(a0)
@@ -815,19 +815,19 @@ Queue_int..doubleStorage_while.body.0:
    add x8, x8, t1
    # %var124 = call i32 @array.size(ptr %var77)
 
-   sw ra, 128(sp)
-   sw x8, 32(sp)
-   sw x9, 36(sp)
-   sw x3, 12(sp)
-   sw x4, 16(sp)
+   sw ra, 24(sp)
+   sw x8, 8(sp)
+   sw x9, 12(sp)
+   sw x3, 0(sp)
+   sw x4, 4(sp)
    mv a0, x4
    call array.size
-   lw ra, 128(sp)
+   lw ra, 24(sp)
    
-   lw x8, 32(sp)
-   lw x9, 36(sp)
-   lw x3, 12(sp)
-   lw x4, 16(sp)
+   lw x8, 8(sp)
+   lw x9, 12(sp)
+   lw x3, 0(sp)
+   lw x4, 4(sp)
    # %var125 = srem i32 %var122, %var124
 
    rem x8, x8, a0
@@ -842,7 +842,7 @@ Queue_int..doubleStorage_while.body.0:
 Queue_int..doubleStorage_while.back.0:
    # ret void
 
-   addi sp, sp, 144
+   addi sp, sp, 40
    lw t0, -12(sp)
    lw t1, -8(sp)
    lw t2, -4(sp)
@@ -853,44 +853,44 @@ Queue_int..doubleStorage_while.back.0:
    .section .text
    .globl main
 main:
-   addi sp, sp, -176
-   sw t0, 164(sp)
-   sw t1, 168(sp)
+   addi sp, sp, -68
+   sw t0, 56(sp)
+   sw t1, 60(sp)
    # phi start 
    # phi end 
-   sw t2, 172(sp)
+   sw t2, 64(sp)
 
    .section .text
    .globl main_entry
 main_entry:
    # call void @__init()
 
-   sw ra, 160(sp)
-   sw x3, 12(sp)
+   sw ra, 52(sp)
+   sw x3, 0(sp)
    call __init
-   lw ra, 160(sp)
-   sw a0, 128(sp)
-   lw x3, 12(sp)
+   lw ra, 52(sp)
+   sw a0, 20(sp)
+   lw x3, 0(sp)
    # %var137 = call ptr @_malloc(i32 12)
 
-   sw ra, 160(sp)
-   sw x3, 12(sp)
+   sw ra, 52(sp)
+   sw x3, 0(sp)
    li a0, 12
    call _malloc
-   lw ra, 160(sp)
+   lw ra, 52(sp)
    mv x4, a0
-   lw x3, 12(sp)
+   lw x3, 0(sp)
    # call void @Queue_int..Queue_int(ptr %var137)
 
-   sw ra, 160(sp)
-   sw x3, 12(sp)
-   sw x4, 16(sp)
+   sw ra, 52(sp)
+   sw x3, 0(sp)
+   sw x4, 4(sp)
    mv a0, x4
    call Queue_int..Queue_int
-   lw ra, 160(sp)
-   sw a0, 132(sp)
-   lw x3, 12(sp)
-   lw x4, 16(sp)
+   lw ra, 52(sp)
+   sw a0, 24(sp)
+   lw x3, 0(sp)
+   lw x4, 4(sp)
    # br label %for.cond.0
 
    # phi start 
@@ -919,18 +919,18 @@ main_for.cond.0:
 main_for.body.0:
    # call void @Queue_int..push(ptr %var137, i32 %i.2_for.cond.0)
 
-   sw ra, 160(sp)
-   sw x8, 32(sp)
-   sw x3, 12(sp)
-   sw x4, 16(sp)
+   sw ra, 52(sp)
+   sw x8, 8(sp)
+   sw x3, 0(sp)
+   sw x4, 4(sp)
    mv a1, x8
    mv a0, x4
    call Queue_int..push
-   lw ra, 160(sp)
-   sw a0, 136(sp)
-   lw x8, 32(sp)
-   lw x3, 12(sp)
-   lw x4, 16(sp)
+   lw ra, 52(sp)
+   sw a0, 28(sp)
+   lw x8, 8(sp)
+   lw x3, 0(sp)
+   lw x4, 4(sp)
    # br label %for.step.0
 
    # phi start 
@@ -955,15 +955,15 @@ main_for.step.0:
 main_for.back.0:
    # %var148 = call i32 @Queue_int..size(ptr %var137)
 
-   sw ra, 160(sp)
-   sw x3, 12(sp)
-   sw x4, 16(sp)
+   sw ra, 52(sp)
+   sw x3, 0(sp)
+   sw x4, 4(sp)
    mv a0, x4
    call Queue_int..size
-   lw ra, 160(sp)
+   lw ra, 52(sp)
    mv x8, a0
-   lw x3, 12(sp)
-   lw x4, 16(sp)
+   lw x3, 0(sp)
+   lw x4, 4(sp)
    # %var150 = icmp ne i32 %var148, 100
 
    li t1, 100
@@ -982,15 +982,15 @@ main_for.back.0:
 main_if.then.2:
    # call void @println(ptr @.str..1)
 
-   sw ra, 160(sp)
+   sw ra, 52(sp)
    la a0, @.str..1
    call println
-   lw ra, 160(sp)
-   sw a0, 140(sp)
+   lw ra, 52(sp)
+   sw a0, 32(sp)
    # ret i32 1
 
    li a0, 1
-   addi sp, sp, 176
+   addi sp, sp, 68
    lw t0, -12(sp)
    lw t1, -8(sp)
    lw t2, -4(sp)
@@ -1038,17 +1038,17 @@ main_for.cond.1:
 main_for.body.1:
    # %var157 = call i32 @Queue_int..top(ptr %var137)
 
-   sw ra, 160(sp)
-   sw x8, 32(sp)
-   sw x3, 12(sp)
-   sw x4, 16(sp)
+   sw ra, 52(sp)
+   sw x8, 8(sp)
+   sw x3, 0(sp)
+   sw x4, 4(sp)
    mv a0, x4
    call Queue_int..top
-   lw ra, 160(sp)
+   lw ra, 52(sp)
    mv x9, a0
-   lw x8, 32(sp)
-   lw x3, 12(sp)
-   lw x4, 16(sp)
+   lw x8, 8(sp)
+   lw x3, 0(sp)
+   lw x4, 4(sp)
    # %var160 = icmp ne i32 %var157, %i.2_for.cond.1
 
    sub t2, x9, x8
@@ -1066,15 +1066,15 @@ main_for.body.1:
 main_if.then.3:
    # call void @println(ptr @.str..2)
 
-   sw ra, 160(sp)
+   sw ra, 52(sp)
    la a0, @.str..2
    call println
-   lw ra, 160(sp)
-   sw a0, 144(sp)
+   lw ra, 52(sp)
+   sw a0, 36(sp)
    # ret i32 1
 
    li a0, 1
-   addi sp, sp, 176
+   addi sp, sp, 68
    lw t0, -12(sp)
    lw t1, -8(sp)
    lw t2, -4(sp)
@@ -1096,17 +1096,17 @@ main_if.else.3:
 main_if.back.3:
    # %var163 = call i32 @Queue_int..pop(ptr %var137)
 
-   sw ra, 160(sp)
-   sw x8, 32(sp)
-   sw x3, 12(sp)
-   sw x4, 16(sp)
+   sw ra, 52(sp)
+   sw x8, 8(sp)
+   sw x3, 0(sp)
+   sw x4, 4(sp)
    mv a0, x4
    call Queue_int..pop
-   lw ra, 160(sp)
+   lw ra, 52(sp)
    mv x9, a0
-   lw x8, 32(sp)
-   lw x3, 12(sp)
-   lw x4, 16(sp)
+   lw x8, 8(sp)
+   lw x3, 0(sp)
+   lw x4, 4(sp)
    # %var165 = icmp ne i32 %var163, %i.2_for.cond.1
 
    sub t2, x9, x8
@@ -1124,15 +1124,15 @@ main_if.back.3:
 main_if.then.4:
    # call void @println(ptr @.str..3)
 
-   sw ra, 160(sp)
+   sw ra, 52(sp)
    la a0, @.str..3
    call println
-   lw ra, 160(sp)
-   sw a0, 148(sp)
+   lw ra, 52(sp)
+   sw a0, 40(sp)
    # ret i32 1
 
    li a0, 1
-   addi sp, sp, 176
+   addi sp, sp, 68
    lw t0, -12(sp)
    lw t1, -8(sp)
    lw t2, -4(sp)
@@ -1154,17 +1154,17 @@ main_if.else.4:
 main_if.back.4:
    # %var168 = call i32 @Queue_int..size(ptr %var137)
 
-   sw ra, 160(sp)
-   sw x8, 32(sp)
-   sw x3, 12(sp)
-   sw x4, 16(sp)
+   sw ra, 52(sp)
+   sw x8, 8(sp)
+   sw x3, 0(sp)
+   sw x4, 4(sp)
    mv a0, x4
    call Queue_int..size
-   lw ra, 160(sp)
+   lw ra, 52(sp)
    mv x9, a0
-   lw x8, 32(sp)
-   lw x3, 12(sp)
-   lw x4, 16(sp)
+   lw x8, 8(sp)
+   lw x3, 0(sp)
+   lw x4, 4(sp)
    # %var171 = sub i32 100, %i.2_for.cond.1
 
    li t0, 100
@@ -1190,15 +1190,15 @@ main_if.back.4:
 main_if.then.5:
    # call void @println(ptr @.str..4)
 
-   sw ra, 160(sp)
+   sw ra, 52(sp)
    la a0, @.str..4
    call println
-   lw ra, 160(sp)
-   sw a0, 152(sp)
+   lw ra, 52(sp)
+   sw a0, 44(sp)
    # ret i32 1
 
    li a0, 1
-   addi sp, sp, 176
+   addi sp, sp, 68
    lw t0, -12(sp)
    lw t1, -8(sp)
    lw t2, -4(sp)
@@ -1242,15 +1242,15 @@ main_for.step.1:
 main_for.back.1:
    # call void @println(ptr @.str..5)
 
-   sw ra, 160(sp)
+   sw ra, 52(sp)
    la a0, @.str..5
    call println
-   lw ra, 160(sp)
-   sw a0, 156(sp)
+   lw ra, 52(sp)
+   sw a0, 48(sp)
    # ret i32 0
 
    li a0, 0
-   addi sp, sp, 176
+   addi sp, sp, 68
    lw t0, -12(sp)
    lw t1, -8(sp)
    lw t2, -4(sp)

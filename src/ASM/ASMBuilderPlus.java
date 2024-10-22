@@ -372,10 +372,38 @@ public class ASMBuilderPlus implements IRVisitor {
 
     @Override public void visit(BinaryInstr binaryInstr){
         currentText.instrList.add(new ASMComment(currentText, binaryInstr));
+        String r2 = getVarReg(binaryInstr.result.toString());
+//        boolean lhsIsInt = isInt(binaryInstr.lhs);
+//        boolean rhsIsInt = isInt(binaryInstr.rhs);
+//        if(!lhsIsInt && rhsIsInt){
+//            int imm = getInt(binaryInstr.rhs);
+//            String r0 = loadIREntity(binaryInstr.lhs, "t0", binaryInstr.parent.parent);
+//            if(r2 == null){
+//                int resultPlace = binaryInstr.parent.parent.getPlace(binaryInstr.result.toString());
+//                currentText.instrList.add(new ASMArithImmInstr(currentText, "t2", r0, binaryInstr.op, imm));
+//                currentText.instrList.add(new ASMSwInstr(currentText,"t2", "sp", resultPlace));
+//            } else {
+//                currentText.instrList.add(new ASMArithImmInstr(currentText, r2, r0, binaryInstr.op, imm));
+//            }
+//            return;
+//        } else if (lhsIsInt && !rhsIsInt){
+//            String op = binaryInstr.op;
+//            if(op.equals("+") || op.equals("*") || op.equals("&") || op.equals("|") || op.equals("^")){
+//                int imm = getInt(binaryInstr.lhs);
+//                String r1 = loadIREntity(binaryInstr.rhs, "t1", binaryInstr.parent.parent);
+//                if(r2 == null){
+//                    int resultPlace = binaryInstr.parent.parent.getPlace(binaryInstr.result.toString());
+//                    currentText.instrList.add(new ASMArithImmInstr(currentText, "t2", r1, binaryInstr.op, imm));
+//                    currentText.instrList.add(new ASMSwInstr(currentText,"t2", "sp", resultPlace));
+//                } else {
+//                    currentText.instrList.add(new ASMArithImmInstr(currentText, r2, r1, binaryInstr.op, imm));
+//                }
+//                return;
+//            }
+//        }
         String r0 = loadIREntity(binaryInstr.lhs, "t0", binaryInstr.parent.parent);
         String r1 = loadIREntity(binaryInstr.rhs, "t1", binaryInstr.parent.parent);
-        String r2 = getVarReg(binaryInstr.result.toString());
-        if(r2 == null){
+        if(r2 == null) {
             int resultPlace = binaryInstr.parent.parent.getPlace(binaryInstr.result.toString());
             currentText.instrList.add(new ASMArithInstr(currentText, r0, r1, "t2", binaryInstr.op));
             currentText.instrList.add(new ASMSwInstr(currentText,"t2", "sp", resultPlace));
@@ -879,10 +907,12 @@ public class ASMBuilderPlus implements IRVisitor {
         return stackSize;
     }
 
+    // 只存被color的寄存器
     private int regStackSize(IRFuncDef irFuncDef){
         int stackSize = 0;
-        for(int i = 0; i < 32; ++i){
-            irFuncDef.nameMap.put(allReg(i), stackSize);
+        HashSet<Integer> regSet = new HashSet<>(irFuncDef.regMap.values());
+        for(int i = 0; i < regSet.size(); ++i){
+            irFuncDef.nameMap.put(getReg(i), stackSize);
             stackSize += 4;
         }
         return stackSize;
@@ -927,6 +957,7 @@ public class ASMBuilderPlus implements IRVisitor {
     public boolean isInt(IREntity entity){
         if(entity instanceof IRIntLiteral) return true;
         if(entity instanceof IRBoolLiteral) return true;
+        if(entity.toString().equals("null")) return true;
         if(entity instanceof IRVariable){
             char first = entity.toString().charAt(0);
             if(first != '@' && first != '%') return true;
@@ -937,6 +968,7 @@ public class ASMBuilderPlus implements IRVisitor {
     public Integer getInt(IREntity entity) {
         if(entity instanceof IRIntLiteral intLiteral) return intLiteral.value;
         if(entity instanceof IRBoolLiteral boolLiteral) return (boolLiteral.value ? 1 : 0);
+        if(entity.toString().equals("null")) return 0;
         if(entity instanceof IRVariable irVariable) {
             if(irVariable.toString().equals("false")) return 0;
             if(irVariable.toString().equals("true")) return 1;
@@ -949,6 +981,27 @@ public class ASMBuilderPlus implements IRVisitor {
             return Integer.parseInt(irVariable.toString());
         }
         throw new RuntimeException("getInt: entity is not int");
+    }
+
+    public boolean varIsInt(String var){
+        if(var.equals("false")) return true;
+        if(var.equals("true")) return true;
+        if(var.equals("null")) return true;
+        if(var.charAt(0) == '%') return false;
+        if(var.charAt(0) == '@') return false;
+        try {
+            Integer.parseInt(var);
+        } catch (Throwable t) {
+            return false;
+        }
+        return true;
+    }
+
+    public int varGetInt(String var){
+        if(var.equals("false")) return 0;
+        if(var.equals("true")) return 1;
+        if(var.equals("null")) return 0;
+        return Integer.parseInt(var);
     }
 
 }

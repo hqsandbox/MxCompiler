@@ -32,15 +32,22 @@ public class Main {
     // 错误：要添加内建函数
     public static void main(String[] args) throws Exception{
 
+        // if oj: main oj code && makefile remove ../
+
         // script:
         boolean debug = false;
         int choose = 1;
 
-        // script code
+
+        // oj code
         InputStream input = System.in;
+        choose = 1;
+
+        // script code
+//        InputStream input = System.in;
 //        PrintStream output =new PrintStream(new FileOutputStream("test.s"));
 //        System.setOut(output);
-        choose = 1;
+//        choose = 1;
 
         // TODO: asmBuilder里面两个exit
 

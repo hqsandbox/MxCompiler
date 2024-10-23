@@ -27,6 +27,9 @@ public class ASMBuilderPlus implements IRVisitor {
 
     // 优化1：去掉 mv a a
     // 优化2：call之前不存储临时寄存器
+    // 优化3：stackSize中 reg只统计用到的
+    // 优化4：将 add等指令改成 addi
+    // 优化5：去掉函数调用时保存的t0-t2
 
     public IRProgram irProgram = null;
     public ASMProgram asmProgram = new ASMProgram();
@@ -303,9 +306,9 @@ public class ASMBuilderPlus implements IRVisitor {
             startText.instrList.add(new ASMLiInstr(currentText, "t0", -stackSize - 12));
             startText.instrList.add(new ASMArithInstr(currentText, "t0", "sp", "sp", "+"));
         }
-        startText.instrList.add(new ASMSwInstr(currentText, "t0", "sp", stackSize));
-        startText.instrList.add(new ASMSwInstr(currentText, "t1", "sp", stackSize + 4));
-        startText.instrList.add(new ASMSwInstr(currentText, "t2", "sp", stackSize + 8));
+//        startText.instrList.add(new ASMSwInstr(currentText, "t0", "sp", stackSize));
+//        startText.instrList.add(new ASMSwInstr(currentText, "t1", "sp", stackSize + 4));
+//        startText.instrList.add(new ASMSwInstr(currentText, "t2", "sp", stackSize + 8));
 
 //        if(irFuncDef.functionName.equals("vector..init")){
 //                System.out.println("debug");
@@ -327,6 +330,10 @@ public class ASMBuilderPlus implements IRVisitor {
                 // 函数参数在函数中没有被用到
             }
         }
+
+//        if(stackSize % 16 != 0){
+//            stackSize = (stackSize / 16 + 1) * 16;
+//        }
     }
 
     @Override public void visit(IRBlock irBlock) {
@@ -759,9 +766,9 @@ public class ASMBuilderPlus implements IRVisitor {
             currentText.instrList.add(new ASMLiInstr(currentText, "t3", retInstr.parent.parent.stackSize + 12));
             currentText.instrList.add(new ASMArithInstr(currentText, "t3", "sp", "sp", "+"));
         }
-        currentText.instrList.add(new ASMLwInstr(currentText, "t0", "sp", -12));
-        currentText.instrList.add(new ASMLwInstr(currentText, "t1", "sp", -8));
-        currentText.instrList.add(new ASMLwInstr(currentText, "t2", "sp", -4));
+//        currentText.instrList.add(new ASMLwInstr(currentText, "t0", "sp", -12));
+//        currentText.instrList.add(new ASMLwInstr(currentText, "t1", "sp", -8));
+//        currentText.instrList.add(new ASMLwInstr(currentText, "t2", "sp", -4));
         currentText.instrList.add(new ASMRetInstr(currentText));
     }
 

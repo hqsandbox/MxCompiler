@@ -2,9 +2,6 @@
    .globl Queue_int..push
 Queue_int..push:
    addi sp, sp, -36
-   sw t0, 24(sp)
-   sw t1, 28(sp)
-   sw t2, 32(sp)
    mv x4, a0
    # phi start 
    # phi end 
@@ -187,9 +184,6 @@ Queue_int..push_if.back.0:
    # ret void
 
    addi sp, sp, 36
-   lw t0, -12(sp)
-   lw t1, -8(sp)
-   lw t2, -4(sp)
    # phi start 
    # phi end 
    ret
@@ -198,9 +192,6 @@ Queue_int..push_if.back.0:
    .globl Queue_int..pop
 Queue_int..pop:
    addi sp, sp, -36
-   sw t0, 24(sp)
-   sw t1, 28(sp)
-   sw t2, 32(sp)
    # phi start 
    # phi end 
    mv x3, a0
@@ -327,9 +318,6 @@ Queue_int..pop_if.back.1:
 
    mv a0, x4
    addi sp, sp, 36
-   lw t0, -12(sp)
-   lw t1, -8(sp)
-   lw t2, -4(sp)
    # phi start 
    # phi end 
    ret
@@ -338,9 +326,6 @@ Queue_int..pop_if.back.1:
    .globl Queue_int..Queue_int
 Queue_int..Queue_int:
    addi sp, sp, -24
-   sw t0, 12(sp)
-   sw t1, 16(sp)
-   sw t2, 20(sp)
    # phi start 
    # phi end 
    mv x3, a0
@@ -398,9 +383,6 @@ Queue_int..Queue_int_entry:
    # ret void
 
    addi sp, sp, 24
-   lw t0, -12(sp)
-   lw t1, -8(sp)
-   lw t2, -4(sp)
    # phi start 
    # phi end 
    ret
@@ -409,9 +391,6 @@ Queue_int..Queue_int_entry:
    .globl Queue_int..top
 Queue_int..top:
    addi sp, sp, -24
-   sw t0, 12(sp)
-   sw t1, 16(sp)
-   sw t2, 20(sp)
    # phi start 
    # phi end 
    mv x3, a0
@@ -459,9 +438,6 @@ Queue_int..top_entry:
 
    mv a0, x3
    addi sp, sp, 24
-   lw t0, -12(sp)
-   lw t1, -8(sp)
-   lw t2, -4(sp)
    # phi start 
    # phi end 
    ret
@@ -469,12 +445,9 @@ Queue_int..top_entry:
    .section .text
    .globl __init
 __init:
-   addi sp, sp, -16
-   sw t0, 4(sp)
-   sw t1, 8(sp)
    # phi start 
    # phi end 
-   sw t2, 12(sp)
+   addi sp, sp, -16
 
    .section .text
    .globl __init_entry
@@ -482,9 +455,6 @@ __init_entry:
    # ret void
 
    addi sp, sp, 16
-   lw t0, -12(sp)
-   lw t1, -8(sp)
-   lw t2, -4(sp)
    # phi start 
    # phi end 
    ret
@@ -493,9 +463,6 @@ __init_entry:
    .globl Queue_int..size
 Queue_int..size:
    addi sp, sp, -28
-   sw t0, 16(sp)
-   sw t1, 20(sp)
-   sw t2, 24(sp)
    # phi start 
    # phi end 
    mv x3, a0
@@ -584,9 +551,6 @@ Queue_int..size_entry:
 
    mv a0, x3
    addi sp, sp, 28
-   lw t0, -12(sp)
-   lw t1, -8(sp)
-   lw t2, -4(sp)
    # phi start 
    # phi end 
    ret
@@ -595,9 +559,6 @@ Queue_int..size_entry:
    .globl Queue_int..doubleStorage
 Queue_int..doubleStorage:
    addi sp, sp, -40
-   sw t0, 28(sp)
-   sw t1, 32(sp)
-   sw t2, 36(sp)
    # phi start 
    # phi end 
    mv x3, a0
@@ -839,9 +800,6 @@ Queue_int..doubleStorage_while.back.0:
    # ret void
 
    addi sp, sp, 40
-   lw t0, -12(sp)
-   lw t1, -8(sp)
-   lw t2, -4(sp)
    # phi start 
    # phi end 
    ret
@@ -849,12 +807,9 @@ Queue_int..doubleStorage_while.back.0:
    .section .text
    .globl main
 main:
-   addi sp, sp, -68
-   sw t0, 56(sp)
-   sw t1, 60(sp)
    # phi start 
    # phi end 
-   sw t2, 64(sp)
+   addi sp, sp, -68
 
    .section .text
    .globl main_entry
@@ -986,9 +941,6 @@ main_if.then.2:
 
    li a0, 1
    addi sp, sp, 68
-   lw t0, -12(sp)
-   lw t1, -8(sp)
-   lw t2, -4(sp)
    # phi start 
    # phi end 
    ret
@@ -1070,9 +1022,6 @@ main_if.then.3:
 
    li a0, 1
    addi sp, sp, 68
-   lw t0, -12(sp)
-   lw t1, -8(sp)
-   lw t2, -4(sp)
    # phi start 
    # phi end 
    ret
@@ -1128,9 +1077,6 @@ main_if.then.4:
 
    li a0, 1
    addi sp, sp, 68
-   lw t0, -12(sp)
-   lw t1, -8(sp)
-   lw t2, -4(sp)
    # phi start 
    # phi end 
    ret
@@ -1194,9 +1140,6 @@ main_if.then.5:
 
    li a0, 1
    addi sp, sp, 68
-   lw t0, -12(sp)
-   lw t1, -8(sp)
-   lw t2, -4(sp)
    # phi start 
    # phi end 
    ret
@@ -1245,9 +1188,6 @@ main_for.back.1:
 
    li a0, 0
    addi sp, sp, 68
-   lw t0, -12(sp)
-   lw t1, -8(sp)
-   lw t2, -4(sp)
    # phi start 
    # phi end 
    ret

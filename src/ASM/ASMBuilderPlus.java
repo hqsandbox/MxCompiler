@@ -654,8 +654,8 @@ public class ASMBuilderPlus implements IRVisitor {
             int size = (callInstr.args.size() - 8) * 4;
             for(int i = 8; i < callInstr.args.size(); ++i){
                 int offSet = -size + 4 * (i - 8);
-                actual_load_entity(callInstr.args.get(i), "t0", callInstr.parent.parent);
-                currentText.instrList.add(new ASMSwInstr(currentText, "t0", "sp", offSet));
+                String r0 = loadIREntity(callInstr.args.get(i), "t0", callInstr.parent.parent);
+                currentText.instrList.add(new ASMSwInstr(currentText, r0, "sp", offSet));
             }
             currentText.instrList.add(new ASMArithImmInstr(currentText, "sp", "sp", "+", -size));
             currentText.instrList.add(new ASMCallInstr(currentText, callInstr.funcName));
@@ -740,13 +740,13 @@ public class ASMBuilderPlus implements IRVisitor {
 
     @Override public void visit(LoadInstr loadInstr){
         currentText.instrList.add(new ASMComment(currentText, loadInstr));
-        actual_load_entity(loadInstr.ptr, "t0", loadInstr.parent.parent);
+        String r0 = loadIREntity(loadInstr.ptr, "t0", loadInstr.parent.parent);
         if(isReg(loadInstr.result)){
             String reg = getVarReg(loadInstr.result.toString());
-            currentText.instrList.add(new ASMLwInstr(currentText, reg, "t0", 0));
+            currentText.instrList.add(new ASMLwInstr(currentText, reg, r0, 0));
         } else {
             int resultPlace = loadInstr.parent.parent.getPlace(loadInstr.result.toString());
-            currentText.instrList.add(new ASMLwInstr(currentText, "t1", "t0", 0));
+            currentText.instrList.add(new ASMLwInstr(currentText, "t1", r0, 0));
             currentText.instrList.add(new ASMSwInstr(currentText, "t1", "sp", resultPlace));
         }
     }

@@ -31,8 +31,7 @@ Queue_int..push_entry:
    mv x9, t0
    # %var4 = load ptr, ptr %var3
 
-   mv t0, x9
-   lw x9, 0(t0)
+   lw x9, 0(x9)
    # %var5 = call i32 @array.size(ptr %var4)
 
    sw ra, 20(sp)
@@ -104,8 +103,7 @@ Queue_int..push_if.back.0:
    mv x8, t0
    # %var12 = load ptr, ptr %var11
 
-   mv t0, x8
-   lw x8, 0(t0)
+   lw x8, 0(x8)
    # %var14 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 2
 
    mv t0, x4
@@ -116,8 +114,7 @@ Queue_int..push_if.back.0:
    mv x9, t0
    # %var15 = load i32, ptr %var14
 
-   mv t0, x9
-   lw x9, 0(t0)
+   lw x9, 0(x9)
    # %var16 = getelementptr i32, ptr %var12, i32 %var15
 
    mv t0, x8
@@ -147,8 +144,7 @@ Queue_int..push_if.back.0:
    mv x8, t0
    # %var24 = load i32, ptr %var23
 
-   mv t0, x8
-   lw x8, 0(t0)
+   lw x8, 0(x8)
    # %var25 = add i32 %var24, 1
 
    addi x8, x8, 1
@@ -162,8 +158,7 @@ Queue_int..push_if.back.0:
    mv x4, t0
    # %var28 = load ptr, ptr %var27
 
-   mv t0, x4
-   lw x4, 0(t0)
+   lw x4, 0(x4)
    # %var29 = call i32 @array.size(ptr %var28)
 
    sw ra, 20(sp)
@@ -278,8 +273,7 @@ Queue_int..pop_if.back.1:
    mv x9, t0
    # %var50 = load i32, ptr %var49
 
-   mv t0, x9
-   lw x9, 0(t0)
+   lw x9, 0(x9)
    # %var51 = add i32 %var50, 1
 
    addi x9, x9, 1
@@ -293,8 +287,7 @@ Queue_int..pop_if.back.1:
    mv x3, t0
    # %var54 = load ptr, ptr %var53
 
-   mv t0, x3
-   lw x3, 0(t0)
+   lw x3, 0(x3)
    # %var55 = call i32 @array.size(ptr %var54)
 
    sw ra, 20(sp)
@@ -408,8 +401,7 @@ Queue_int..top_entry:
    mv x4, t0
    # %var33 = load ptr, ptr %var32
 
-   mv t0, x4
-   lw x4, 0(t0)
+   lw x4, 0(x4)
    # %var35 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 1
 
    mv t0, x3
@@ -420,8 +412,7 @@ Queue_int..top_entry:
    mv x3, t0
    # %var36 = load i32, ptr %var35
 
-   mv t0, x3
-   lw x3, 0(t0)
+   lw x3, 0(x3)
    # %var37 = getelementptr i32, ptr %var33, i32 %var36
 
    mv t0, x4
@@ -432,8 +423,7 @@ Queue_int..top_entry:
    mv x3, t0
    # %var38 = load i32, ptr %var37
 
-   mv t0, x3
-   lw x3, 0(t0)
+   lw x3, 0(x3)
    # ret i32 %var38
 
    mv a0, x3
@@ -480,8 +470,7 @@ Queue_int..size_entry:
    mv x4, t0
    # %var60 = load i32, ptr %var59
 
-   mv t0, x4
-   lw x4, 0(t0)
+   lw x4, 0(x4)
    # %var62 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 0
 
    mv t0, x3
@@ -492,8 +481,7 @@ Queue_int..size_entry:
    mv x8, t0
    # %var63 = load ptr, ptr %var62
 
-   mv t0, x8
-   lw x8, 0(t0)
+   lw x8, 0(x8)
    # %var64 = call i32 @array.size(ptr %var63)
 
    sw ra, 12(sp)
@@ -518,8 +506,7 @@ Queue_int..size_entry:
    mv x8, t0
    # %var68 = load i32, ptr %var67
 
-   mv t0, x8
-   lw x8, 0(t0)
+   lw x8, 0(x8)
    # %var69 = sub i32 %var65, %var68
 
    sub x4, x4, x8
@@ -533,8 +520,7 @@ Queue_int..size_entry:
    mv x3, t0
    # %var72 = load ptr, ptr %var71
 
-   mv t0, x3
-   lw x3, 0(t0)
+   lw x3, 0(x3)
    # %var73 = call i32 @array.size(ptr %var72)
 
    sw ra, 12(sp)
@@ -576,8 +562,7 @@ Queue_int..doubleStorage_entry:
    mv x4, t0
    # %var77 = load ptr, ptr %var76
 
-   mv t0, x4
-   lw x4, 0(t0)
+   lw x4, 0(x4)
    # %var79 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 1
 
    mv t0, x3
@@ -588,8 +573,7 @@ Queue_int..doubleStorage_entry:
    mv x8, t0
    # %var80 = load i32, ptr %var79
 
-   mv t0, x8
-   lw x8, 0(t0)
+   lw x8, 0(x8)
    # %var82 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 2
 
    mv t0, x3
@@ -600,8 +584,7 @@ Queue_int..doubleStorage_entry:
    mv x9, t0
    # %var83 = load i32, ptr %var82
 
-   mv t0, x9
-   lw x9, 0(t0)
+   lw x9, 0(x9)
    # %var85 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 0
 
    mv t0, x3
@@ -712,8 +695,7 @@ Queue_int..doubleStorage_while.body.0:
    mv a0, t0
    # %var106 = load ptr, ptr %var105
 
-   mv t0, a0
-   lw a0, 0(t0)
+   lw a0, 0(a0)
    # %var108 = getelementptr %class..Queue_int, ptr %_this, i32 0, i32 2
 
    mv t0, x3
@@ -724,8 +706,7 @@ Queue_int..doubleStorage_while.body.0:
    mv a1, t0
    # %var109 = load i32, ptr %var108
 
-   mv t0, a1
-   lw a1, 0(t0)
+   lw a1, 0(a1)
    # %var110 = getelementptr i32, ptr %var106, i32 %var109
 
    mv t0, a0
@@ -744,8 +725,7 @@ Queue_int..doubleStorage_while.body.0:
    mv a1, t0
    # %var115 = load i32, ptr %var114
 
-   mv t0, a1
-   lw a1, 0(t0)
+   lw a1, 0(a1)
    # store i32 %var115, ptr %var110
 
    sw a1, 0(a0)
@@ -759,8 +739,7 @@ Queue_int..doubleStorage_while.body.0:
    mv a0, t0
    # %var118 = load i32, ptr %var117
 
-   mv t0, a0
-   lw a1, 0(t0)
+   lw a1, 0(a0)
    # %var119 = add i32 %var118, 1
 
    addi a1, a1, 1

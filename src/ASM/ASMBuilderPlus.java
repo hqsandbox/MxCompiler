@@ -697,22 +697,31 @@ public class ASMBuilderPlus implements IRVisitor {
 
     @Override public void visit(GeteleptrInstr geteleptrInstr){
         currentText.instrList.add(new ASMComment(currentText, geteleptrInstr));
+        String r2 = getVarReg(geteleptrInstr.result.toString());
 
         // 数组：只传一个参数
         // 类：肯定传两个参数，且第一个参数是0
-        if(geteleptrInstr.idxList.size() == 1){
-            String r0 = loadIREntity(geteleptrInstr.ptrValue, "t0", geteleptrInstr.parent.parent);
-            String r1 = loadIREntity(geteleptrInstr.idxList.getFirst(), "t1", geteleptrInstr.parent.parent);
-            currentText.instrList.add(new ASMArithImmInstr(currentText, "t1", r1, "<<", 2));
-            currentText.instrList.add(new ASMArithInstr(currentText, "t1", r0, "t0", "+"));
-        } else if(geteleptrInstr.idxList.size() == 2){
-            String r0 = loadIREntity(geteleptrInstr.ptrValue, "t0", geteleptrInstr.parent.parent);
-            String r1 = loadIREntity(geteleptrInstr.idxList.get(1), "t1", geteleptrInstr.parent.parent);
-            currentText.instrList.add(new ASMArithImmInstr(currentText, "t1", r1, "<<", 2));
-            currentText.instrList.add(new ASMArithInstr(currentText, "t1", r0, "t0", "+"));
+        if(r2 != null){
+            if(geteleptrInstr.idxList.size() == 1 || geteleptrInstr.idxList.size() == 2){
+                String r0 = loadIREntity(geteleptrInstr.ptrValue, "t0", geteleptrInstr.parent.parent);
+                String r1 = loadIREntity(geteleptrInstr.idxList.getLast(), "t1", geteleptrInstr.parent.parent);
+                currentText.instrList.add(new ASMArithImmInstr(currentText, "t1", r1, "<<", 2));
+                currentText.instrList.add(new ASMArithInstr(currentText, "t1", r0, r2, "+"));
+            } else {
+                throw new RuntimeException("geteleptrInstr: idxList.size() != 1 or 2");
+            }
         } else {
-            throw new RuntimeException("geteleptrInstr: idxList.size() != 1 or 2");
+            if(geteleptrInstr.idxList.size() == 1 || geteleptrInstr.idxList.size() == 2){
+                String r0 = loadIREntity(geteleptrInstr.ptrValue, "t0", geteleptrInstr.parent.parent);
+                String r1 = loadIREntity(geteleptrInstr.idxList.getLast(), "t1", geteleptrInstr.parent.parent);
+                currentText.instrList.add(new ASMArithImmInstr(currentText, "t1", r1, "<<", 2));
+                currentText.instrList.add(new ASMArithInstr(currentText, "t1", r0, "t0", "+"));
+                currentText.instrList.add(new ASMSwInstr(currentText, "t0", "sp", geteleptrInstr.parent.parent.getPlace(geteleptrInstr.result.toString())));
+            } else {
+                throw new RuntimeException("geteleptrInstr: idxList.size() != 1 or 2");
+            }
         }
+
 //        String r0 = loadIREntity(geteleptrInstr.ptrValue, "t0", geteleptrInstr.parent.parent);
 //        actual_load_entity(geteleptrInstr.ptrValue, "t0", geteleptrInstr.parent.parent);
 //        actual_load_entity(geteleptrInstr.idxList.getLast(), "t1", geteleptrInstr.parent.parent);
@@ -722,11 +731,11 @@ public class ASMBuilderPlus implements IRVisitor {
 //        currentText.instrList.add(new ASMArithInstr(currentText, "t1", "t0", "t0", "+"));
 
         // result: reg or stack
-        if(isReg(geteleptrInstr.result)){
-            currentText.instrList.add(new ASMMvInstr(currentText, getVarReg(geteleptrInstr.result.toString()), "t0"));
-        } else {
-            currentText.instrList.add(new ASMSwInstr(currentText, "t0", "sp", geteleptrInstr.parent.parent.getPlace(geteleptrInstr.result.toString())));
-        }
+//        if(isReg(geteleptrInstr.result)){
+//            currentText.instrList.add(new ASMMvInstr(currentText, getVarReg(geteleptrInstr.result.toString()), "t0"));
+//        } else {
+//            currentText.instrList.add(new ASMSwInstr(currentText, "t0", "sp", geteleptrInstr.parent.parent.getPlace(geteleptrInstr.result.toString())));
+//        }
     }
 
     @Override public void visit(IcmpInstr icmpInstr){

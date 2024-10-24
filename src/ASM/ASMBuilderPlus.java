@@ -30,6 +30,7 @@ public class ASMBuilderPlus implements IRVisitor {
     // 优化3：stackSize中 reg只统计用到的
     // 优化4：将 add等指令改成 addi
     // 优化5：去掉函数调用时保存的t0-t2
+    // 优化6：getElementPtr指令：只有两种情况，改成
 
     public IRProgram irProgram = null;
     public ASMProgram asmProgram = new ASMProgram();
@@ -386,28 +387,46 @@ public class ASMBuilderPlus implements IRVisitor {
         if(!lhsIsInt && rhsIsInt){
             if(op.equals("+") || op.equals("&") || op.equals("|") || op.equals("^") || op.equals("<<") || op.equals(">>")){
                 int imm = getInt(binaryInstr.rhs);
-                String r0 = loadIREntity(binaryInstr.lhs, "t0", binaryInstr.parent.parent);
-                if(r2 == null){
-                    int resultPlace = binaryInstr.parent.parent.getPlace(binaryInstr.result.toString());
-                    currentText.instrList.add(new ASMArithImmInstr(currentText, "t2", r0, binaryInstr.op, imm));
-                    currentText.instrList.add(new ASMSwInstr(currentText,"t2", "sp", resultPlace));
-                } else {
-                    currentText.instrList.add(new ASMArithImmInstr(currentText, r2, r0, binaryInstr.op, imm));
+                if(imm < 2040 && imm > -2040){
+                    String r0 = loadIREntity(binaryInstr.lhs, "t0", binaryInstr.parent.parent);
+                    if(r2 == null){
+                        int resultPlace = binaryInstr.parent.parent.getPlace(binaryInstr.result.toString());
+                        currentText.instrList.add(new ASMArithImmInstr(currentText, "t2", r0, binaryInstr.op, imm));
+                        currentText.instrList.add(new ASMSwInstr(currentText,"t2", "sp", resultPlace));
+                    } else {
+                        currentText.instrList.add(new ASMArithImmInstr(currentText, r2, r0, binaryInstr.op, imm));
+                    }
+                    return;
                 }
-                return;
+            }
+            if(op.equals("-")){
+                int imm = getInt(binaryInstr.rhs);
+                if(imm > -2040 && imm < 2040){
+                    String r0 = loadIREntity(binaryInstr.lhs, "t0", binaryInstr.parent.parent);
+                    if(r2 == null){
+                        int resultPlace = binaryInstr.parent.parent.getPlace(binaryInstr.result.toString());
+                        currentText.instrList.add(new ASMArithImmInstr(currentText, "t2", r0, "+", -imm));
+                        currentText.instrList.add(new ASMSwInstr(currentText,"t2", "sp", resultPlace));
+                    } else {
+                        currentText.instrList.add(new ASMArithImmInstr(currentText, r2, r0, "+", -imm));
+                    }
+                    return;
+                }
             }
         } else if (lhsIsInt && !rhsIsInt){
             if(op.equals("+") || op.equals("&") || op.equals("|") || op.equals("^")){
                 int imm = getInt(binaryInstr.lhs);
-                String r1 = loadIREntity(binaryInstr.rhs, "t1", binaryInstr.parent.parent);
-                if(r2 == null){
-                    int resultPlace = binaryInstr.parent.parent.getPlace(binaryInstr.result.toString());
-                    currentText.instrList.add(new ASMArithImmInstr(currentText, "t2", r1, binaryInstr.op, imm));
-                    currentText.instrList.add(new ASMSwInstr(currentText,"t2", "sp", resultPlace));
-                } else {
-                    currentText.instrList.add(new ASMArithImmInstr(currentText, r2, r1, binaryInstr.op, imm));
+                if(imm < 2040 && imm > -2040){
+                    String r1 = loadIREntity(binaryInstr.rhs, "t1", binaryInstr.parent.parent);
+                    if(r2 == null){
+                        int resultPlace = binaryInstr.parent.parent.getPlace(binaryInstr.result.toString());
+                        currentText.instrList.add(new ASMArithImmInstr(currentText, "t2", r1, binaryInstr.op, imm));
+                        currentText.instrList.add(new ASMSwInstr(currentText,"t2", "sp", resultPlace));
+                    } else {
+                        currentText.instrList.add(new ASMArithImmInstr(currentText, r2, r1, binaryInstr.op, imm));
+                    }
+                    return;
                 }
-                return;
             }
         }
         String r0 = loadIREntity(binaryInstr.lhs, "t0", binaryInstr.parent.parent);
@@ -679,17 +698,28 @@ public class ASMBuilderPlus implements IRVisitor {
     @Override public void visit(GeteleptrInstr geteleptrInstr){
         currentText.instrList.add(new ASMComment(currentText, geteleptrInstr));
 
-        if(geteleptrInstr.ptrValue.toString().equals("%_this")){
-//            System.out.println("debug");
+        // 数组：只传一个参数
+        // 类：肯定传两个参数，且第一个参数是0
+        if(geteleptrInstr.idxList.size() == 1){
+            String r0 = loadIREntity(geteleptrInstr.ptrValue, "t0", geteleptrInstr.parent.parent);
+            String r1 = loadIREntity(geteleptrInstr.idxList.getFirst(), "t1", geteleptrInstr.parent.parent);
+            currentText.instrList.add(new ASMArithImmInstr(currentText, "t1", r1, "<<", 2));
+            currentText.instrList.add(new ASMArithInstr(currentText, "t1", r0, "t0", "+"));
+        } else if(geteleptrInstr.idxList.size() == 2){
+            String r0 = loadIREntity(geteleptrInstr.ptrValue, "t0", geteleptrInstr.parent.parent);
+            String r1 = loadIREntity(geteleptrInstr.idxList.get(1), "t1", geteleptrInstr.parent.parent);
+            currentText.instrList.add(new ASMArithImmInstr(currentText, "t1", r1, "<<", 2));
+            currentText.instrList.add(new ASMArithInstr(currentText, "t1", r0, "t0", "+"));
+        } else {
+            throw new RuntimeException("geteleptrInstr: idxList.size() != 1 or 2");
         }
-
-        // 错误：这里是actual_load_entity，而不是loadIREntity
-        actual_load_entity(geteleptrInstr.ptrValue, "t0", geteleptrInstr.parent.parent);
-        actual_load_entity(geteleptrInstr.idxList.getLast(), "t1", geteleptrInstr.parent.parent);
-
-        currentText.instrList.add(new ASMLiInstr(currentText, "t2", 4));
-        currentText.instrList.add(new ASMArithInstr(currentText, "t1", "t2", "t1", "*"));
-        currentText.instrList.add(new ASMArithInstr(currentText, "t1", "t0", "t0", "+"));
+//        String r0 = loadIREntity(geteleptrInstr.ptrValue, "t0", geteleptrInstr.parent.parent);
+//        actual_load_entity(geteleptrInstr.ptrValue, "t0", geteleptrInstr.parent.parent);
+//        actual_load_entity(geteleptrInstr.idxList.getLast(), "t1", geteleptrInstr.parent.parent);
+//
+//        currentText.instrList.add(new ASMLiInstr(currentText, "t2", 4));
+//        currentText.instrList.add(new ASMArithInstr(currentText, "t1", "t2", "t1", "*"));
+//        currentText.instrList.add(new ASMArithInstr(currentText, "t1", "t0", "t0", "+"));
 
         // result: reg or stack
         if(isReg(geteleptrInstr.result)){

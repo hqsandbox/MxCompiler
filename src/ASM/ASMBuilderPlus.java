@@ -428,6 +428,34 @@ public class ASMBuilderPlus implements IRVisitor {
                     return;
                 }
             }
+        } else if(lhsIsInt && rhsIsInt){
+            int imm0 = getInt(binaryInstr.lhs);
+            int imm1 = getInt(binaryInstr.rhs);
+            int result;
+            switch (binaryInstr.op){
+                case "+" -> result = imm0 + imm1;
+                case "-" -> result = imm0 - imm1;
+                case "*" -> result = imm0 * imm1;
+                case "/" -> {
+                    if(imm1 == 0) result = 0; // 这段代码肯定到不了
+                    else result = imm0 / imm1;
+                }
+                case "%" -> result = imm0 % imm1;
+                case "<<" -> result = imm0 << imm1;
+                case ">>" -> result = imm0 >> imm1;
+                case "&" -> result = imm0 & imm1;
+                case "|" -> result = imm0 | imm1;
+                case "^" -> result = imm0 ^ imm1;
+                default -> throw new RuntimeException("BinaryInstr: op is not valid");
+            }
+            if(r2 == null){
+                int resultPlace = binaryInstr.parent.parent.getPlace(binaryInstr.result.toString());
+                currentText.instrList.add(new ASMLiInstr(currentText, "t2", result));
+                currentText.instrList.add(new ASMSwInstr(currentText,"t2", "sp", resultPlace));
+            } else {
+                currentText.instrList.add(new ASMLiInstr(currentText, r2, result));
+            }
+            return;
         }
         String r0 = loadIREntity(binaryInstr.lhs, "t0", binaryInstr.parent.parent);
         String r1 = loadIREntity(binaryInstr.rhs, "t1", binaryInstr.parent.parent);
@@ -698,6 +726,27 @@ public class ASMBuilderPlus implements IRVisitor {
     @Override public void visit(GeteleptrInstr geteleptrInstr){
         currentText.instrList.add(new ASMComment(currentText, geteleptrInstr));
         String r2 = getVarReg(geteleptrInstr.result.toString());
+        if(isInt(geteleptrInstr.idxList.getLast())){
+            int imm = getInt(geteleptrInstr.idxList.getLast());
+            imm = imm << 2;
+            // result = ptr + imm
+            if(r2 == null){
+                int resultPlace = geteleptrInstr.parent.parent.getPlace(geteleptrInstr.result.toString());
+                String r0 = loadIREntity(geteleptrInstr.ptrValue, "t0", geteleptrInstr.parent.parent);
+                if(imm < 2040 && imm > -2040){
+                    currentText.instrList.add(new ASMArithImmInstr(currentText, "t2", r0, "+", imm));
+                    currentText.instrList.add(new ASMSwInstr(currentText,"t2", "sp", resultPlace));
+                } else {
+                    currentText.instrList.add(new ASMLiInstr(currentText, "t2", imm));
+                    currentText.instrList.add(new ASMArithInstr(currentText, "t2", r0, "+", "t2"));
+                    currentText.instrList.add(new ASMSwInstr(currentText,"t2", "sp", resultPlace));
+                }
+            } else {
+                String r0 = loadIREntity(geteleptrInstr.ptrValue, "t0", geteleptrInstr.parent.parent);
+                currentText.instrList.add(new ASMArithImmInstr(currentText, r2, r0, "+", imm));
+            }
+            return;
+        }
 
         // 数组：只传一个参数
         // 类：肯定传两个参数，且第一个参数是0
@@ -740,13 +789,37 @@ public class ASMBuilderPlus implements IRVisitor {
 
     @Override public void visit(IcmpInstr icmpInstr){
         currentText.instrList.add(new ASMComment(currentText, icmpInstr));
-
-        String r0 = loadIREntity(icmpInstr.lhs, "t0", icmpInstr.parent.parent);
-        String r1 = loadIREntity(icmpInstr.rhs, "t1", icmpInstr.parent.parent);
         boolean isReg = isReg(icmpInstr.result);
         String rt = isReg ? getVarReg(icmpInstr.result.toString()) : "t0";
         int resultPlace = 0;
         if(!isReg) resultPlace = icmpInstr.parent.parent.getPlace(icmpInstr.result.toString());
+
+        if(isInt(icmpInstr.lhs) && isInt(icmpInstr.rhs)){
+            int lhs = getInt(icmpInstr.lhs);
+            int rhs = getInt(icmpInstr.rhs);
+            boolean result;
+            switch (icmpInstr.op) {
+                case ">" -> result = lhs > rhs;
+                case ">=" -> result = lhs >= rhs;
+                case "<" -> result = lhs < rhs;
+                case "<=" -> result = lhs <= rhs;
+                case "==" -> result = lhs == rhs;
+                case "!=" -> result = lhs != rhs;
+                default -> throw new RuntimeException("invalid icmp op");
+            }
+            if(result){
+                if(isReg) currentText.instrList.add(new ASMLiInstr(currentText, rt, 1));
+                else currentText.instrList.add(new ASMLiInstr(currentText, "t0", 1));
+            } else {
+                if(isReg) currentText.instrList.add(new ASMLiInstr(currentText, rt, 0));
+                else currentText.instrList.add(new ASMLiInstr(currentText, "t0", 0));
+            }
+            if(!isReg) currentText.instrList.add(new ASMSwInstr(currentText,"t0", "sp", resultPlace));
+            return;
+        }
+
+        String r0 = loadIREntity(icmpInstr.lhs, "t0", icmpInstr.parent.parent);
+        String r1 = loadIREntity(icmpInstr.rhs, "t1", icmpInstr.parent.parent);
 
         // t2 = t0 - t1, 然后t2传到 set指令里面
         // set指令：t0 <- t2

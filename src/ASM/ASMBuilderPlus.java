@@ -281,13 +281,6 @@ public class ASMBuilderPlus implements IRVisitor {
 
         irFuncDef.stackSize = stackSize;
         int paraSize = irFuncDef.parameterNameList.size();
-//        for(int i = 0; i < paraSize; ++i) {
-//            if(i >= 8){
-//                irFuncDef.offsetMap.put(irFuncDef.parameterNameList.get(i), stackSize + 4 * (i - 8));
-//            } else {
-//                irFuncDef.paraMap.put(irFuncDef.parameterNameList.get(i), "a" + i);
-//            }
-//        }
         ASMText startText = new ASMText(irFuncDef.functionName);
         asmProgram.TextList.add(startText);
 
@@ -307,13 +300,7 @@ public class ASMBuilderPlus implements IRVisitor {
             startText.instrList.add(new ASMLiInstr(currentText, "t0", -stackSize - 12));
             startText.instrList.add(new ASMArithInstr(currentText, "t0", "sp", "sp", "+"));
         }
-//        startText.instrList.add(new ASMSwInstr(currentText, "t0", "sp", stackSize));
-//        startText.instrList.add(new ASMSwInstr(currentText, "t1", "sp", stackSize + 4));
-//        startText.instrList.add(new ASMSwInstr(currentText, "t2", "sp", stackSize + 8));
 
-//        if(irFuncDef.functionName.equals("vector..init")){
-//                System.out.println("debug");
-//        }
         // 函数参数的载入
         // a0-a7 -> var(reg、stack)
         // 假设var全是局部变量（猜测）
@@ -331,10 +318,6 @@ public class ASMBuilderPlus implements IRVisitor {
                 // 函数参数在函数中没有被用到
             }
         }
-
-//        if(stackSize % 16 != 0){
-//            stackSize = (stackSize / 16 + 1) * 16;
-//        }
     }
 
     @Override public void visit(IRBlock irBlock) {
@@ -346,6 +329,15 @@ public class ASMBuilderPlus implements IRVisitor {
         phi_eliminator(irBlock);
 
         irBlock.instructions.forEach(instruction -> instruction.accept(this));
+    }
+
+    public ASMText getASMText(String name){
+        for(ASMText asmText : asmProgram.TextList){
+            if(asmText.label.equals(name)){
+                return asmText;
+            }
+        }
+        return null;
     }
 
     @Override public void visit(IRGlobalVariDef irGlobalVariDef){
@@ -471,6 +463,15 @@ public class ASMBuilderPlus implements IRVisitor {
     @Override public void visit(BrInstr brInstr){
         currentText.instrList.add(new ASMComment(currentText, brInstr));
         String r0 = getVarReg(brInstr.op.toString());
+        if(isInt(brInstr.op)){
+            int value = getInt(brInstr.op);
+            if(value == 0){
+                currentText.instrList.add(new ASMJInstr(currentText, brInstr.parent.parent.functionName + "_" + brInstr.rhs.name));
+            } else {
+                currentText.instrList.add(new ASMJInstr(currentText, brInstr.parent.parent.functionName + "_" + brInstr.lhs.name));
+            }
+            return;
+        }
         if(r0 == null){
             int place = brInstr.parent.parent.getPlace(brInstr.op.toString());
             currentText.instrList.add(new ASMLwInstr(currentText, "t0", "sp", place));
@@ -485,15 +486,7 @@ public class ASMBuilderPlus implements IRVisitor {
     public void callRegStore(CallInstr callInstr, int num, HashSet<String> regList){
         if(num > 8) num = 8;
         IRBlock block = callInstr.parent;
-//        for(int i = 0; i < num; ++i){
-//            int place = block.parent.getPlace("a" + i);
-//            currentText.instrList.add(new ASMSwInstr(currentText, "a" + i, "sp", place));
-//        }
-//        currentText.instrList.add(new ASMSwInstr(currentText, "t0", "sp", block.parent.getPlace("t0")));
-//        currentText.instrList.add(new ASMSwInstr(currentText, "t1", "sp", block.parent.getPlace("t1")));
-//        currentText.instrList.add(new ASMSwInstr(currentText, "t2", "sp", block.parent.getPlace("t2")));
-//        currentText.instrList.add(new ASMSwInstr(currentText, "t3", "sp", block.parent.getPlace("t3")));
-//        currentText.instrList.add(new ASMSwInstr(currentText, "t6", "sp", block.parent.getPlace("t6")));
+
         for(String reg : regList){
             currentText.instrList.add(new ASMSwInstr(currentText, reg, "sp", block.parent.getPlace(reg)));
         }
@@ -502,15 +495,6 @@ public class ASMBuilderPlus implements IRVisitor {
     public void callRegLoad(CallInstr callInstr, int num, HashSet<String> regList){
         if(num > 8) num = 8;
         IRBlock block = callInstr.parent;
-//        for(int i = 0; i < num; ++i){
-//            int place = block.parent.getPlace("a" + i);
-//            currentText.instrList.add(new ASMLwInstr(currentText, "a" + i, "sp", place));
-//        }
-//        currentText.instrList.add(new ASMLwInstr(currentText, "t0", "sp", block.parent.getPlace("t0")));
-//        currentText.instrList.add(new ASMLwInstr(currentText, "t1", "sp", block.parent.getPlace("t1")));
-//        currentText.instrList.add(new ASMLwInstr(currentText, "t2", "sp", block.parent.getPlace("t2")));
-//        currentText.instrList.add(new ASMLwInstr(currentText, "t3", "sp", block.parent.getPlace("t3")));
-//        currentText.instrList.add(new ASMLwInstr(currentText, "t6", "sp", block.parent.getPlace("t6")));
         for(String reg : regList){
             currentText.instrList.add(new ASMLwInstr(currentText, reg, "sp", block.parent.getPlace(reg)));
         }
@@ -524,11 +508,6 @@ public class ASMBuilderPlus implements IRVisitor {
     }
 
     public HashMap<Node, ArrayList<Node>> buildCallGraph(CallInstr callInstr){
-
-//        if(callInstr.funcName.equals("print") && callInstr.args.getFirst().toString().equals("@.str..0")){
-//            System.out.println("debug");
-//        }
-
         HashMap<Node, ArrayList<Node>> graph = new HashMap<>();
         int num = callInstr.args.size();
         if(num > 8) num = 8;
@@ -664,12 +643,31 @@ public class ASMBuilderPlus implements IRVisitor {
         }
     }
 
+    // 找出当前语句空闲的save寄存器
+    public ArrayList<String> findFreeSaveReg(HashSet<String> regList){
+        ArrayList<String> res = new ArrayList<>();
+        for(int i = 0; i < 12; ++i){
+            String reg = "s" + i;
+            boolean flag = false;
+            for(String tmp : regList){
+                if(tmp.equals(reg)){
+                    flag = true;
+                    break;
+                }
+            }
+            if(!flag){
+                res.add(reg);
+            }
+        }
+        return res;
+    }
+
     @Override public void visit(CallInstr callInstr){
         currentText.instrList.add(new ASMComment(currentText, callInstr));
 
         currentText.instrList.add(new ASMSwInstr(currentText, "ra", "sp", callInstr.parent.parent.stackSize - 4));
 
-        // 将function的 liveOut-def中用到的寄存器存下来
+        // 将call的 liveOut-def中用到的寄存器存下来
         HashSet<String> varList = callInstr.liveOut_;
         HashSet<String> regList = new HashSet<>();
         HashSet<String> removeList = new HashSet<>();
@@ -688,6 +686,25 @@ public class ASMBuilderPlus implements IRVisitor {
                 regList.add(reg);
             }
         }
+
+//        ArrayList<String> freeSaveReg = findFreeSaveReg(regList);
+//        for(int i = 0; i < freeSaveReg.size(); ++i){
+//            String reg = freeSaveReg.get(i);
+//            // 看这个寄存器是否在func里面用过
+//            boolean flag = false;
+//            for(int idx : callInstr.parent.parent.regMap.values()){
+//                String tmp = getReg(idx);
+//                if(tmp.equals(reg)){
+//                    flag = true;
+//                    break;
+//                }
+//            }
+//            // 如果没有用过，要在函数开头存下来
+//            if(!flag){
+//                ASMText headText = getASMText(callInstr.parent.parent.functionName);
+//                headText.instrList.add(new ASMSwInstr(headText, reg, "sp", callInstr.parent.parent.getPlace(reg)));
+//            }
+//        }
 
         // 错误：不能存储 a0-a7！
         // 存储 t0-t3, t6, 以及用到的变量
@@ -770,21 +787,6 @@ public class ASMBuilderPlus implements IRVisitor {
                 throw new RuntimeException("geteleptrInstr: idxList.size() != 1 or 2");
             }
         }
-
-//        String r0 = loadIREntity(geteleptrInstr.ptrValue, "t0", geteleptrInstr.parent.parent);
-//        actual_load_entity(geteleptrInstr.ptrValue, "t0", geteleptrInstr.parent.parent);
-//        actual_load_entity(geteleptrInstr.idxList.getLast(), "t1", geteleptrInstr.parent.parent);
-//
-//        currentText.instrList.add(new ASMLiInstr(currentText, "t2", 4));
-//        currentText.instrList.add(new ASMArithInstr(currentText, "t1", "t2", "t1", "*"));
-//        currentText.instrList.add(new ASMArithInstr(currentText, "t1", "t0", "t0", "+"));
-
-        // result: reg or stack
-//        if(isReg(geteleptrInstr.result)){
-//            currentText.instrList.add(new ASMMvInstr(currentText, getVarReg(geteleptrInstr.result.toString()), "t0"));
-//        } else {
-//            currentText.instrList.add(new ASMSwInstr(currentText, "t0", "sp", geteleptrInstr.parent.parent.getPlace(geteleptrInstr.result.toString())));
-//        }
     }
 
     @Override public void visit(IcmpInstr icmpInstr){
@@ -1039,14 +1041,9 @@ public class ASMBuilderPlus implements IRVisitor {
         return stackSize;
     }
 
-    public String allReg(Integer idx) {
-        String[] strings = {"x0", "x1", "x2", "x3", "x4", "t0", "t1", "t2", "x8", "x9", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "x18", "x19", "x20", "x21", "x22", "x23", "x24", "x25", "x26", "x27", "t3", "t4", "t5", "t6"};
-        return strings[idx];
-    }
-
     public String getReg(Integer idx) {
         // x0-x2, x5-x7, x28-x31 没有使用
-        String[] strings = {"x3", "x4", "x8", "x9", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "x18", "x19", "x20", "x21", "x22", "x23", "x24", "x25", "x26", "x27"};
+        String[] strings = {"x3", "x4", "s0", "s1", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11"};
         return strings[idx];
     }
 
@@ -1055,7 +1052,7 @@ public class ASMBuilderPlus implements IRVisitor {
     }
 
     public boolean nameIsReg(IREntity entity) {
-        String[] strings = {"x0", "x1", "x2", "x3", "x4", "t0", "t1", "t2", "x8", "x9", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "x18", "x19", "x20", "x21", "x22", "x23", "x24", "x25", "x26", "x27", "t3", "t4", "t5", "t6"};
+        String[] strings = {"x0", "x1", "x2", "x3", "x4", "t0", "t1", "t2", "s0", "s1", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"};
         for(String string : strings){
             if(entity.toString().equals(string)) return true;
         }

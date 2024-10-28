@@ -31,7 +31,7 @@ compile:
 
 .PHONY: run
 run:
-	cd bin && java -ea -cp /ulib/antlr-4.13.2-complete.jar:. Main
+	cd bin && java -Xss40M -ea -cp /ulib/antlr-4.13.2-complete.jar:. Main
 
 # .PHONY: visit
 # visit:

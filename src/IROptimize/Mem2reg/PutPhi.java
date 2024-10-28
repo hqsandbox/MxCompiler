@@ -147,6 +147,10 @@ public class PutPhi {
             block.instructions.remove((int)eraseList.get(i));
         }
 
+//        if(block.name.equals("land.end..1348")){
+//            System.out.println("debug");
+//        }
+
         // 重命名后继节点
         block.succs.forEach(IRBlock -> {
             IRBlock.phiInsts.forEach((var, phiInstr) -> {
